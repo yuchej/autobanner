@@ -250,8 +250,20 @@ const FORMAT_DATABASE = [
     ]
   },
   {
+    id: "fb-cover-brand-logo",
+    name: "FB Cover with Brand Logo",
+    category: "Social Media",
+    w: 851,
+    h: 315,
+    safe: { t: 25, b: 50, l: 25, r: 25 },
+    fonts: { h: ptToPx(50), hNoCTA: ptToPx(50), s: ptToPx(35), c: 0 },
+    variants: [
+      { id: "1col-logo-hs", label: "Brand Logo + Head + Sub", cols: 1, layout: "logo-headline-subhead", hasSub: true, hasCTA: false, requiresLogo: true }
+    ]
+  },
+  {
     id: "youtube-cover",
-    name: "Youtube Cover",
+    name: "YouTube Cover",
     category: "Social Media",
     w: 2560,
     h: 1440,
@@ -263,14 +275,14 @@ const FORMAT_DATABASE = [
   },
   {
     id: "youtube-cover-2-col",
-    name: "Youtube Cover 2 col",
+    name: "YouTube Cover with Brand Logo",
     category: "Social Media",
     w: 2560,
     h: 1440,
     safe: { t: 510, b: 510, l: 510, r: 510 },
     fonts: { h: ptToPx(100), hNoCTA: ptToPx(100), s: ptToPx(70), c: 0 },
     variants: [
-      { id: "2col-hs", label: "2 Column (Text Left, Graphic Right)", cols: 2, layout: "text-cta", hasSub: true, hasCTA: false, requiresLogo: false }
+      { id: "2col-hs-logo", label: "2 Column (Text Left, Brand Logo Right)", cols: 2, layout: "text-logo-right", hasSub: true, hasCTA: false, requiresLogo: true }
     ]
   },
   {
@@ -288,14 +300,14 @@ const FORMAT_DATABASE = [
   },
   {
     id: "x-header-2-col",
-    name: "X Header 2 col",
+    name: "X Header with Brand Logo",
     category: "Social Media",
     w: 1500,
     h: 500,
     safe: { t: 40, b: 40, l: 500, r: 40 },
     fonts: { h: ptToPx(75), hNoCTA: ptToPx(75), s: ptToPx(50), c: 0 },
     variants: [
-      { id: "2col-hs", label: "2 Column (Text Left, Graphic Right)", cols: 2, layout: "text-cta", hasSub: true, hasCTA: false, requiresLogo: false }
+      { id: "2col-hs-logo", label: "2 Column (Text Left, Brand Logo Right)", cols: 2, layout: "text-logo-right", hasSub: true, hasCTA: false, requiresLogo: true }
     ]
   },
   {
@@ -307,7 +319,19 @@ const FORMAT_DATABASE = [
     safe: { t: 60, b: 175, l: 60, r: 60 },
     fonts: { h: ptToPx(70), hNoCTA: ptToPx(70), s: ptToPx(50), c: 0 },
     variants: [
-      { id: "1col-hs", label: "1 Column (Head + Sub)", cols: 1, layout: "headline-subhead", hasSub: true, hasCTA: false, requiresLogo: true }
+      { id: "1col-hs", label: "1 Column (Head + Sub)", cols: 1, layout: "headline-subhead", hasSub: true, hasCTA: false, requiresLogo: false }
+    ]
+  },
+  {
+    id: "ig-post-brand-logo",
+    name: "IG Post with Brand Logo",
+    category: "Social Media",
+    w: 1080,
+    h: 1350,
+    safe: { t: 60, b: 175, l: 60, r: 60 },
+    fonts: { h: ptToPx(70), hNoCTA: ptToPx(70), s: ptToPx(50), c: 0 },
+    variants: [
+      { id: "1col-logo-hs", label: "Brand Logo + Head + Sub", cols: 1, layout: "logo-headline-subhead", hasSub: true, hasCTA: false, requiresLogo: true }
     ]
   },
   {
@@ -323,6 +347,18 @@ const FORMAT_DATABASE = [
     ]
   },
   {
+    id: "ig-story-brand-logo",
+    name: "IG Story with Brand Logo",
+    category: "Social Media",
+    w: 1080,
+    h: 1920,
+    safe: { t: 250, b: 250, l: 60, r: 60 },
+    fonts: { h: ptToPx(70), hNoCTA: ptToPx(70), s: ptToPx(50), c: ptToPx(48) },
+    variants: [
+      { id: "1col-logo-hsc", label: "Brand Logo + Head + Sub + CTA", cols: 1, layout: "logo-headline-subhead-cta", hasSub: true, hasCTA: true, requiresLogo: true }
+    ]
+  },
+  {
     id: "ig-link-bio",
     name: "IG Link in Bio",
     category: "Social Media",
@@ -332,6 +368,18 @@ const FORMAT_DATABASE = [
     fonts: { h: ptToPx(60), hNoCTA: ptToPx(60), s: ptToPx(40), c: 0 },
     variants: [
       { id: "1col-hs", label: "1 Column (Head + Sub)", cols: 1, layout: "headline-subhead", hasSub: true, hasCTA: false, requiresLogo: false }
+    ]
+  },
+  {
+    id: "ig-link-bio-brand-logo",
+    name: "IG Link in Bio with Brand Logo",
+    category: "Social Media",
+    w: 860,
+    h: 490,
+    safe: { t: 40, b: 40, l: 40, r: 40 },
+    fonts: { h: ptToPx(60), hNoCTA: ptToPx(60), s: ptToPx(40), c: 0 },
+    variants: [
+      { id: "1col-logo-hs", label: "Brand Logo + Head + Sub", cols: 1, layout: "logo-headline-subhead", hasSub: true, hasCTA: false, requiresLogo: true }
     ]
   },
   {
@@ -394,7 +442,8 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
   const brandRed = "#e90044";
   const getTextLines = (text) => text ? text.replace(/\r/g, "").split("\n").map((line) => line.trim()).filter((line) => line.length > 0) : [];
   const getLogoSize = (maxWidth, maxHeight) => {
-    const scaleMultiplier = logoScale / 100;
+    const brandLogoFormatScale = format.id === "fb-cover-brand-logo" ? 0.75 : format.id === "youtube-cover-2-col" || format.id === "x-header-2-col" ? 0.5 : 1;
+    const scaleMultiplier = logoScale / 100 * brandLogoFormatScale;
     let w, h;
     if (logoImage) {
       const scale = Math.min(maxWidth / logoImage.width, maxHeight / logoImage.height);
@@ -403,6 +452,10 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
     } else {
       w = Math.min(160, maxWidth);
       h = Math.min(50, maxHeight);
+      if (format.id === "youtube-cover-2-col") {
+        w *= 4;
+        h *= 4;
+      }
     }
     return { w: w * scaleMultiplier, h: h * scaleMultiplier };
   };
@@ -484,7 +537,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
   const calculateTextStack = (targetW, targetH, isCenter = false) => {
     const currentHFont = showCTA ? fonts.h : fonts.hNoCTA || fonts.h;
     const currentSFont = fonts.s;
-    let gap = 16;
+    let gap = format.id === "fb-cover-brand-logo" || format.id === "ig-story-brand-logo" || format.id === "ig-link-bio-brand-logo" ? 8 : 16;
     const linesH = getTextLines(headline);
     const linesS = variant.hasSub ? getTextLines(subhead) : [];
     let ctaStats = { w: 0, h: 0 };
@@ -1208,7 +1261,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
     drawShortsCoverLayout();
   } else if (variant.cols === 1) {
     let logoBounds = { w: 0, h: 0 };
-    const logoGap = 24;
+    const logoGap = format.id === "ig-story-brand-logo" ? 32 : format.id === "fb-cover-brand-logo" ? 8 : format.id === "ig-link-bio-brand-logo" ? 24 : format.id === "ig-post-brand-logo" ? 32 : 24;
     let align = variant.layout.includes("left-align") ? "left" : "center";
     let drawXAlign = align === "center" ? sX + sW / 2 : sX;
     if (variant.layout.includes("logo")) {
@@ -1237,7 +1290,22 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       queueCTA(drawXAlign, startY, ctaText, align);
     }
   } else if (variant.cols === 2) {
-    if (variant.layout === "text-cta") {
+    if (variant.layout === "text-logo-right") {
+      const tW = sW * 0.64;
+      const lW = sW * 0.36;
+      const stack = calculateTextStack(tW - 40, sH, false);
+      let tStartY = sY + (sH - stack.totalH) / 2;
+      stack.linesH.forEach((l, i) => {
+        queueTextLine(l, sX, tStartY + i * stack.currentHFont * 1.2, "left", headlineColor, `900 ${stack.currentHFont}px "Noto Sans SC", "Roboto"`);
+      });
+      tStartY += stack.linesH.length * stack.currentHFont * 1.2 + stack.gap;
+      if (stack.linesS.length > 0) {
+        stack.linesS.forEach((l, i) => {
+          queueTextLine(l, sX, tStartY + i * stack.currentSFont * 1.4, "left", subheadColor, `400 ${stack.currentSFont}px "Noto Sans SC", "Roboto"`);
+        });
+      }
+      queueLogo(sX + tW, sY, lW, sH, format.id === "youtube-cover-2-col" ? "right" : "center", "middle");
+    } else if (variant.layout === "text-cta") {
       const tW = sW * 0.64;
       const cW = sW * 0.36;
       const stack = calculateTextStack(tW - 40, sH, false);
@@ -1342,11 +1410,13 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       }
     }
   }
-  if (format.id === "ig-post") {
+  if (format.id === "ig-post" || format.id === "ig-post-brand-logo") {
+    const queuedBrandLogo = drawQueue.logo;
     drawQueue.logo = () => {
+      if (queuedBrandLogo) queuedBrandLogo();
       if (igPostLogoImage) ctx.drawImage(igPostLogoImage, 947, 1213, 90, 90);
     };
-    hitBoxes.logo = { x: 947, y: 1213, w: 90, h: 90 };
+    if (format.id === "ig-post") hitBoxes.logo = { x: 947, y: 1213, w: 90, h: 90 };
   }
   layerOrder.forEach((layer) => {
     if (layer === "bg" && drawQueue.bg) drawQueue.bg();
@@ -1619,7 +1689,7 @@ function App() {
     layerOrder: ["bg", "kv", "logo", "text", "cta"],
     // Default: bottom to top
     showCTA: true,
-    showLogo: true,
+    showLogo: false,
     // New Global Logo Toggle
     showKV: true,
     // New Global KV Toggle
@@ -1673,20 +1743,7 @@ function App() {
     selectedCategories.forEach((cat) => {
       const formatsInCategory = FORMAT_DATABASE.filter((f) => f.category === cat).map((f) => {
         const validVariants = f.variants.filter((v) => {
-          if (f.category === "Video Graphics") return true;
-          if (f.category === "Traffic Driver") {
-            if (!globalSettings.strictMode) return true;
-            const hasLogo2 = !!assets.logoImage && globalSettings.showLogo;
-            if (hasLogo2 && !v.requiresLogo) return false;
-            if (!globalSettings.showLogo && v.requiresLogo) return false;
-            if (!globalSettings.showCTA && v.hasCTA) return false;
-            return true;
-          }
-          if (!globalSettings.strictMode) return true;
-          const hasLogo = !!assets.logoImage && globalSettings.showLogo;
-          if (hasLogo !== !!v.requiresLogo) return false;
-          if (globalSettings.showCTA !== !!v.hasCTA) return false;
-          return true;
+          return globalSettings.showLogo === !!v.requiresLogo;
         });
         return { ...f, variants: validVariants };
       }).filter((f) => f.variants.length > 0);
@@ -2394,7 +2451,7 @@ function App() {
     if (type === "cta") return "CALL TO ACTION";
     return "";
   };
-  return /* @__PURE__ */ React.createElement("div", { className: "flex flex-col h-screen font-sans bg-bgCore text-textPri" }, /* @__PURE__ */ React.createElement("header", { className: "h-14 bg-sidebar border-b border-borderMain flex items-center justify-between px-6 z-20 shrink-0 shadow-sm" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3" }, /* @__PURE__ */ React.createElement("div", { className: "w-7 h-7 rounded-lg bg-brandRed flex items-center justify-center text-white font-black text-xs shadow-inner" }, "A"), /* @__PURE__ */ React.createElement("h1", { className: "font-bold text-white tracking-tight" }, "AutoBanner Engine ", /* @__PURE__ */ React.createElement("span", { className: "text-[10px] text-brandRed bg-brandRed/10 border border-brandRed/20 px-2 py-0.5 rounded ml-2 uppercase font-mono tracking-wider" }, "v3.0a Production"))), /* @__PURE__ */ React.createElement("div", { className: "flex gap-3" }, /* @__PURE__ */ React.createElement("button", { onClick: () => setIsReviewModalOpen(true), className: "bg-surfaceElevated hover:bg-borderInput border border-borderMain text-white font-bold py-1.5 px-4 rounded-md text-xs transition shadow flex items-center gap-2" }, /* @__PURE__ */ React.createElement("div", { className: "w-4 h-4 bg-brandRed rounded-sm flex items-center justify-center text-[9px]" }, approvedBanners.size), "Review Approved"))), /* @__PURE__ */ React.createElement("div", { className: "flex flex-1 overflow-hidden" }, /* @__PURE__ */ React.createElement("aside", { className: "w-[320px] bg-sidebar border-r border-borderMain flex flex-col shrink-0 z-10 overflow-y-auto" }, /* @__PURE__ */ React.createElement("div", { className: "p-6 space-y-8" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-[0.2em] mb-4" }, "1. Campaign Formats"), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-2 gap-2.5" }, CATEGORIES.map((cat) => /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ React.createElement("div", { className: "flex flex-col h-screen font-sans bg-bgCore text-textPri" }, /* @__PURE__ */ React.createElement("header", { className: "h-14 bg-sidebar border-b border-borderMain flex items-center justify-between px-6 z-20 shrink-0 shadow-sm" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3" }, /* @__PURE__ */ React.createElement("div", { className: "w-7 h-7 rounded-lg bg-brandRed flex items-center justify-center text-white font-black text-xs shadow-inner" }, "A"), /* @__PURE__ */ React.createElement("h1", { className: "font-bold text-white tracking-tight" }, "AutoBanner Engine ", /* @__PURE__ */ React.createElement("span", { className: "text-[10px] text-brandRed bg-brandRed/10 border border-brandRed/20 px-2 py-0.5 rounded ml-2 uppercase font-mono tracking-wider" }, "v3.0 Production"))), /* @__PURE__ */ React.createElement("div", { className: "flex gap-3" }, /* @__PURE__ */ React.createElement("button", { onClick: () => setIsReviewModalOpen(true), className: "bg-surfaceElevated hover:bg-borderInput border border-borderMain text-white font-bold py-1.5 px-4 rounded-md text-xs transition shadow flex items-center gap-2" }, /* @__PURE__ */ React.createElement("div", { className: "w-4 h-4 bg-brandRed rounded-sm flex items-center justify-center text-[9px]" }, approvedBanners.size), "Review Approved"))), /* @__PURE__ */ React.createElement("div", { className: "flex flex-1 overflow-hidden" }, /* @__PURE__ */ React.createElement("aside", { className: "w-[320px] bg-sidebar border-r border-borderMain flex flex-col shrink-0 z-10 overflow-y-auto" }, /* @__PURE__ */ React.createElement("div", { className: "p-6 space-y-8" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-[0.2em] mb-4" }, "1. Campaign Formats"), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-2 gap-2.5" }, CATEGORIES.map((cat) => /* @__PURE__ */ React.createElement(
     "button",
     {
       key: cat,
@@ -2417,7 +2474,7 @@ function App() {
         className: `bg-surface border border-borderInput rounded-xl transition-all shadow-sm flex flex-col overflow-hidden ${draggedLayerIdx === realIndex ? "opacity-50 border-brandRed shadow-lg" : "hover:border-textMut"}`
       },
       /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3 p-3 bg-surfaceElevated border-b border-borderMain/50 cursor-move" }, /* @__PURE__ */ React.createElement("svg", { className: "text-textMut", width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" }, /* @__PURE__ */ React.createElement("circle", { cx: "9", cy: "12", r: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: "9", cy: "5", r: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: "9", cy: "19", r: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: "15", cy: "12", r: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: "15", cy: "5", r: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: "15", cy: "19", r: "1" })), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 text-[10px] font-bold text-white uppercase tracking-widest pointer-events-none" }, /* @__PURE__ */ React.createElement(LayerIcon, { type: "layer" }), /* @__PURE__ */ React.createElement("span", { className: "translate-y-px" }, layer === "bg" ? "BACKGROUND" : layer === "kv" ? "KEY VISUAL" : layer === "logo" ? "BRAND LOGO" : layer === "text" ? "SMART TEXT" : "CALL TO ACTION"))),
-      /* @__PURE__ */ React.createElement("div", { className: "p-3 bg-surface" }, layer === "bg" && /* @__PURE__ */ React.createElement("div", { className: "relative border border-dashed border-borderMain rounded-lg bg-bgCore hover:border-textMut transition cursor-pointer p-2.5 flex items-center gap-3" }, /* @__PURE__ */ React.createElement("input", { type: "file", className: "absolute inset-0 w-full h-full opacity-0 cursor-pointer", accept: "image/*", onChange: (e) => handleUpload(e, "bg") }), /* @__PURE__ */ React.createElement("div", { className: "w-8 h-8 rounded bg-surfaceElevated flex items-center justify-center overflow-hidden shrink-0 border border-borderInput" }, assets.bgImage ? /* @__PURE__ */ React.createElement("img", { src: assets.bgImage.src, className: "w-full h-full object-cover" }) : /* @__PURE__ */ React.createElement(LayerIcon, { type: "bg" })), /* @__PURE__ */ React.createElement("span", { className: "text-[11px] font-medium text-textPri truncate" }, fileNames.bg || "Upload Background Image")), layer === "kv" && /* @__PURE__ */ React.createElement("div", { className: "space-y-3" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Enable KV Layer"), /* @__PURE__ */ React.createElement("button", { onClick: () => setGlobalSettings({ ...globalSettings, showKV: !globalSettings.showKV }), className: `w-8 h-4 rounded-full relative transition-colors ${globalSettings.showKV ? "bg-brandRed" : "bg-borderInput"}` }, /* @__PURE__ */ React.createElement("div", { className: `w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${globalSettings.showKV ? "left-4.5" : "left-0.5"}` }))), globalSettings.showKV && /* @__PURE__ */ React.createElement("div", { className: "space-y-2 mt-2 bg-bgCore p-2 rounded-lg border border-borderMain/50" }, assets.kvImages.map((kv) => /* @__PURE__ */ React.createElement("div", { key: kv.id, className: "flex items-center justify-between bg-surface border border-borderInput rounded-md p-1.5 shadow-sm" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3 overflow-hidden" }, /* @__PURE__ */ React.createElement("div", { className: "w-6 h-6 bg-surfaceElevated rounded flex items-center justify-center shrink-0 border border-borderMain" }, /* @__PURE__ */ React.createElement("img", { src: kv.img.src, className: "max-w-full max-h-full object-contain" })), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-medium text-textPri truncate" }, kv.name)), /* @__PURE__ */ React.createElement("button", { onClick: () => setAssets((prev) => ({ ...prev, kvImages: prev.kvImages.filter((k) => k.id !== kv.id) })), className: "text-textMut hover:text-brandRed transition px-1.5 py-1 bg-bgCore rounded border border-transparent hover:border-brandRed/30" }, /* @__PURE__ */ React.createElement("svg", { width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" }, /* @__PURE__ */ React.createElement("line", { x1: "18", y1: "6", x2: "6", y2: "18" }), /* @__PURE__ */ React.createElement("line", { x1: "6", y1: "6", x2: "18", y2: "18" }))))), /* @__PURE__ */ React.createElement("button", { onClick: () => document.getElementById("kv-upload").click(), className: "w-full py-2 bg-surfaceElevated border border-borderInput border-dashed rounded-md text-[11px] font-bold text-textDim hover:text-white hover:border-brandRed hover:bg-brandRed/5 transition flex items-center justify-center gap-2" }, /* @__PURE__ */ React.createElement("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" }, /* @__PURE__ */ React.createElement("line", { x1: "12", y1: "5", x2: "12", y2: "19" }), /* @__PURE__ */ React.createElement("line", { x1: "5", y1: "12", x2: "19", y2: "12" })), "ADD KV ELEMENT"), /* @__PURE__ */ React.createElement("input", { id: "kv-upload", type: "file", className: "hidden", accept: "image/png, image/svg+xml", onChange: handleUploadKV }))), layer === "logo" && /* @__PURE__ */ React.createElement("div", { className: "space-y-3" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Enable Logo Layer"), /* @__PURE__ */ React.createElement("button", { onClick: () => setGlobalSettings({ ...globalSettings, showLogo: !globalSettings.showLogo, strictMode: true }), className: `w-8 h-4 rounded-full relative transition-colors ${globalSettings.showLogo ? "bg-brandRed" : "bg-borderInput"}` }, /* @__PURE__ */ React.createElement("div", { className: `w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${globalSettings.showLogo ? "left-4.5" : "left-0.5"}` }))), globalSettings.showLogo && /* @__PURE__ */ React.createElement("div", { className: "relative border border-dashed border-borderMain rounded-lg bg-bgCore hover:border-textMut transition cursor-pointer p-2.5 flex items-center gap-3" }, /* @__PURE__ */ React.createElement("input", { type: "file", className: "absolute inset-0 w-full h-full opacity-0 cursor-pointer", accept: "image/png, image/svg+xml", onChange: (e) => handleUpload(e, "logo") }), /* @__PURE__ */ React.createElement("div", { className: "w-8 h-8 rounded bg-surfaceElevated flex items-center justify-center overflow-hidden shrink-0 border border-borderInput p-1" }, assets.logoImage ? /* @__PURE__ */ React.createElement("img", { src: assets.logoImage.src, className: "w-full h-full object-contain" }) : /* @__PURE__ */ React.createElement(LayerIcon, { type: "logo" })), /* @__PURE__ */ React.createElement("span", { className: "text-[11px] font-medium text-textPri truncate" }, fileNames.logo || "Upload SVG / PNG Logo"))), layer === "text" && /* @__PURE__ */ React.createElement("div", { className: "space-y-4" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut mb-1.5 uppercase tracking-wider" }, "Headline Payload"), /* @__PURE__ */ React.createElement("textarea", { value: globalPayload.headline, onChange: (e) => {
+      /* @__PURE__ */ React.createElement("div", { className: "p-3 bg-surface" }, layer === "bg" && /* @__PURE__ */ React.createElement("div", { className: "relative border border-dashed border-borderMain rounded-lg bg-bgCore hover:border-textMut transition cursor-pointer p-2.5 flex items-center gap-3" }, /* @__PURE__ */ React.createElement("input", { type: "file", className: "absolute inset-0 w-full h-full opacity-0 cursor-pointer", accept: "image/*", onChange: (e) => handleUpload(e, "bg") }), /* @__PURE__ */ React.createElement("div", { className: "w-8 h-8 rounded bg-surfaceElevated flex items-center justify-center overflow-hidden shrink-0 border border-borderInput" }, assets.bgImage ? /* @__PURE__ */ React.createElement("img", { src: assets.bgImage.src, className: "w-full h-full object-cover" }) : /* @__PURE__ */ React.createElement(LayerIcon, { type: "bg" })), /* @__PURE__ */ React.createElement("span", { className: "text-[11px] font-medium text-textPri truncate" }, fileNames.bg || "Upload Background Image")), layer === "kv" && /* @__PURE__ */ React.createElement("div", { className: "space-y-3" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Enable KV Layer"), /* @__PURE__ */ React.createElement("button", { onClick: () => setGlobalSettings({ ...globalSettings, showKV: !globalSettings.showKV }), className: `w-8 h-4 rounded-full relative transition-colors ${globalSettings.showKV ? "bg-brandRed" : "bg-borderInput"}` }, /* @__PURE__ */ React.createElement("div", { className: `w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${globalSettings.showKV ? "left-4.5" : "left-0.5"}` }))), globalSettings.showKV && /* @__PURE__ */ React.createElement("div", { className: "space-y-2 mt-2 bg-bgCore p-2 rounded-lg border border-borderMain/50" }, assets.kvImages.map((kv) => /* @__PURE__ */ React.createElement("div", { key: kv.id, className: "flex items-center justify-between bg-surface border border-borderInput rounded-md p-1.5 shadow-sm" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3 overflow-hidden" }, /* @__PURE__ */ React.createElement("div", { className: "w-6 h-6 bg-surfaceElevated rounded flex items-center justify-center shrink-0 border border-borderMain" }, /* @__PURE__ */ React.createElement("img", { src: kv.img.src, className: "max-w-full max-h-full object-contain" })), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-medium text-textPri truncate" }, kv.name)), /* @__PURE__ */ React.createElement("button", { onClick: () => setAssets((prev) => ({ ...prev, kvImages: prev.kvImages.filter((k) => k.id !== kv.id) })), className: "text-textMut hover:text-brandRed transition px-1.5 py-1 bg-bgCore rounded border border-transparent hover:border-brandRed/30" }, /* @__PURE__ */ React.createElement("svg", { width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" }, /* @__PURE__ */ React.createElement("line", { x1: "18", y1: "6", x2: "6", y2: "18" }), /* @__PURE__ */ React.createElement("line", { x1: "6", y1: "6", x2: "18", y2: "18" }))))), /* @__PURE__ */ React.createElement("button", { onClick: () => document.getElementById("kv-upload").click(), className: "w-full py-2 bg-surfaceElevated border border-borderInput border-dashed rounded-md text-[11px] font-bold text-textDim hover:text-white hover:border-brandRed hover:bg-brandRed/5 transition flex items-center justify-center gap-2" }, /* @__PURE__ */ React.createElement("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" }, /* @__PURE__ */ React.createElement("line", { x1: "12", y1: "5", x2: "12", y2: "19" }), /* @__PURE__ */ React.createElement("line", { x1: "5", y1: "12", x2: "19", y2: "12" })), "ADD KV ELEMENT"), /* @__PURE__ */ React.createElement("input", { id: "kv-upload", type: "file", className: "hidden", accept: "image/png, image/svg+xml", onChange: handleUploadKV }))), layer === "logo" && /* @__PURE__ */ React.createElement("div", { className: "space-y-3" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Brand Logo required"), /* @__PURE__ */ React.createElement("button", { onClick: () => setGlobalSettings({ ...globalSettings, showLogo: !globalSettings.showLogo }), className: `w-8 h-4 rounded-full relative transition-colors ${globalSettings.showLogo ? "bg-brandRed" : "bg-borderInput"}` }, /* @__PURE__ */ React.createElement("div", { className: `w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${globalSettings.showLogo ? "left-4.5" : "left-0.5"}` }))), globalSettings.showLogo && /* @__PURE__ */ React.createElement("div", { className: "relative border border-dashed border-borderMain rounded-lg bg-bgCore hover:border-textMut transition cursor-pointer p-2.5 flex items-center gap-3" }, /* @__PURE__ */ React.createElement("input", { type: "file", className: "absolute inset-0 w-full h-full opacity-0 cursor-pointer", accept: "image/png, image/svg+xml", onChange: (e) => handleUpload(e, "logo") }), /* @__PURE__ */ React.createElement("div", { className: "w-8 h-8 rounded bg-surfaceElevated flex items-center justify-center overflow-hidden shrink-0 border border-borderInput p-1" }, assets.logoImage ? /* @__PURE__ */ React.createElement("img", { src: assets.logoImage.src, className: "w-full h-full object-contain" }) : /* @__PURE__ */ React.createElement(LayerIcon, { type: "logo" })), /* @__PURE__ */ React.createElement("span", { className: "text-[11px] font-medium text-textPri truncate" }, fileNames.logo || "Upload SVG / PNG Logo"))), layer === "text" && /* @__PURE__ */ React.createElement("div", { className: "space-y-4" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut mb-1.5 uppercase tracking-wider" }, "Headline Payload"), /* @__PURE__ */ React.createElement("textarea", { value: globalPayload.headline, onChange: (e) => {
         setGlobalPayload((p) => ({ ...p, headline: e.target.value }));
         applyToAll("headline", e.target.value);
       }, rows: 3, placeholder: "Use Enter to create a new line", className: "w-full bg-bgCore border border-borderInput rounded-md p-2.5 text-xs font-medium text-white focus:outline-none focus:border-brandRed shadow-inner resize-y" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut mb-1.5 uppercase tracking-wider" }, "Subhead Payload"), /* @__PURE__ */ React.createElement("textarea", { value: globalPayload.subhead, onChange: (e) => {
