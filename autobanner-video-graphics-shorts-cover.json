@@ -1,0 +1,238 @@
+{
+  "video_graphics": {
+    "vertical_youtube_instagram_tiktok_shorts_cover": {
+      "item_name": "Vertical Youtube, Instagram, Tiktok Shorts Cover",
+      "source_reference": {
+        "file": "socialmedia-shorts-cover.ai",
+        "pages": 5,
+        "coordinate_source": "Illustrator file measurements",
+        "note": "The Illustrator artboards represent default text and quotation scenarios, not five separate fixed templates."
+      },
+      "require_zaobao_logo": false,
+      "require_brand_logo": false,
+      "has_call_to_action": false,
+      "lock_elements": true,
+      "canvas": {
+        "width": 1080,
+        "height": 1920
+      },
+      "safe_zone": {
+        "left": 90,
+        "top": 400,
+        "right": 90,
+        "bottom": 400
+      },
+      "blue_area": {
+        "description": "Blue guide bands mark safe-zone padding only.",
+        "padding": {
+          "left": 90,
+          "top": 400,
+          "right": 90,
+          "bottom": 400
+        }
+      },
+      "content_area": {
+        "x": 90,
+        "y": 400,
+        "width": 900,
+        "height": 1120,
+        "background": "black",
+        "clip_content": true
+      },
+      "controls": {
+        "gradient_overlay": {
+          "label": "Gradient Overlay",
+          "type": "toggle",
+          "default_visible": true,
+          "asset": "Gradient Shorts Cover.png",
+          "layer_position": "above_background_below_kv_and_text"
+        },
+        "quotation_name": {
+          "label": "Quotation mark + Name",
+          "type": "fixed_with_text_override",
+          "default_visible": true,
+          "toggle_allowed": false,
+          "quotation_mark": {
+            "type": "image",
+            "asset": "Quotation Shorts Cover.png"
+          },
+          "name": {
+            "default_text": "某某某",
+            "override_text": "",
+            "max_lines": 2,
+            "do_not_condense_or_scale_text": true
+          },
+          "available_on": "quote_layout"
+        },
+        "default_text_placement": {
+          "label": "Text Placement",
+          "type": "segmented_control",
+          "options": [
+            "top",
+            "middle",
+            "bottom"
+          ],
+          "default_value": "middle",
+          "available_on": "default_text"
+        },
+        "quote_text_placement": {
+          "label": "Text Placement",
+          "type": "segmented_control",
+          "options": [
+            "text_above_red_line",
+            "text_below_red_line"
+          ],
+          "default_value": "text_below_red_line",
+          "available_on": "quote_layout"
+        },
+        "text_line_1": {
+          "label": "Text Line 1",
+          "type": "text_override",
+          "visibility_rule": "hidden_when_text_is_empty",
+          "default_text": "大标题大标题",
+          "font_size_pt": 72
+        },
+        "text_line_2": {
+          "label": "Text Line 2",
+          "type": "text_override",
+          "visibility_rule": "hidden_when_text_is_empty",
+          "default_text": "小标题小标题",
+          "font_size_pt": 72
+        }
+      },
+      "layouts": {
+        "default_text": {
+          "type": "vertical_shorts_cover_video_graphic",
+          "source_illustrator_pages": [
+            1,
+            2,
+            3
+          ],
+          "align": "center",
+          "placement_options": {
+            "top": {
+              "line_y": 440,
+              "text_line_1_y": 568,
+              "text_line_2_y": 660
+            },
+            "middle": {
+              "line_y": 1012,
+              "text_line_1_y": 1140,
+              "text_line_2_y": 1232
+            },
+            "bottom": {
+              "line_y": 1195,
+              "text_line_1_y": 1309,
+              "text_line_2_y": 1401
+            }
+          },
+          "line_asset": {
+            "asset": "Shorts Cover Line.png",
+            "center_x": 540,
+            "width": 346,
+            "height": 16
+          },
+          "text_line_1": {
+            "center_x": 540,
+            "baseline_y_source": "placement_options",
+            "font_size_pt": 72,
+            "weight": "bold",
+            "align": "center",
+            "text_color": "white",
+            "stroke_color": "#1a1a1a"
+          },
+          "text_line_2": {
+            "center_x": 540,
+            "baseline_y_source": "placement_options",
+            "font_size_pt": 72,
+            "weight": "bold",
+            "align": "center",
+            "text_color": "white",
+            "stroke_color": "#1a1a1a"
+          }
+        },
+        "quote_layout": {
+          "type": "vertical_shorts_cover_video_graphic",
+          "source_illustrator_pages": [
+            4,
+            5
+          ],
+          "align": "center",
+          "placement_options": {
+            "text_above_red_line": {
+              "line_y": 1407,
+              "text_line_1_y": 1264,
+              "text_line_2_y": 1355,
+              "name_y": 1500
+            },
+            "text_below_red_line": {
+              "line_y": 1244,
+              "text_line_1_y": 1373,
+              "text_line_2_y": 1465,
+              "name_y": 1211
+            }
+          },
+          "quotation_mark": {
+            "asset": "Quotation Shorts Cover.png",
+            "x": 0,
+            "y": 990,
+            "width": 397,
+            "height": 276
+          },
+          "line_asset": {
+            "asset": "Shorts Cover Line.png",
+            "center_x": 540,
+            "width": 346,
+            "height": 16
+          },
+          "text_line_1": {
+            "center_x": 540,
+            "font_size_pt": 72,
+            "weight": "bold",
+            "align": "center",
+            "text_color": "white",
+            "stroke_color": "#1a1a1a"
+          },
+          "text_line_2": {
+            "center_x": 540,
+            "font_size_pt": 72,
+            "weight": "bold",
+            "align": "center",
+            "text_color": "white",
+            "stroke_color": "#1a1a1a"
+          },
+          "name": {
+            "center_x": 540,
+            "y": 1437,
+            "font_size_pt": 60,
+            "weight": "light",
+            "align": "center",
+            "text_color": "white",
+            "stroke_color": null
+          }
+        }
+      },
+      "layout_rules": {
+        "do_not_reinterpret_layout": true,
+        "blue_area_is_safe_zone_only": true,
+        "no_logo_for_vertical_shorts_cover": true,
+        "no_call_to_action_for_vertical_shorts_cover": true,
+        "all_elements_are_locked": true,
+        "headline_and_subhead_are_hidden_when_text_empty": true,
+        "there_is_no_large_headline_for_vertical_shorts": true,
+        "both_text_lines_use_same_72pt_size": true,
+        "quotation_mark_uses_shorts_cover_asset": true,
+        "line_uses_shorts_cover_line_asset": true,
+        "do_not_condense_or_horizontally_scale_any_text": true,
+        "quote_name_uses_noto_sans_sc_light_60pt_without_border": true,
+        "quote_name_supports_two_lines": true,
+        "text_above_line_moves_text_and_red_line_up_when_two_line_name_would_enter_safezone": true,
+        "text_below_line_two_line_name_stacks_upward_to_keep_red_line_gap": true,
+        "quotation_mark_does_not_move_during_two_line_name_safezone_adjustment": true,
+        "all_text_y_values_are_illustrator_baselines": true,
+        "hide_headline_and_subhead_color_controls_in_editor": true,
+        "gradient_overlay_above_background_below_kv_and_text": true
+      }
+    }
+  }
+}

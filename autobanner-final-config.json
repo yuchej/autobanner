@@ -1,0 +1,714 @@
+{
+  "project": "AutoBanner",
+  "generated_at": "2026-06-11",
+  "html_file": "autobanner.html",
+  "video_graphics": {
+    "youtube_cover": {
+      "item_name": "Youtube Cover",
+      "source_reference": {
+        "file": "youtube-cover.ai",
+        "pages": 2,
+        "coordinate_source": "Illustrator file measurements",
+        "note": "Blue areas in the Illustrator file are safe-zone guides."
+      },
+      "require_brand_logo": true,
+      "has_call_to_action": false,
+      "lock_elements": true,
+      "canvas": {
+        "width": 960,
+        "height": 540
+      },
+      "safe_zone": {
+        "left": 90,
+        "top": 0,
+        "right": 90,
+        "bottom": 75
+      },
+      "blue_area": {
+        "description": "Blue guide bands mark the safe-zone padding and should not contain main title content.",
+        "padding": {
+          "left": 90,
+          "top": 0,
+          "right": 90,
+          "bottom": 75
+        }
+      },
+      "content_area": {
+        "x": 90,
+        "y": 0,
+        "width": 780,
+        "height": 465,
+        "background": "black",
+        "clip_content": true
+      },
+      "controls": {
+        "gradient_overlay": {
+          "label": "Gradient Overlay",
+          "type": "toggle",
+          "default_visible": true,
+          "asset": "Gradient Youtube Cover.png",
+          "layer_position": "between_background_and_kv",
+          "flip_for_right_aligned_layout": true
+        },
+        "brand_logo": {
+          "label": "Brand Logo",
+          "type": "toggle_with_scale",
+          "default_visible": true,
+          "asset": "Uploaded Brand Logo",
+          "scaling_allowed": true,
+          "scale_anchor": "top_right",
+          "placeholder": "red rectangle with LOGO text"
+        },
+        "program_title": {
+          "label": "Program Title",
+          "type": "toggle_with_text_override",
+          "default_visible": true,
+          "default_text": "Program Name",
+          "override_text": ""
+        },
+        "quotation_name": {
+          "label": "Quotation mark + Name",
+          "type": "toggle_with_text_override",
+          "default_visible": true,
+          "quotation_mark": {
+            "default_visible": true,
+            "type": "image",
+            "left_aligned_asset": "Quotation Right.png",
+            "right_aligned_asset": "Quotation Left.png",
+            "note": "Assets are mapped by visual quote direction: left-aligned text uses the opening quote image; right-aligned text uses the closing quote image."
+          },
+          "name": {
+            "default_text": "某某某",
+            "override_text": ""
+          }
+        },
+        "zaobao_logo": {
+          "label": "Zaobao Logo",
+          "type": "fixed",
+          "default_visible": true,
+          "asset": "Zaobao Logo.png",
+          "scaling_allowed": false
+        }
+      },
+      "layouts": {
+        "left_aligned_quote": {
+          "type": "youtube_cover_video_graphic",
+          "source_illustrator_page": 1,
+          "content_area": {
+            "x": 90,
+            "y": 0,
+            "width": 780,
+            "height": 465
+          },
+          "brand_logo": {
+            "right": 919,
+            "y": 40,
+            "width": 210,
+            "height": 86,
+            "align": "right",
+            "vertical_align": "top",
+            "placement_source": "yellow Illustrator guide box",
+            "controlled_by": "brand_logo",
+            "scale_anchor": "top_right"
+          },
+          "program_title": {
+            "x": 95,
+            "y": 194,
+            "y_when_quotation_name_hidden": 258,
+            "y_when_subhead_empty_offset": 55,
+            "width": "auto",
+            "padding_left": 10,
+            "padding_right": 10,
+            "padding_top": 10,
+            "padding_bottom": 10,
+            "height": "auto",
+            "font_size_pt": 25.5,
+            "weight": "bold",
+            "align": "left",
+            "background": "#e90044",
+            "text_color": "white",
+            "controlled_by": "program_title"
+          },
+          "quotation_name": {
+            "x": 90,
+            "y": 263,
+            "width": 155,
+            "height": 39,
+            "align": "left",
+            "quotation_mark": {
+              "x": 90,
+              "y": 263,
+              "width": 57,
+              "height": 39,
+              "asset": "Quotation Right.png"
+            },
+            "name": {
+              "x": 163,
+              "center_y": 283,
+              "vertical_align": "middle",
+              "width": 82,
+              "height": 28,
+              "font_size_pt": 26.5,
+              "weight": "bold",
+              "max_width": null,
+              "do_not_condense_or_scale_text": true,
+              "text_color": "white",
+              "stroke_color": "#1a1a1a",
+              "controlled_by": "quotation_name"
+            }
+          },
+          "subhead": {
+            "x": 90,
+            "y": 326,
+            "width": 600,
+            "height": 58,
+            "font_size_pt": 49,
+            "weight": "bold",
+            "align": "left",
+            "text_color": "white",
+            "stroke_color": "#1a1a1a",
+            "max_lines": 1
+          },
+          "headline": {
+            "x": 90,
+            "y": 393,
+            "width": 780,
+            "height": 72,
+            "font_size_pt": 66,
+            "weight": "bold",
+            "align": "left",
+            "text_color": "white",
+            "stroke_color": "#1a1a1a",
+            "max_lines": 1
+          },
+          "zaobao_logo": {
+            "x": 49,
+            "y": 40,
+            "width": 86,
+            "height": 86,
+            "align": "left",
+            "vertical_align": "top",
+            "fixed": true
+          }
+        },
+        "right_aligned_quote": {
+          "type": "youtube_cover_video_graphic",
+          "source_illustrator_page": 2,
+          "content_area": {
+            "x": 90,
+            "y": 0,
+            "width": 780,
+            "height": 465
+          },
+          "brand_logo": {
+            "right": 919,
+            "y": 40,
+            "width": 210,
+            "height": 86,
+            "align": "right",
+            "vertical_align": "top",
+            "placement_source": "yellow Illustrator guide box",
+            "controlled_by": "brand_logo",
+            "scale_anchor": "top_right"
+          },
+          "program_title": {
+            "x": 648,
+            "y": 194,
+            "y_when_quotation_name_hidden": 258,
+            "y_when_subhead_empty_offset": 55,
+            "right_edge": 865,
+            "width": "auto",
+            "padding_left": 10,
+            "padding_right": 10,
+            "padding_top": 10,
+            "padding_bottom": 10,
+            "height": "auto",
+            "font_size_pt": 25.5,
+            "weight": "bold",
+            "align": "left",
+            "background": "#e90044",
+            "text_color": "white",
+            "controlled_by": "program_title"
+          },
+          "quotation_name": {
+            "x": 713,
+            "y": 263,
+            "width": 155,
+            "height": 39,
+            "align": "right",
+            "name": {
+              "x": 713,
+              "center_y": 283,
+              "vertical_align": "middle",
+              "width": 82,
+              "height": 28,
+              "font_size_pt": 26.5,
+              "weight": "bold",
+              "max_width": null,
+              "do_not_condense_or_scale_text": true,
+              "text_color": "white",
+              "stroke_color": "#1a1a1a",
+              "controlled_by": "quotation_name"
+            },
+            "quotation_mark": {
+              "x": 811,
+              "y": 263,
+              "width": 57,
+              "height": 39,
+              "asset": "Quotation Left.png"
+            }
+          },
+          "subhead": {
+            "x": 424,
+            "y": 326,
+            "width": 446,
+            "height": 58,
+            "font_size_pt": 49,
+            "weight": "bold",
+            "align": "right",
+            "text_color": "white",
+            "stroke_color": "#1a1a1a",
+            "max_lines": 1
+          },
+          "headline": {
+            "x": 265,
+            "y": 393,
+            "width": 605,
+            "height": 72,
+            "font_size_pt": 66,
+            "weight": "bold",
+            "align": "right",
+            "text_color": "white",
+            "stroke_color": "#1a1a1a",
+            "max_lines": 1
+          },
+          "zaobao_logo": {
+            "x": 49,
+            "y": 40,
+            "width": 86,
+            "height": 86,
+            "align": "left",
+            "vertical_align": "top",
+            "fixed": true
+          }
+        }
+      },
+      "typography": {
+        "program_title_pt": 25,
+        "name_pt": 26,
+        "subhead_pt": 45,
+        "headline_pt": 58
+      },
+      "scaling": {
+        "illustrator_canvas": {
+          "width": 960,
+          "height": 540
+        },
+        "to_1920x1080_multiplier": 2,
+        "note": "Multiply all x, y, width, height, and safe-zone values by 2 for a 1920 x 1080 export."
+      },
+      "layout_rules": {
+        "do_not_reinterpret_layout": true,
+        "blue_area_is_safe_zone_only": true,
+        "main_title_must_remain_inside_content_area": true,
+        "background_image_must_not_affect_layout": true,
+        "brand_logo_toggle_controls_logo_visibility": true,
+        "program_title_toggle_controls_title_visibility": true,
+        "program_title_override_replaces_default_text": true,
+        "quotation_name_toggle_controls_quote_and_name_visibility": true,
+        "name_override_replaces_default_name_text": true,
+        "program_title_moves_to_y_when_quotation_name_hidden": 258,
+        "program_title_and_quotation_name_move_down_when_subhead_empty": true,
+        "program_title_red_box_auto_sizes_to_text": true,
+        "program_title_red_box_padding_px": 10,
+        "do_not_condense_or_horizontally_scale_any_text": true,
+        "no_call_to_action_for_youtube_cover": true,
+        "all_elements_are_locked": true,
+        "hide_headline_and_subhead_color_controls_in_editor": true,
+        "zaobao_logo_is_separate_from_global_brand_logo": true,
+        "zaobao_logo_scaling_allowed": false,
+        "gradient_overlay_between_background_and_kv": true,
+        "gradient_overlay_flips_for_right_aligned_layout": true
+      },
+      "require_zaobao_logo": true
+    },
+    "article_cover": {
+      "item_name": "Article Cover",
+      "source_reference": {
+        "file": "article-cover.ai",
+        "pages": 15,
+        "coordinate_source": "Illustrator file measurements",
+        "note": "The Illustrator artboards represent toggle combinations rather than 15 separate fixed templates."
+      },
+      "require_zaobao_logo": false,
+      "require_brand_logo": false,
+      "has_call_to_action": false,
+      "lock_elements": true,
+      "canvas": {
+        "width": 1200,
+        "height": 800
+      },
+      "safe_zone": {
+        "left": 110,
+        "top": 120,
+        "right": 110,
+        "bottom": 120
+      },
+      "blue_area": {
+        "description": "Blue guide bands mark safe-zone padding only.",
+        "padding": {
+          "left": 110,
+          "top": 120,
+          "right": 110,
+          "bottom": 120
+        }
+      },
+      "content_area": {
+        "x": 110,
+        "y": 120,
+        "width": 980,
+        "height": 560,
+        "background": "black",
+        "clip_content": true
+      },
+      "controls": {
+        "gradient_overlay": {
+          "label": "Gradient Overlay",
+          "type": "toggle",
+          "default_visible": true,
+          "asset": "Gradient Article Cover.png",
+          "layer_position": "between_background_and_kv",
+          "flip_for_right_aligned_layout": true
+        },
+        "optional_topic": {
+          "label": "Optional Topic",
+          "type": "toggle_with_text_override",
+          "default_visible": true,
+          "default_text": "Optional - TOPIC",
+          "override_text": ""
+        },
+        "quotation_name": {
+          "label": "Quotation mark + Name",
+          "type": "toggle_with_text_override",
+          "default_visible": false,
+          "quotation_mark": {
+            "type": "image",
+            "left_aligned_asset": "Quotation Right.png",
+            "right_aligned_asset": "Quotation Left.png"
+          },
+          "name": {
+            "default_text": "某某某",
+            "override_text": "",
+            "do_not_condense_or_scale_text": true
+          }
+        },
+        "headline": {
+          "label": "大标题",
+          "type": "text_override",
+          "visibility_rule": "hidden_when_text_is_empty",
+          "default_text": "大标题大标题"
+        },
+        "subhead": {
+          "label": "小标题",
+          "type": "text_override",
+          "visibility_rule": "hidden_when_text_is_empty",
+          "default_text": "小标题小标题"
+        },
+        "headline_subhead_order": {
+          "label": "Headline / Subhead Order",
+          "type": "toggle",
+          "true_value": "headline_then_subhead",
+          "false_value": "subhead_then_headline",
+          "default_value": true
+        }
+      },
+      "layouts": {
+        "left_aligned": {
+          "type": "article_cover_video_graphic",
+          "align": "left",
+          "content_area": {
+            "x": 110,
+            "y": 120,
+            "width": 980,
+            "height": 560
+          },
+          "anchor": {
+            "x": 130,
+            "bottom": 680
+          }
+        },
+        "right_aligned": {
+          "type": "article_cover_video_graphic",
+          "align": "right",
+          "content_area": {
+            "x": 110,
+            "y": 120,
+            "width": 980,
+            "height": 560
+          },
+          "anchor": {
+            "right": 1075,
+            "bottom": 680
+          }
+        }
+      },
+      "typography": {
+        "topic_pt": 37,
+        "name_pt": 34,
+        "headline_px": 92,
+        "subhead_px": 72,
+        "topic_row_height": "measured_from_text_plus_padding",
+        "row_gap_px": 24
+      },
+      "layout_rules": {
+        "do_not_reinterpret_layout": true,
+        "blue_area_is_safe_zone_only": true,
+        "no_logo_for_article_cover": true,
+        "no_call_to_action_for_article_cover": true,
+        "all_elements_are_locked": true,
+        "quotation_marks_reuse_youtube_cover_assets": true,
+        "scenario_pages_are_editor_toggles": true,
+        "headline_and_subhead_are_hidden_when_text_empty": true,
+        "topic_row_reserves_measured_red_box_height_before_next_row": true,
+        "do_not_condense_or_horizontally_scale_any_text": true,
+        "hide_headline_and_subhead_color_controls_in_editor": true,
+        "gradient_overlay_between_background_and_kv": true,
+        "gradient_overlay_flips_for_right_aligned_layout": true
+      }
+    },
+    "vertical_youtube_instagram_tiktok_shorts_cover": {
+      "item_name": "Vertical Youtube, Instagram, Tiktok Shorts Cover",
+      "source_reference": {
+        "file": "socialmedia-shorts-cover.ai",
+        "pages": 5,
+        "coordinate_source": "Illustrator file measurements",
+        "note": "The Illustrator artboards represent default text and quotation scenarios, not five separate fixed templates."
+      },
+      "require_zaobao_logo": false,
+      "require_brand_logo": false,
+      "has_call_to_action": false,
+      "lock_elements": true,
+      "canvas": {
+        "width": 1080,
+        "height": 1920
+      },
+      "safe_zone": {
+        "left": 90,
+        "top": 400,
+        "right": 90,
+        "bottom": 400
+      },
+      "blue_area": {
+        "description": "Blue guide bands mark safe-zone padding only.",
+        "padding": {
+          "left": 90,
+          "top": 400,
+          "right": 90,
+          "bottom": 400
+        }
+      },
+      "content_area": {
+        "x": 90,
+        "y": 400,
+        "width": 900,
+        "height": 1120,
+        "background": "black",
+        "clip_content": true
+      },
+      "controls": {
+        "gradient_overlay": {
+          "label": "Gradient Overlay",
+          "type": "toggle",
+          "default_visible": true,
+          "asset": "Gradient Shorts Cover.png",
+          "layer_position": "above_background_below_kv_and_text"
+        },
+        "quotation_name": {
+          "label": "Quotation mark + Name",
+          "type": "fixed_with_text_override",
+          "default_visible": true,
+          "toggle_allowed": false,
+          "quotation_mark": {
+            "type": "image",
+            "asset": "Quotation Shorts Cover.png"
+          },
+          "name": {
+            "default_text": "某某某",
+            "override_text": "",
+            "max_lines": 2,
+            "do_not_condense_or_scale_text": true
+          },
+          "available_on": "quote_layout"
+        },
+        "default_text_placement": {
+          "label": "Text Placement",
+          "type": "segmented_control",
+          "options": [
+            "top",
+            "middle",
+            "bottom"
+          ],
+          "default_value": "middle",
+          "available_on": "default_text"
+        },
+        "quote_text_placement": {
+          "label": "Text Placement",
+          "type": "segmented_control",
+          "options": [
+            "text_above_red_line",
+            "text_below_red_line"
+          ],
+          "default_value": "text_below_red_line",
+          "available_on": "quote_layout"
+        },
+        "text_line_1": {
+          "label": "Text Line 1",
+          "type": "text_override",
+          "visibility_rule": "hidden_when_text_is_empty",
+          "default_text": "大标题大标题",
+          "font_size_pt": 72
+        },
+        "text_line_2": {
+          "label": "Text Line 2",
+          "type": "text_override",
+          "visibility_rule": "hidden_when_text_is_empty",
+          "default_text": "小标题小标题",
+          "font_size_pt": 72
+        }
+      },
+      "layouts": {
+        "default_text": {
+          "type": "vertical_shorts_cover_video_graphic",
+          "source_illustrator_pages": [
+            1,
+            2,
+            3
+          ],
+          "align": "center",
+          "placement_options": {
+            "top": {
+              "line_y": 440,
+              "text_line_1_y": 568,
+              "text_line_2_y": 660
+            },
+            "middle": {
+              "line_y": 1012,
+              "text_line_1_y": 1140,
+              "text_line_2_y": 1232
+            },
+            "bottom": {
+              "line_y": 1195,
+              "text_line_1_y": 1309,
+              "text_line_2_y": 1401
+            }
+          },
+          "line_asset": {
+            "asset": "Shorts Cover Line.png",
+            "center_x": 540,
+            "width": 346,
+            "height": 16
+          },
+          "text_line_1": {
+            "center_x": 540,
+            "baseline_y_source": "placement_options",
+            "font_size_pt": 72,
+            "weight": "bold",
+            "align": "center",
+            "text_color": "white",
+            "stroke_color": "#1a1a1a"
+          },
+          "text_line_2": {
+            "center_x": 540,
+            "baseline_y_source": "placement_options",
+            "font_size_pt": 72,
+            "weight": "bold",
+            "align": "center",
+            "text_color": "white",
+            "stroke_color": "#1a1a1a"
+          }
+        },
+        "quote_layout": {
+          "type": "vertical_shorts_cover_video_graphic",
+          "source_illustrator_pages": [
+            4,
+            5
+          ],
+          "align": "center",
+          "placement_options": {
+            "text_above_red_line": {
+              "line_y": 1407,
+              "text_line_1_y": 1264,
+              "text_line_2_y": 1355,
+              "name_y": 1500
+            },
+            "text_below_red_line": {
+              "line_y": 1244,
+              "text_line_1_y": 1373,
+              "text_line_2_y": 1465,
+              "name_y": 1211
+            }
+          },
+          "quotation_mark": {
+            "asset": "Quotation Shorts Cover.png",
+            "x": 0,
+            "y": 990,
+            "width": 397,
+            "height": 276
+          },
+          "line_asset": {
+            "asset": "Shorts Cover Line.png",
+            "center_x": 540,
+            "width": 346,
+            "height": 16
+          },
+          "text_line_1": {
+            "center_x": 540,
+            "font_size_pt": 72,
+            "weight": "bold",
+            "align": "center",
+            "text_color": "white",
+            "stroke_color": "#1a1a1a"
+          },
+          "text_line_2": {
+            "center_x": 540,
+            "font_size_pt": 72,
+            "weight": "bold",
+            "align": "center",
+            "text_color": "white",
+            "stroke_color": "#1a1a1a"
+          },
+          "name": {
+            "center_x": 540,
+            "y": 1437,
+            "font_size_pt": 60,
+            "weight": "light",
+            "align": "center",
+            "text_color": "white",
+            "stroke_color": null
+          }
+        }
+      },
+      "layout_rules": {
+        "do_not_reinterpret_layout": true,
+        "blue_area_is_safe_zone_only": true,
+        "no_logo_for_vertical_shorts_cover": true,
+        "no_call_to_action_for_vertical_shorts_cover": true,
+        "all_elements_are_locked": true,
+        "headline_and_subhead_are_hidden_when_text_empty": true,
+        "there_is_no_large_headline_for_vertical_shorts": true,
+        "both_text_lines_use_same_72pt_size": true,
+        "quotation_mark_uses_shorts_cover_asset": true,
+        "line_uses_shorts_cover_line_asset": true,
+        "do_not_condense_or_horizontally_scale_any_text": true,
+        "quote_name_uses_noto_sans_sc_light_60pt_without_border": true,
+        "quote_name_supports_two_lines": true,
+        "text_above_line_moves_text_and_red_line_up_when_two_line_name_would_enter_safezone": true,
+        "text_below_line_two_line_name_stacks_upward_to_keep_red_line_gap": true,
+        "quotation_mark_does_not_move_during_two_line_name_safezone_adjustment": true,
+        "all_text_y_values_are_illustrator_baselines": true,
+        "hide_headline_and_subhead_color_controls_in_editor": true,
+        "gradient_overlay_above_background_below_kv_and_text": true
+      }
+    }
+  }
+}

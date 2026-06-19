@@ -1,0 +1,148 @@
+{
+  "video_graphics": {
+    "article_cover": {
+      "item_name": "Article Cover",
+      "source_reference": {
+        "file": "article-cover.ai",
+        "pages": 15,
+        "coordinate_source": "Illustrator file measurements",
+        "note": "The Illustrator artboards represent toggle combinations rather than 15 separate fixed templates."
+      },
+      "require_zaobao_logo": false,
+      "require_brand_logo": false,
+      "has_call_to_action": false,
+      "lock_elements": true,
+      "canvas": {
+        "width": 1200,
+        "height": 800
+      },
+      "safe_zone": {
+        "left": 110,
+        "top": 120,
+        "right": 110,
+        "bottom": 120
+      },
+      "blue_area": {
+        "description": "Blue guide bands mark safe-zone padding only.",
+        "padding": {
+          "left": 110,
+          "top": 120,
+          "right": 110,
+          "bottom": 120
+        }
+      },
+      "content_area": {
+        "x": 110,
+        "y": 120,
+        "width": 980,
+        "height": 560,
+        "background": "black",
+        "clip_content": true
+      },
+      "controls": {
+        "gradient_overlay": {
+          "label": "Gradient Overlay",
+          "type": "toggle",
+          "default_visible": true,
+          "asset": "Gradient Article Cover.png",
+          "layer_position": "between_background_and_kv",
+          "flip_for_right_aligned_layout": true
+        },
+        "optional_topic": {
+          "label": "Optional Topic",
+          "type": "toggle_with_text_override",
+          "default_visible": true,
+          "default_text": "Optional - TOPIC",
+          "override_text": ""
+        },
+        "quotation_name": {
+          "label": "Quotation mark + Name",
+          "type": "toggle_with_text_override",
+          "default_visible": false,
+          "quotation_mark": {
+            "type": "image",
+            "left_aligned_asset": "Quotation Right.png",
+            "right_aligned_asset": "Quotation Left.png"
+          },
+          "name": {
+            "default_text": "某某某",
+            "override_text": "",
+            "do_not_condense_or_scale_text": true
+          }
+        },
+        "headline": {
+          "label": "大标题",
+          "type": "text_override",
+          "visibility_rule": "hidden_when_text_is_empty",
+          "default_text": "大标题大标题"
+        },
+        "subhead": {
+          "label": "小标题",
+          "type": "text_override",
+          "visibility_rule": "hidden_when_text_is_empty",
+          "default_text": "小标题小标题"
+        },
+        "headline_subhead_order": {
+          "label": "Headline / Subhead Order",
+          "type": "toggle",
+          "true_value": "headline_then_subhead",
+          "false_value": "subhead_then_headline",
+          "default_value": true
+        }
+      },
+      "layouts": {
+        "left_aligned": {
+          "type": "article_cover_video_graphic",
+          "align": "left",
+          "content_area": {
+            "x": 110,
+            "y": 120,
+            "width": 980,
+            "height": 560
+          },
+          "anchor": {
+            "x": 130,
+            "bottom": 680
+          }
+        },
+        "right_aligned": {
+          "type": "article_cover_video_graphic",
+          "align": "right",
+          "content_area": {
+            "x": 110,
+            "y": 120,
+            "width": 980,
+            "height": 560
+          },
+          "anchor": {
+            "right": 1075,
+            "bottom": 680
+          }
+        }
+      },
+      "typography": {
+        "topic_pt": 37,
+        "name_pt": 34,
+        "headline_px": 92,
+        "subhead_px": 72,
+        "topic_row_height": "measured_from_text_plus_padding",
+        "row_gap_px": 24
+      },
+      "layout_rules": {
+        "do_not_reinterpret_layout": true,
+        "blue_area_is_safe_zone_only": true,
+        "no_logo_for_article_cover": true,
+        "no_call_to_action_for_article_cover": true,
+        "all_elements_are_locked": true,
+        "quotation_marks_reuse_youtube_cover_assets": true,
+        "scenario_pages_are_editor_toggles": true,
+        "headline_and_subhead_are_hidden_when_text_empty": true,
+        "topic_row_reserves_measured_red_box_height_before_next_row": true,
+        "do_not_condense_or_horizontally_scale_any_text": true,
+        "hide_headline_and_subhead_color_controls_in_editor": true,
+        "gradient_overlay_between_background_and_kv": true,
+        "gradient_overlay_flips_for_right_aligned_layout": true
+      }
+    }
+  }
+}
