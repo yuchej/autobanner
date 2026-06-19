@@ -262,6 +262,18 @@ const FORMAT_DATABASE = [
     ]
   },
   {
+    id: "youtube-cover-2-col",
+    name: "Youtube Cover 2 col",
+    category: "Social Media",
+    w: 2560,
+    h: 1440,
+    safe: { t: 510, b: 510, l: 510, r: 510 },
+    fonts: { h: ptToPx(100), hNoCTA: ptToPx(100), s: ptToPx(70), c: 0 },
+    variants: [
+      { id: "2col-hs", label: "2 Column (Text Left, Graphic Right)", cols: 2, layout: "text-cta", hasSub: true, hasCTA: false, requiresLogo: false }
+    ]
+  },
+  {
     id: "x-header",
     name: "X Header",
     category: "Social Media",
@@ -275,41 +287,51 @@ const FORMAT_DATABASE = [
     ]
   },
   {
+    id: "x-header-2-col",
+    name: "X Header 2 col",
+    category: "Social Media",
+    w: 1500,
+    h: 500,
+    safe: { t: 40, b: 40, l: 500, r: 40 },
+    fonts: { h: ptToPx(75), hNoCTA: ptToPx(75), s: ptToPx(50), c: 0 },
+    variants: [
+      { id: "2col-hs", label: "2 Column (Text Left, Graphic Right)", cols: 2, layout: "text-cta", hasSub: true, hasCTA: false, requiresLogo: false }
+    ]
+  },
+  {
     id: "ig-post",
-    name: "Instagram Post",
+    name: "IG Post",
     category: "Social Media",
     w: 1080,
     h: 1350,
     safe: { t: 60, b: 175, l: 60, r: 60 },
-    fonts: { h: ptToPx(70), hNoCTA: ptToPx(70), s: ptToPx(50), c: ptToPx(48) },
+    fonts: { h: ptToPx(70), hNoCTA: ptToPx(70), s: ptToPx(50), c: 0 },
     variants: [
-      { id: "1col-lhs", label: "Logo + Text Stack", cols: 1, layout: "headline-subhead", hasSub: true, hasCTA: false, requiresLogo: true },
-      { id: "1col-lhsc", label: "Logo + Text + CTA", cols: 1, layout: "headline-subhead-cta", hasSub: true, hasCTA: true, requiresLogo: true }
+      { id: "1col-hs", label: "1 Column (Head + Sub)", cols: 1, layout: "headline-subhead", hasSub: true, hasCTA: false, requiresLogo: true }
     ]
   },
   {
     id: "ig-story",
-    name: "Instagram Story",
+    name: "IG Story",
     category: "Social Media",
     w: 1080,
     h: 1920,
     safe: { t: 250, b: 250, l: 60, r: 60 },
     fonts: { h: ptToPx(70), hNoCTA: ptToPx(70), s: ptToPx(50), c: ptToPx(48) },
     variants: [
-      { id: "1col-hs", label: "1 Column (Head + Sub)", cols: 1, layout: "headline-subhead", hasSub: true, hasCTA: false, requiresLogo: false },
       { id: "1col-hsc", label: "1 Column (Head + Sub + CTA)", cols: 1, layout: "headline-subhead-cta", hasSub: true, hasCTA: true, requiresLogo: false }
     ]
   },
   {
     id: "ig-link-bio",
-    name: "Instagram Link in Bio",
+    name: "IG Link in Bio",
     category: "Social Media",
     w: 860,
     h: 490,
     safe: { t: 40, b: 40, l: 40, r: 40 },
-    fonts: { h: ptToPx(60), hNoCTA: ptToPx(60), s: ptToPx(40), c: ptToPx(40) },
+    fonts: { h: ptToPx(60), hNoCTA: ptToPx(60), s: ptToPx(40), c: 0 },
     variants: [
-      { id: "1col-hs", label: "1 Column (Head + Sub)", cols: 1, layout: "headline-subhead", hasSub: true, hasCTA: false, requiresLogo: false },
+      { id: "1col-hs", label: "1 Column (Head + Sub)", cols: 1, layout: "headline-subhead", hasSub: true, hasCTA: false, requiresLogo: false }
     ]
   },
   {
@@ -356,9 +378,10 @@ const FORMAT_DATABASE = [
   }
 ];
 const CATEGORIES = [...new Set(FORMAT_DATABASE.map((f) => f.category))];
+const IG_POST_LOGO_SRC = "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iTGF5ZXJfMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjAgMCA5MCA5MCI+CiAgPCEtLSBHZW5lcmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDMwLjUuMSwgU1ZHIEV4cG9ydCBQbHVnLUluIC4gU1ZHIFZlcnNpb246IDIuMS40IEJ1aWxkIDMpICAtLT4KICA8ZGVmcz4KICAgIDxzdHlsZT4KICAgICAgLnN0MCB7CiAgICAgICAgZmlsbDogI2ZmZjsKICAgICAgfQoKICAgICAgLnN0MSB7CiAgICAgICAgZmlsbDogI2U5MDA0NDsKICAgICAgfQoKICAgICAgLnN0MiB7CiAgICAgICAgZmlsbDogI2E4MDAzNDsKICAgICAgfQogICAgPC9zdHlsZT4KICA8L2RlZnM+CiAgPGcgaWQ9IkxvZ29tYXJrIj4KICAgIDxnPgogICAgICA8Y2lyY2xlIGNsYXNzPSJzdDEiIGN4PSI0NSIgY3k9IjQ1IiByPSI0NSIvPgogICAgICA8cGF0aCBjbGFzcz0ic3QyIiBkPSJNNDguNC4xczAsMCwwLDBjMTMuNywxLjYsMjAuNywxMS4yLDE5LjYsMjIuNC0uNSw0LjktNCw5LjEtNy4zLDEyLjMtNC40LDQuMi0xMi44LDUuOS0xOC4zLDcuNiwwLDAtLjEsMC0uMiwwLTEuMi40LTIuNS45LTMuNywxLjMtMi4zLjktNC45LDEuOC03LjEsMi44LTIuNywxLjItNS4zLDMtNy44LDQuNS0uNi4zLTEuMi44LTEuOCwxLjEtLjQuMi00LjgsMy41LTUuMiwzLjktMywzLjEtNC44LDUtNSwxMC45LS4yLDUsNC4xLDEzLjMsMTAuNiwxNi43LDYuNywzLjksMTQuNSw2LjIsMjIuOCw2LjIsMjQuOSwwLDQ1LTIwLjEsNDUtNDVTNzEuNiwxLjksNDguNC4xWiIvPgogICAgPC9nPgogICAgPHBhdGggY2xhc3M9InN0MCIgZD0iTTUxLjUsNjIuNWMuMi0xLjEuNS0yLjEuOC0zLjIuMi0uNi40LTEuMy43LTEuOC44LTEuMiwyLjItMSwzLjQtMS4yLDEuMS0uMiwyLjItLjQsMy4zLS41LDEuOS0uMywzLjctLjMsNS41LjNoLjNjLjIuMi40LjIuNi4zLDEuMS4yLDIuMywwLDMuMy0uNCwzLjQtMS40LDMuMS02LjctLjItOC4xLTIuNS0xLjEtNS0uOS03LjYtLjktMS45LDAtMy43LjEtNS42LjQtLjkuMS0xLjcuNS0yLjYuNC0xLjQsMC0xLjQtLjktMS45LTEuOS0uMy0uNy0uNi0xLjQtLjktMi4xLS40LS44LS45LTEuNS0xLjQtMi4zLDEuMy0uNiwyLjctMS4xLDQtMS43LDEuNi0uNywzLjEtMS42LDQuNS0yLjYsMi42LTEuOCw1LjEtNC4xLDcuMS02LjYsNC4xLTUuNSw0LTE0LjEuOC0xOS45LS42LTEuMS0xLjQtMi4zLTIuMi0yLjctMS4yLS43LTMuMy0xLjEtNC43LTEtMSwwLTEuOS4yLTIuOC41LS45LjMtMS43LjktMi43LDEuMS0yLjYuNS01LjIuOS03LjkuOS0xLjMsMC00LjMtLjktNS4yLjUtLjQuNi0uNSwxLjgtLjUsMi40LDAsMSwuMiwxLjkuNSwyLjguNiwxLjYsMS42LDMuMSwzLjIsNCwuNy40LDEuNC44LDIuMi45LDEuMiwwLDIuMy40LDMuNSwwLDEuMi0uNCwyLjItMS4yLDMuNC0xLjYsMS4yLS40LDMuNC0uOSw0LjYtLjEsMS4xLjguOCwxLjkuNSwzLS4yLDEtLjUsMi0uNywzLS4yLDEtLjYsMS45LTEuMSwyLjgtMS4xLDEuNy0yLjQsMy43LTQuMyw0LjguNC0uMi0uOS0zLjMtMS0zLjctLjUtMS4xLS45LTEuOC0xLjktMi40LTIuMi0xLjEtNC42LTEuNi03LjEtMS41LTEsMC0yLjEuMi0zLjEuNXMtMi41LDEtMi41LDFjMCwwLC4xLS4yLjMtLjVzLjQtLjQuNS0uNmMwLDAsLjItLjIuMi0uMiwxLjktMi42LjMtNy4xLTEuNy05LjItLjctLjctMS4zLTEuNy0yLjEtMi4zLTEuNS0xLjItMi45LTIuNC00LjktMS42cy0yLjIsMS43LTIuOSwyLjljLTEsMS45LTEuOSwzLjgtMi40LDUuOS0uNywzLjMtLjgsNi43LjEsMTAsMS4xLDMuNiwyLjgsNyw1LjIsMTAuMi4yLjMuNC42LjYuOSwxLjEsMS42LDQuNCwzLjMsMi4yLDUuMi0xLjMuOS0zLjEsMS44LTQuNiwyLjctMS4xLjctNS4xLDMuMi02LDMuOC0xLjYsMS4xLTYuNCw0LjUtNy43LDguMi0uOSwzLC42LDYuMiwzLjUsNy4zLDIsLjgsMy44LjMsNS42LS43LDEuMy0uOCwyLjctMS41LDQtMi4xLjgtLjQsMS43LS44LDIuNS0xLjIsNC4xLTEuOCw4LjQtMywxMi43LTQuNC4yLDAsLjQtLjEuNi0uMi45LS40LDEuNy0uNSwxLjkuN3MwLC43LS4yLDEuMWMtLjIuNi0uMiwxLjItLjMsMS43LS40LDIuNS0uOCw1LjEtLjgsNy43LS4xLDQuMy42LDguNSwxLjYsMTIuNi4yLDEsLjYsMi4yLDEuNywyLjYuNy4zLDEuNC41LDIuMS41LDIuMywwLDQuNC0xLjcsMy45LTQtLjMtMS43LS42LTMuNC0xLTUuMS0uMy0xLjItLjItMi41LS4yLTMuNywwLTEuMiwwLTIuMiwwLTMuNC4yLTIuNi41LTUuMiwxLjEtNy44Wk00NCw0Ni43YzAsLjMsMCwuNiwwLC45LDAsLjIuMS45LjEsMS4xLDAsLjYsMCwuOS0uNCwxLjQtLjQuNC0zLjksMS44LTUuMSwyLjItMi4xLjctNC4zLDEuNC02LjQsMi4xbC04LjEsMi43Yy0uNi4yLTEuMy40LTEuOS4zLTItLjIsMC0yLjguNy0zLjMsMS43LTEuMywzLjUtMi41LDUuMi0zLjksMS41LTEuMiwzLjMtMi4yLDUtMy4xLDIuMy0xLjMsNS4xLTIuMSw3LjUtMy4xLjctLjMsMS0uNCwxLjYtLjYuNS0uMSwxLjEtLjMsMS42LS4yLS4yLDEuMSwwLDIuMi4xLDMuNVpNNDcuNiwzNC41Yy0uMS41LTEuOSwxLjItMi4zLDEuNS0uNy41LTMuNywyLjMtNC42LDIuMy0xLjYsMC0yLjgtMS44LTMuOC0yLjktLjMtLjMtLjUtLjgtLjctMS4yLS4xLS4yLS4zLS44LS4zLTEsMC0uNywxLjMtLjYsMS41LS41LDEuNS4yLDIuNS4zLDMuNi40LjMsMCwuNiwwLC45LDAsLjksMCwzLjkuMyw0LjguN3MxLC40LjkuN1oiLz4KICA8L2c+Cjwvc3ZnPg==";
 const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, globalSettings, isInteractive = false, activeLayerId = null) => {
   const { safe, fonts } = format;
-  const { bgImage, logoImage, kvImages, quoteLeftImage, quoteRightImage, zaobaoLogoImage, gradientYoutubeImage, gradientArticleImage, gradientShortsImage, quoteShortsImage, lineShortsImage } = assets;
+  const { bgImage, logoImage, kvImages, quoteLeftImage, quoteRightImage, zaobaoLogoImage, igPostLogoImage, gradientYoutubeImage, gradientArticleImage, gradientShortsImage, quoteShortsImage, lineShortsImage } = assets;
   const { headline, subhead, ctaText, showCTA, headlineColor, subheadColor, bgOffsetX, bgOffsetY, bgScale, bgRotate, bgRepeat, logoScale, ctaScale } = state;
   const { layerOrder, showSafezone } = globalSettings;
   const hitBoxes = { logo: null, text: null, cta: null, bg: null };
@@ -369,7 +392,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
   const sW = canvas.width - safe.l - safe.r;
   const sH = canvas.height - safe.t - safe.b;
   const brandRed = "#e90044";
-  const getSingleLine = (text) => text ? [text.replace(/[\r\n]+/g, " ").trim()] : [];
+  const getTextLines = (text) => text ? text.replace(/\r/g, "").split("\n").map((line) => line.trim()).filter((line) => line.length > 0) : [];
   const getLogoSize = (maxWidth, maxHeight) => {
     const scaleMultiplier = logoScale / 100;
     let w, h;
@@ -459,39 +482,20 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
     return { w, h };
   };
   const calculateTextStack = (targetW, targetH, isCenter = false) => {
-    let currentHFont = showCTA ? fonts.h : fonts.hNoCTA || fonts.h;
-    let currentSFont = fonts.s;
+    const currentHFont = showCTA ? fonts.h : fonts.hNoCTA || fonts.h;
+    const currentSFont = fonts.s;
     let gap = 16;
-    let linesH = [], linesS = [];
-    let totalH = 0;
+    const linesH = getTextLines(headline);
+    const linesS = variant.hasSub ? getTextLines(subhead) : [];
     let ctaStats = { w: 0, h: 0 };
     if (showCTA && ctaText && variant.hasCTA) {
       ctx.font = `600 ${fonts.c}px "Noto Sans SC", "Roboto", sans-serif`;
       ctaStats.w = ctx.measureText(ctaText).width + fonts.c * 1.5 * 2;
       ctaStats.h = fonts.c + fonts.c * 0.8 * 2;
     }
-    while (currentHFont >= 8) {
-      const hFontStr = `900 ${currentHFont}px "Noto Sans SC", "Roboto"`;
-      const sFontStr = `400 ${currentSFont}px "Noto Sans SC", "Roboto"`;
-      linesH = getSingleLine(headline);
-      linesS = variant.hasSub ? getSingleLine(subhead) : [];
-      let maxLineW = 0;
-      ctx.font = hFontStr;
-      linesH.forEach((l) => {
-        maxLineW = Math.max(maxLineW, ctx.measureText(l).width);
-      });
-      ctx.font = sFontStr;
-      linesS.forEach((l) => {
-        maxLineW = Math.max(maxLineW, ctx.measureText(l).width);
-      });
-      totalH = linesH.length * (currentHFont * 1.2);
-      if (linesS.length > 0) totalH += gap + linesS.length * (currentSFont * 1.4);
-      if (ctaStats.h > 0 && isCenter) totalH += gap + ctaStats.h;
-      if (totalH <= targetH && maxLineW <= targetW) break;
-      if (currentHFont <= 8) break;
-      currentHFont -= 1;
-      currentSFont -= 0.8;
-    }
+    let totalH = linesH.length * (currentHFont * 1.2);
+    if (linesS.length > 0) totalH += gap + linesS.length * (currentSFont * 1.4);
+    if (ctaStats.h > 0 && isCenter) totalH += gap + ctaStats.h;
     return { linesH, linesS, currentHFont, currentSFont, totalH, ctaStats, gap };
   };
   const queueGradientOverlay = (gradientImage, isRightAligned, isEnabled = true) => {
@@ -922,39 +926,28 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       textBounds.bottom = Math.max(textBounds.bottom, y + h);
     };
     const fontFamily = '"Noto Sans SC", "Roboto", sans-serif';
-    const fitTextSize = (text, maxSize, minSize, maxW, weight = 900) => {
-      let size = maxSize;
-      while (size > minSize) {
-        ctx.font = `${weight} ${size}px ${fontFamily}`;
-        if (ctx.measureText(text).width <= maxW) break;
-        size -= 1;
-      }
-      return size;
-    };
     const queueTrafficText = (text, spec, maxSize, minSize, weight, color, options = {}) => {
       if (!text) return;
       const x = spec.x + textOffset.x;
       const align = spec.align || "center";
-      const maxW = spec.maxW;
-      const size = options.fixedSize ? maxSize : fitTextSize(text, maxSize, minSize, maxW, weight);
+      const size = maxSize;
+      const lines = getTextLines(text);
+      if (lines.length === 0) return;
+      const lineHeight = size * 1.2;
       ctx.font = `${weight} ${size}px ${fontFamily}`;
-      const metrics = ctx.measureText(text);
-      const ascent = metrics.actualBoundingBoxAscent || size * 0.82;
-      const descent = metrics.actualBoundingBoxDescent || size * 0.18;
       const hasCenterY = spec.centerY !== void 0;
-      const drawMaxW = options.fixedSize ? void 0 : maxW;
-      const y = (hasCenterY ? spec.centerY : spec.y) + textOffset.y;
+      const anchorY = (hasCenterY ? spec.centerY : spec.y) + textOffset.y;
+      const firstY = hasCenterY ? anchorY - (lines.length - 1) * lineHeight / 2 : anchorY;
       drawQueue.text.push(() => {
         ctx.font = `${weight} ${size}px ${fontFamily}`;
         ctx.fillStyle = color;
         ctx.textAlign = align;
         ctx.textBaseline = hasCenterY ? "middle" : "alphabetic";
-        ctx.fillText(text, x, y, drawMaxW);
+        lines.forEach((line, index) => ctx.fillText(line, x, firstY + index * lineHeight));
       });
-      const measuredW = options.fixedSize ? metrics.width : Math.min(metrics.width, maxW);
+      const measuredW = Math.max(...lines.map((line) => ctx.measureText(line).width));
       const left = align === "center" ? x - measuredW / 2 : align === "right" ? x - measuredW : x;
-      const textH = ascent + descent;
-      addTextBounds(left, hasCenterY ? y - textH / 2 : y - ascent, measuredW, textH);
+      addTextBounds(left, firstY - size, measuredW, lines.length * lineHeight);
     };
     const queueTrafficLogo = (box) => {
       if (!showLogo) return;
@@ -1049,24 +1042,10 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
         const groupLeft = hasLogoAndCta ? spec.logo.x + spec.logo.width + textGap : headlineRect.x;
         const groupRight = hasLogoAndCta ? spec.cta.x - textGap : subheadRect.x + subheadRect.width;
         const groupW = groupRight - groupLeft;
-        let headlineSize = fitTextSize(headline, 55, 12, headlineRect.width, 900);
-        let subheadSize = fitTextSize(subhead, 36, 12, subheadRect.width, 400);
-        while (headlineSize > 12 || subheadSize > 12) {
-          const headlineMetrics = measureText(headline, headlineSize, 900);
-          const subheadMetrics = measureText(subhead, subheadSize, 400);
-          const headlineW2 = Math.min(headlineMetrics.width, headlineRect.width);
-          const subheadW2 = Math.min(subheadMetrics.width, subheadRect.width);
-          if (headlineW2 + textGap + subheadW2 <= groupW) break;
-          if (headlineSize > 12 && (headlineW2 >= subheadW2 || subheadSize <= 12)) {
-            headlineSize -= 1;
-          } else if (subheadSize > 12) {
-            subheadSize -= 1;
-          } else {
-            break;
-          }
-        }
-        const headlineW = Math.min(measureText(headline, headlineSize, 900).width, headlineRect.width);
-        const subheadW = Math.min(measureText(subhead, subheadSize, 400).width, subheadRect.width);
+        const headlineSize = 55;
+        const subheadSize = 36;
+        const headlineW = measureText(headline, headlineSize, 900).width;
+        const subheadW = measureText(subhead, subheadSize, 400).width;
         const totalW = headlineW + textGap + subheadW;
         const startX = groupLeft + Math.max(0, (groupW - totalW) / 2);
         const centerY = canvas.height / 2;
@@ -1363,6 +1342,12 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       }
     }
   }
+  if (format.id === "ig-post") {
+    drawQueue.logo = () => {
+      if (igPostLogoImage) ctx.drawImage(igPostLogoImage, 947, 1213, 90, 90);
+    };
+    hitBoxes.logo = { x: 947, y: 1213, w: 90, h: 90 };
+  }
   layerOrder.forEach((layer) => {
     if (layer === "bg" && drawQueue.bg) drawQueue.bg();
     if (layer === "bg" && drawQueue.gradient) drawQueue.gradient();
@@ -1644,7 +1629,7 @@ function App() {
     strictMode: false
     // Smart toggle: activated upon user interaction
   });
-  const [assets, setAssets] = useState({ bgImage: null, logoImage: null, kvImages: [], quoteLeftImage: null, quoteRightImage: null, zaobaoLogoImage: null, gradientYoutubeImage: null, gradientArticleImage: null, gradientShortsImage: null, quoteShortsImage: null, lineShortsImage: null });
+  const [assets, setAssets] = useState({ bgImage: null, logoImage: null, kvImages: [], quoteLeftImage: null, quoteRightImage: null, zaobaoLogoImage: null, igPostLogoImage: null, gradientYoutubeImage: null, gradientArticleImage: null, gradientShortsImage: null, quoteShortsImage: null, lineShortsImage: null });
   const [fileNames, setFileNames] = useState({ bg: "", logo: "" });
   const [bannerStates, setBannerStates] = useState({});
   const [activeBannerId, setActiveBannerId] = useState(null);
@@ -1674,6 +1659,7 @@ function App() {
       img.src = src;
     };
     loadStaticImage("zaobaoLogoImage", "assets/zaobao-logo.png");
+    loadStaticImage("igPostLogoImage", IG_POST_LOGO_SRC);
     loadStaticImage("quoteLeftImage", "assets/quotation-left.png");
     loadStaticImage("quoteRightImage", "assets/quotation-right.png");
     loadStaticImage("gradientYoutubeImage", "assets/gradient-youtube-cover.png");
@@ -2431,13 +2417,13 @@ function App() {
         className: `bg-surface border border-borderInput rounded-xl transition-all shadow-sm flex flex-col overflow-hidden ${draggedLayerIdx === realIndex ? "opacity-50 border-brandRed shadow-lg" : "hover:border-textMut"}`
       },
       /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3 p-3 bg-surfaceElevated border-b border-borderMain/50 cursor-move" }, /* @__PURE__ */ React.createElement("svg", { className: "text-textMut", width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" }, /* @__PURE__ */ React.createElement("circle", { cx: "9", cy: "12", r: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: "9", cy: "5", r: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: "9", cy: "19", r: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: "15", cy: "12", r: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: "15", cy: "5", r: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: "15", cy: "19", r: "1" })), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 text-[10px] font-bold text-white uppercase tracking-widest pointer-events-none" }, /* @__PURE__ */ React.createElement(LayerIcon, { type: "layer" }), /* @__PURE__ */ React.createElement("span", { className: "translate-y-px" }, layer === "bg" ? "BACKGROUND" : layer === "kv" ? "KEY VISUAL" : layer === "logo" ? "BRAND LOGO" : layer === "text" ? "SMART TEXT" : "CALL TO ACTION"))),
-      /* @__PURE__ */ React.createElement("div", { className: "p-3 bg-surface" }, layer === "bg" && /* @__PURE__ */ React.createElement("div", { className: "relative border border-dashed border-borderMain rounded-lg bg-bgCore hover:border-textMut transition cursor-pointer p-2.5 flex items-center gap-3" }, /* @__PURE__ */ React.createElement("input", { type: "file", className: "absolute inset-0 w-full h-full opacity-0 cursor-pointer", accept: "image/*", onChange: (e) => handleUpload(e, "bg") }), /* @__PURE__ */ React.createElement("div", { className: "w-8 h-8 rounded bg-surfaceElevated flex items-center justify-center overflow-hidden shrink-0 border border-borderInput" }, assets.bgImage ? /* @__PURE__ */ React.createElement("img", { src: assets.bgImage.src, className: "w-full h-full object-cover" }) : /* @__PURE__ */ React.createElement(LayerIcon, { type: "bg" })), /* @__PURE__ */ React.createElement("span", { className: "text-[11px] font-medium text-textPri truncate" }, fileNames.bg || "Upload Background Image")), layer === "kv" && /* @__PURE__ */ React.createElement("div", { className: "space-y-3" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Enable KV Layer"), /* @__PURE__ */ React.createElement("button", { onClick: () => setGlobalSettings({ ...globalSettings, showKV: !globalSettings.showKV }), className: `w-8 h-4 rounded-full relative transition-colors ${globalSettings.showKV ? "bg-brandRed" : "bg-borderInput"}` }, /* @__PURE__ */ React.createElement("div", { className: `w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${globalSettings.showKV ? "left-4.5" : "left-0.5"}` }))), globalSettings.showKV && /* @__PURE__ */ React.createElement("div", { className: "space-y-2 mt-2 bg-bgCore p-2 rounded-lg border border-borderMain/50" }, assets.kvImages.map((kv) => /* @__PURE__ */ React.createElement("div", { key: kv.id, className: "flex items-center justify-between bg-surface border border-borderInput rounded-md p-1.5 shadow-sm" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3 overflow-hidden" }, /* @__PURE__ */ React.createElement("div", { className: "w-6 h-6 bg-surfaceElevated rounded flex items-center justify-center shrink-0 border border-borderMain" }, /* @__PURE__ */ React.createElement("img", { src: kv.img.src, className: "max-w-full max-h-full object-contain" })), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-medium text-textPri truncate" }, kv.name)), /* @__PURE__ */ React.createElement("button", { onClick: () => setAssets((prev) => ({ ...prev, kvImages: prev.kvImages.filter((k) => k.id !== kv.id) })), className: "text-textMut hover:text-brandRed transition px-1.5 py-1 bg-bgCore rounded border border-transparent hover:border-brandRed/30" }, /* @__PURE__ */ React.createElement("svg", { width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" }, /* @__PURE__ */ React.createElement("line", { x1: "18", y1: "6", x2: "6", y2: "18" }), /* @__PURE__ */ React.createElement("line", { x1: "6", y1: "6", x2: "18", y2: "18" }))))), /* @__PURE__ */ React.createElement("button", { onClick: () => document.getElementById("kv-upload").click(), className: "w-full py-2 bg-surfaceElevated border border-borderInput border-dashed rounded-md text-[11px] font-bold text-textDim hover:text-white hover:border-brandRed hover:bg-brandRed/5 transition flex items-center justify-center gap-2" }, /* @__PURE__ */ React.createElement("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" }, /* @__PURE__ */ React.createElement("line", { x1: "12", y1: "5", x2: "12", y2: "19" }), /* @__PURE__ */ React.createElement("line", { x1: "5", y1: "12", x2: "19", y2: "12" })), "ADD KV ELEMENT"), /* @__PURE__ */ React.createElement("input", { id: "kv-upload", type: "file", className: "hidden", accept: "image/png, image/svg+xml", onChange: handleUploadKV }))), layer === "logo" && /* @__PURE__ */ React.createElement("div", { className: "space-y-3" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Enable Logo Layer"), /* @__PURE__ */ React.createElement("button", { onClick: () => setGlobalSettings({ ...globalSettings, showLogo: !globalSettings.showLogo, strictMode: true }), className: `w-8 h-4 rounded-full relative transition-colors ${globalSettings.showLogo ? "bg-brandRed" : "bg-borderInput"}` }, /* @__PURE__ */ React.createElement("div", { className: `w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${globalSettings.showLogo ? "left-4.5" : "left-0.5"}` }))), globalSettings.showLogo && /* @__PURE__ */ React.createElement("div", { className: "relative border border-dashed border-borderMain rounded-lg bg-bgCore hover:border-textMut transition cursor-pointer p-2.5 flex items-center gap-3" }, /* @__PURE__ */ React.createElement("input", { type: "file", className: "absolute inset-0 w-full h-full opacity-0 cursor-pointer", accept: "image/png, image/svg+xml", onChange: (e) => handleUpload(e, "logo") }), /* @__PURE__ */ React.createElement("div", { className: "w-8 h-8 rounded bg-surfaceElevated flex items-center justify-center overflow-hidden shrink-0 border border-borderInput p-1" }, assets.logoImage ? /* @__PURE__ */ React.createElement("img", { src: assets.logoImage.src, className: "w-full h-full object-contain" }) : /* @__PURE__ */ React.createElement(LayerIcon, { type: "logo" })), /* @__PURE__ */ React.createElement("span", { className: "text-[11px] font-medium text-textPri truncate" }, fileNames.logo || "Upload SVG / PNG Logo"))), layer === "text" && /* @__PURE__ */ React.createElement("div", { className: "space-y-4" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut mb-1.5 uppercase tracking-wider" }, "Headline Payload"), /* @__PURE__ */ React.createElement("input", { type: "text", value: globalPayload.headline, onChange: (e) => {
+      /* @__PURE__ */ React.createElement("div", { className: "p-3 bg-surface" }, layer === "bg" && /* @__PURE__ */ React.createElement("div", { className: "relative border border-dashed border-borderMain rounded-lg bg-bgCore hover:border-textMut transition cursor-pointer p-2.5 flex items-center gap-3" }, /* @__PURE__ */ React.createElement("input", { type: "file", className: "absolute inset-0 w-full h-full opacity-0 cursor-pointer", accept: "image/*", onChange: (e) => handleUpload(e, "bg") }), /* @__PURE__ */ React.createElement("div", { className: "w-8 h-8 rounded bg-surfaceElevated flex items-center justify-center overflow-hidden shrink-0 border border-borderInput" }, assets.bgImage ? /* @__PURE__ */ React.createElement("img", { src: assets.bgImage.src, className: "w-full h-full object-cover" }) : /* @__PURE__ */ React.createElement(LayerIcon, { type: "bg" })), /* @__PURE__ */ React.createElement("span", { className: "text-[11px] font-medium text-textPri truncate" }, fileNames.bg || "Upload Background Image")), layer === "kv" && /* @__PURE__ */ React.createElement("div", { className: "space-y-3" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Enable KV Layer"), /* @__PURE__ */ React.createElement("button", { onClick: () => setGlobalSettings({ ...globalSettings, showKV: !globalSettings.showKV }), className: `w-8 h-4 rounded-full relative transition-colors ${globalSettings.showKV ? "bg-brandRed" : "bg-borderInput"}` }, /* @__PURE__ */ React.createElement("div", { className: `w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${globalSettings.showKV ? "left-4.5" : "left-0.5"}` }))), globalSettings.showKV && /* @__PURE__ */ React.createElement("div", { className: "space-y-2 mt-2 bg-bgCore p-2 rounded-lg border border-borderMain/50" }, assets.kvImages.map((kv) => /* @__PURE__ */ React.createElement("div", { key: kv.id, className: "flex items-center justify-between bg-surface border border-borderInput rounded-md p-1.5 shadow-sm" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3 overflow-hidden" }, /* @__PURE__ */ React.createElement("div", { className: "w-6 h-6 bg-surfaceElevated rounded flex items-center justify-center shrink-0 border border-borderMain" }, /* @__PURE__ */ React.createElement("img", { src: kv.img.src, className: "max-w-full max-h-full object-contain" })), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-medium text-textPri truncate" }, kv.name)), /* @__PURE__ */ React.createElement("button", { onClick: () => setAssets((prev) => ({ ...prev, kvImages: prev.kvImages.filter((k) => k.id !== kv.id) })), className: "text-textMut hover:text-brandRed transition px-1.5 py-1 bg-bgCore rounded border border-transparent hover:border-brandRed/30" }, /* @__PURE__ */ React.createElement("svg", { width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" }, /* @__PURE__ */ React.createElement("line", { x1: "18", y1: "6", x2: "6", y2: "18" }), /* @__PURE__ */ React.createElement("line", { x1: "6", y1: "6", x2: "18", y2: "18" }))))), /* @__PURE__ */ React.createElement("button", { onClick: () => document.getElementById("kv-upload").click(), className: "w-full py-2 bg-surfaceElevated border border-borderInput border-dashed rounded-md text-[11px] font-bold text-textDim hover:text-white hover:border-brandRed hover:bg-brandRed/5 transition flex items-center justify-center gap-2" }, /* @__PURE__ */ React.createElement("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" }, /* @__PURE__ */ React.createElement("line", { x1: "12", y1: "5", x2: "12", y2: "19" }), /* @__PURE__ */ React.createElement("line", { x1: "5", y1: "12", x2: "19", y2: "12" })), "ADD KV ELEMENT"), /* @__PURE__ */ React.createElement("input", { id: "kv-upload", type: "file", className: "hidden", accept: "image/png, image/svg+xml", onChange: handleUploadKV }))), layer === "logo" && /* @__PURE__ */ React.createElement("div", { className: "space-y-3" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Enable Logo Layer"), /* @__PURE__ */ React.createElement("button", { onClick: () => setGlobalSettings({ ...globalSettings, showLogo: !globalSettings.showLogo, strictMode: true }), className: `w-8 h-4 rounded-full relative transition-colors ${globalSettings.showLogo ? "bg-brandRed" : "bg-borderInput"}` }, /* @__PURE__ */ React.createElement("div", { className: `w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${globalSettings.showLogo ? "left-4.5" : "left-0.5"}` }))), globalSettings.showLogo && /* @__PURE__ */ React.createElement("div", { className: "relative border border-dashed border-borderMain rounded-lg bg-bgCore hover:border-textMut transition cursor-pointer p-2.5 flex items-center gap-3" }, /* @__PURE__ */ React.createElement("input", { type: "file", className: "absolute inset-0 w-full h-full opacity-0 cursor-pointer", accept: "image/png, image/svg+xml", onChange: (e) => handleUpload(e, "logo") }), /* @__PURE__ */ React.createElement("div", { className: "w-8 h-8 rounded bg-surfaceElevated flex items-center justify-center overflow-hidden shrink-0 border border-borderInput p-1" }, assets.logoImage ? /* @__PURE__ */ React.createElement("img", { src: assets.logoImage.src, className: "w-full h-full object-contain" }) : /* @__PURE__ */ React.createElement(LayerIcon, { type: "logo" })), /* @__PURE__ */ React.createElement("span", { className: "text-[11px] font-medium text-textPri truncate" }, fileNames.logo || "Upload SVG / PNG Logo"))), layer === "text" && /* @__PURE__ */ React.createElement("div", { className: "space-y-4" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut mb-1.5 uppercase tracking-wider" }, "Headline Payload"), /* @__PURE__ */ React.createElement("textarea", { value: globalPayload.headline, onChange: (e) => {
         setGlobalPayload((p) => ({ ...p, headline: e.target.value }));
         applyToAll("headline", e.target.value);
-      }, className: "w-full bg-bgCore border border-borderInput rounded-md p-2.5 text-xs font-medium text-white focus:outline-none focus:border-brandRed shadow-inner" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut mb-1.5 uppercase tracking-wider" }, "Subhead Payload"), /* @__PURE__ */ React.createElement("input", { type: "text", value: globalPayload.subhead, onChange: (e) => {
+      }, rows: 3, placeholder: "Use Enter to create a new line", className: "w-full bg-bgCore border border-borderInput rounded-md p-2.5 text-xs font-medium text-white focus:outline-none focus:border-brandRed shadow-inner resize-y" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut mb-1.5 uppercase tracking-wider" }, "Subhead Payload"), /* @__PURE__ */ React.createElement("textarea", { value: globalPayload.subhead, onChange: (e) => {
         setGlobalPayload((p) => ({ ...p, subhead: e.target.value }));
         applyToAll("subhead", e.target.value);
-      }, className: "w-full bg-bgCore border border-borderInput rounded-md p-2.5 text-xs font-medium text-white focus:outline-none focus:border-brandRed shadow-inner" })), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between pt-3 border-t border-borderMain/50" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Light/Dark Mode Preset"), /* @__PURE__ */ React.createElement(
+      }, rows: 3, placeholder: "Use Enter to create a new line", className: "w-full bg-bgCore border border-borderInput rounded-md p-2.5 text-xs font-medium text-white focus:outline-none focus:border-brandRed shadow-inner resize-y" })), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between pt-3 border-t border-borderMain/50" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Light/Dark Mode Preset"), /* @__PURE__ */ React.createElement(
         "button",
         {
           onClick: () => {
