@@ -1,0 +1,2800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AutoBanner Generator - Production Build</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Typography System -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;600;700;900&family=Roboto:wght@400;600;700;900&family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+
+  <!-- React Core (No Build Step Required) -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <!-- JSX is precompiled locally; no runtime Babel dependency. -->
+
+
+  <!-- JSZip & FileSaver for Batch Downloads -->
+  <script src="vendor/jszip.min.js"></script>
+  <script src="vendor/FileSaver.js"></script>
+
+
+  <script>
+    window.tailwind = window.tailwind || {};
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bgCore: '#0b0c0e',
+            sidebar: '#111214',
+            surface: '#181a1f',
+            surfaceElevated: '#1f2229',
+            borderMain: '#23262e',
+            borderInput: '#2d313b',
+            textPri: '#e2e4e9',
+            textMut: '#8a8f9a',
+            textDim: '#6b7280',
+            brandRed: '#e90044',
+            blueZone: 'rgba(0, 80, 200, 0.20)',
+            blueLine: 'rgba(60, 140, 255, 0.85)'
+          },
+          fontFamily: {
+            sans: ['Space Grotesk', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+
+  <style>
+    body { background: #0b0c0e; color: #e2e4e9; overflow: hidden; margin: 0; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #111214; }
+    ::-webkit-scrollbar-thumb { background: #2d313b; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+    input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+    input[type="color"]::-webkit-color-swatch { border: none; border-radius: 4px; }
+    .dragging { opacity: 0.5; }
+
+
+    /* Hide up/down arrows for number inputs */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type="number"] { -moz-appearance: textfield; }
+    
+    .panel-scroll { overflow-y: auto; overflow-x: hidden; }
+  </style>
+</head>
+<body>
+
+
+  <div id="startup-fallback" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:Arial,sans-serif;color:#e2e4e9;background:#0b0c0e;">
+    <div>
+      <div style="font-size:18px;font-weight:700;margin-bottom:8px;">Loading AutoBanner...</div>
+      <div data-startup-message style="font-size:13px;color:#8a8f9a;">Preparing the banner editor.</div>
+    </div>
+  </div>
+  <div id="root"></div>
+
+
+  <script>
+if (!window.React || !window.ReactDOM) {
+  const fallback = document.getElementById('startup-fallback');
+  if (fallback) {
+    fallback.style.display = 'flex';
+    fallback.querySelector('[data-startup-message]').textContent = 'React did not load. Please connect to the network once, then refresh this file.';
+  }
+} else {
+const { useState, useEffect, useRef } = React;
+const ptToPx = (pt) => Math.round(pt * (96 / 72));
+const FORMAT_DATABASE = [
+  {
+    id: "jumbotron-desktop",
+    name: "Jumbotron (Desktop)",
+    category: "Website",
+    w: 2600,
+    h: 180,
+    safe: { t: 24, b: 24, l: 130, r: 130 },
+    fonts: { h: ptToPx(32), hNoCTA: ptToPx(32), s: ptToPx(24), c: ptToPx(16) },
+    variants: [
+      { id: "2col-tc", label: "2 Col (Text Left, CTA Right)", cols: 2, layout: "text-cta", hasSub: true, hasCTA: true, requiresLogo: false },
+      { id: "3col-lhc", label: "3 Col (Logo + Text + CTA)", cols: 3, layout: "logo-headline-cta", hasSub: true, hasCTA: true, requiresLogo: true }
+    ]
+  },
+  {
+    id: "jumbotron-mobile",
+    name: "Jumbotron (Mobile)",
+    category: "Website",
+    w: 680,
+    h: 180,
+    safe: { t: 25, b: 30, l: 50, r: 50 },
+    fonts: { h: ptToPx(36), hNoCTA: ptToPx(40), s: ptToPx(32), c: ptToPx(24) },
+    variants: [
+      { id: "1col-hc", label: "1 Column Center", cols: 1, layout: "headline-cta", hasSub: false, hasCTA: true, requiresLogo: false },
+      { id: "2col-tc", label: "2 Column (Text Left, CTA Right)", cols: 2, layout: "text-cta", hasSub: false, hasCTA: true, requiresLogo: false }
+    ]
+  },
+  {
+    id: "sg-carousel",
+    name: "SG Carousel / Tiles",
+    category: "Website",
+    w: 720,
+    h: 240,
+    safe: { t: 25, b: 25, l: 85, r: 85 },
+    fonts: { h: ptToPx(43), hNoCTA: ptToPx(43), s: ptToPx(36), c: ptToPx(25) },
+    variants: [
+      { id: "1col-hc", label: "1 Col Center", cols: 1, layout: "headline-cta", hasSub: false, hasCTA: true, requiresLogo: false },
+      { id: "1col-hsc", label: "1 Col Full Stack", cols: 1, layout: "headline-subhead-cta", hasSub: true, hasCTA: true, requiresLogo: false },
+      { id: "2col-tc", label: "2 Col (Text/CTA)", cols: 2, layout: "text-cta", hasSub: true, hasCTA: true, requiresLogo: false }
+    ]
+  },
+  {
+    id: "sg-topic",
+    name: "SG Homepage Topic Highlight",
+    category: "Website",
+    w: 1200,
+    h: 800,
+    safe: { t: 100, b: 100, l: 150, r: 150 },
+    fonts: { h: ptToPx(74), hNoCTA: ptToPx(74), s: ptToPx(40), c: 0 },
+    variants: [
+      { id: "1col-hs", label: "Center (Logo + Head + Sub)", cols: 1, layout: "logo-headline-subhead", hasSub: true, hasCTA: false, requiresLogo: true }
+    ]
+  },
+  {
+    id: "in-app-banner",
+    name: "In App Banner",
+    category: "App",
+    w: 1e3,
+    h: 265,
+    safe: { t: 25, b: 30, l: 50, r: 50 },
+    fonts: { h: ptToPx(36), hNoCTA: ptToPx(40), s: ptToPx(32), c: ptToPx(24) },
+    variants: [
+      { id: "1col-lh", label: "1 Col Center (Logo + Headline)", cols: 1, layout: "logo-headline", hasSub: false, hasCTA: false, requiresLogo: true },
+      { id: "1col-h", label: "1 Col Center (Headline Only)", cols: 1, layout: "headline", hasSub: false, hasCTA: false, requiresLogo: false },
+      { id: "1col-hs", label: "1 Col Center (Head + Sub)", cols: 1, layout: "headline-subhead", hasSub: true, hasCTA: false, requiresLogo: false },
+      { id: "1col-hc", label: "1 Col (Headline + CTA)", cols: 1, layout: "headline-cta", hasSub: false, hasCTA: true, requiresLogo: false },
+      { id: "1col-hsc", label: "1 Col (Head + Sub + CTA)", cols: 1, layout: "headline-subhead-cta", hasSub: true, hasCTA: true, requiresLogo: false },
+      { id: "2col-tc", label: "2 Col (Text Left, CTA Right)", cols: 2, layout: "text-cta", hasSub: true, hasCTA: true, requiresLogo: false },
+      { id: "2col-ltl", label: "2 Col (Logo + Text Left)", cols: 2, layout: "logo-text-left", hasSub: true, hasCTA: false, requiresLogo: true },
+      { id: "2col-ltc", label: "2 Col (Logo + Text + CTA)", cols: 2, layout: "logo-text-cta", hasSub: true, hasCTA: true, requiresLogo: true }
+    ]
+  },
+  {
+    id: "in-app-message",
+    name: "In App Message",
+    category: "App",
+    w: 600,
+    h: 900,
+    safe: { t: 60, b: 60, l: 40, r: 40 },
+    fonts: { h: ptToPx(60), hNoCTA: ptToPx(60), s: ptToPx(40), c: ptToPx(28) },
+    variants: [
+      { id: "1col-hs", label: "Text Only Stack", cols: 1, layout: "headline-subhead", hasSub: true, hasCTA: false, requiresLogo: false },
+      { id: "1col-lhs", label: "Logo + Text Stack", cols: 1, layout: "logo-headline-subhead", hasSub: true, hasCTA: false, requiresLogo: true },
+      { id: "1col-hsc", label: "Stacked Container", cols: 1, layout: "headline-subhead-cta", hasSub: true, hasCTA: true, requiresLogo: false },
+      { id: "1col-lhsc", label: "Stacked with Logo", cols: 1, layout: "logo-headline-subhead-cta", hasSub: true, hasCTA: true, requiresLogo: true }
+    ]
+  },
+  {
+    id: "leaderboard",
+    name: "Leaderboard",
+    category: "Traffic Driver",
+    w: 1456,
+    h: 180,
+    safe: { t: 25, b: 25, l: 25, r: 25 },
+    fonts: { h: 55, hNoCTA: 55, s: 36, c: 30 },
+    variants: [
+      { id: "headline-only", label: "Headline Only", cols: 1, layout: "traffic-headline", specVariant: "headline_only", hasSub: false, hasCTA: false, requiresLogo: false },
+      { id: "headline-subhead", label: "Headline + Subhead", cols: 1, layout: "traffic-headline-subhead", specVariant: "headline_with_subhead", hasSub: true, hasCTA: false, requiresLogo: false },
+      { id: "headline-cta", label: "Headline + CTA", cols: 2, layout: "traffic-headline-cta", specVariant: "headline_with_cta", hasSub: false, hasCTA: true, requiresLogo: false },
+      { id: "headline-subhead-cta", label: "Headline + Subhead + CTA", cols: 2, layout: "traffic-headline-subhead-cta", specVariant: "headline_subhead_with_cta", hasSub: true, hasCTA: true, requiresLogo: false },
+      { id: "logo-headline", label: "Logo + Headline", cols: 2, layout: "traffic-logo-headline", specVariant: "logo_with_headline", hasSub: false, hasCTA: false, requiresLogo: true },
+      { id: "logo-headline-subhead", label: "Logo + Headline + Subhead", cols: 2, layout: "traffic-logo-headline-subhead", specVariant: "logo_with_headline_subhead", hasSub: true, hasCTA: false, requiresLogo: true },
+      { id: "logo-headline-cta", label: "Logo + Headline + CTA", cols: 3, layout: "traffic-logo-headline-cta", specVariant: "logo_headline_cta", hasSub: false, hasCTA: true, requiresLogo: true },
+      { id: "logo-headline-subhead-cta", label: "Logo + Headline + Subhead + CTA", cols: 3, layout: "traffic-logo-headline-subhead-cta", specVariant: "logo_headline_subhead_cta", hasSub: true, hasCTA: true, requiresLogo: true }
+    ]
+  },
+  {
+    id: "mobile-leaderboard",
+    name: "Mobile Leaderboard",
+    category: "Traffic Driver",
+    w: 640,
+    h: 200,
+    safe: { t: 32, b: 32, l: 20, r: 20 },
+    fonts: { h: 44, hNoCTA: 44, s: 0, c: 30 },
+    variants: [
+      { id: "logo-only", label: "Logo Only", cols: 1, layout: "traffic-mobile-logo", specVariant: "logo_only", hasSub: false, hasCTA: false, requiresLogo: true },
+      { id: "headline-only", label: "Headline Only", cols: 1, layout: "traffic-mobile-headline", specVariant: "headline_only", hasSub: false, hasCTA: false, requiresLogo: false },
+      { id: "logo-headline", label: "Logo + Headline", cols: 2, layout: "traffic-mobile-logo-headline", specVariant: "logo_with_headline", hasSub: false, hasCTA: false, requiresLogo: true },
+      { id: "headline-cta", label: "Headline + CTA", cols: 2, layout: "traffic-mobile-headline-cta", specVariant: "headline_with_cta", hasSub: false, hasCTA: true, requiresLogo: false },
+      { id: "logo-cta", label: "Logo + CTA", cols: 2, layout: "traffic-mobile-logo-cta", specVariant: "logo_with_cta", hasSub: false, hasCTA: true, requiresLogo: true }
+    ]
+  },
+  {
+    id: "imu",
+    name: "IMU",
+    category: "Traffic Driver",
+    w: 600,
+    h: 500,
+    safe: { t: 40, b: 40, l: 40, r: 40 },
+    fonts: { h: 50, hNoCTA: 50, s: 36, c: 28 },
+    variants: [
+      { id: "logo-headline-subhead-cta", label: "Logo + Headline + Subhead + CTA", cols: 1, layout: "traffic-imu-logo-headline-subhead-cta", specVariant: "logo_headline_subhead_cta", hasSub: true, hasCTA: true, requiresLogo: true },
+      { id: "logo-headline-cta", label: "Logo + Headline + CTA", cols: 1, layout: "traffic-imu-logo-headline-cta", specVariant: "logo_headline_cta", hasSub: false, hasCTA: true, requiresLogo: true },
+      { id: "logo-cta", label: "Logo + CTA", cols: 1, layout: "traffic-imu-logo-cta", specVariant: "logo_cta", hasSub: false, hasCTA: true, requiresLogo: true },
+      { id: "logo-only", label: "Logo Only", cols: 1, layout: "traffic-imu-logo", specVariant: "logo_only", hasSub: false, hasCTA: false, requiresLogo: true },
+      { id: "headline-subhead-cta", label: "Headline + Subhead + CTA", cols: 1, layout: "traffic-imu-headline-subhead-cta", specVariant: "headline_subhead_cta", hasSub: true, hasCTA: true, requiresLogo: false },
+      { id: "headline-cta", label: "Headline + CTA", cols: 1, layout: "traffic-imu-headline-cta", specVariant: "headline_cta", hasSub: false, hasCTA: true, requiresLogo: false },
+      { id: "cta-only", label: "CTA Only", cols: 1, layout: "traffic-imu-cta", specVariant: "cta_only", hasSub: false, hasCTA: true, requiresLogo: false },
+      { id: "headline-subhead", label: "Headline + Subhead", cols: 1, layout: "traffic-imu-headline-subhead", specVariant: "headline_subhead", hasSub: true, hasCTA: false, requiresLogo: false },
+      { id: "headline-only", label: "Headline Only", cols: 1, layout: "traffic-imu-headline", specVariant: "headline_only", hasSub: false, hasCTA: false, requiresLogo: false }
+    ]
+  },
+  {
+    id: "fb-cover",
+    name: "FB Cover",
+    category: "Social Media",
+    w: 851,
+    h: 315,
+    safe: { t: 25, b: 50, l: 25, r: 25 },
+    fonts: { h: ptToPx(50), hNoCTA: ptToPx(50), s: ptToPx(35), c: 0 },
+    variants: [
+      { id: "1col-hs", label: "1 Column (Head + Sub)", cols: 1, layout: "headline-subhead", hasSub: true, hasCTA: false, requiresLogo: false }
+    ]
+  },
+  {
+    id: "youtube-cover",
+    name: "Youtube Cover",
+    category: "Social Media",
+    w: 2560,
+    h: 1440,
+    safe: { t: 510, b: 510, l: 510, r: 510 },
+    fonts: { h: ptToPx(100), hNoCTA: ptToPx(100), s: ptToPx(70), c: 0 },
+    variants: [
+      { id: "1col-hs", label: "Center (Head + Sub)", cols: 1, layout: "headline-subhead", hasSub: true, hasCTA: false, requiresLogo: false }
+    ]
+  },
+  {
+    id: "x-header",
+    name: "X Header",
+    category: "Social Media",
+    w: 1500,
+    h: 500,
+    safe: { t: 40, b: 40, l: 500, r: 40 },
+    fonts: { h: ptToPx(75), hNoCTA: ptToPx(75), s: ptToPx(50), c: 0 },
+    variants: [
+      { id: "1col-hs", label: "Right Aligned (Head + Sub)", cols: 1, layout: "headline-subhead-left-align", hasSub: true, hasCTA: false, requiresLogo: false }
+      // uses left alignment within its right-shifted safezone
+    ]
+  },
+  {
+    id: "ig-post",
+    name: "Instagram Post",
+    category: "Social Media",
+    w: 1080,
+    h: 1350,
+    safe: { t: 60, b: 175, l: 60, r: 60 },
+    fonts: { h: ptToPx(70), hNoCTA: ptToPx(70), s: ptToPx(50), c: ptToPx(48) },
+    variants: [
+      { id: "1col-lhs", label: "Logo + Text Stack", cols: 1, layout: "headline-subhead", hasSub: true, hasCTA: false, requiresLogo: true },
+      { id: "1col-lhsc", label: "Logo + Text + CTA", cols: 1, layout: "headline-subhead-cta", hasSub: true, hasCTA: true, requiresLogo: true }
+    ]
+  },
+  {
+    id: "ig-story",
+    name: "Instagram Story",
+    category: "Social Media",
+    w: 1080,
+    h: 1920,
+    safe: { t: 250, b: 250, l: 60, r: 60 },
+    fonts: { h: ptToPx(70), hNoCTA: ptToPx(70), s: ptToPx(50), c: ptToPx(48) },
+    variants: [
+      { id: "1col-hs", label: "1 Column (Head + Sub)", cols: 1, layout: "headline-subhead", hasSub: true, hasCTA: false, requiresLogo: false },
+      { id: "1col-hsc", label: "1 Column (Head + Sub + CTA)", cols: 1, layout: "headline-subhead-cta", hasSub: true, hasCTA: true, requiresLogo: false }
+    ]
+  },
+  {
+    id: "ig-link-bio",
+    name: "Instagram Link in Bio",
+    category: "Social Media",
+    w: 860,
+    h: 490,
+    safe: { t: 40, b: 40, l: 40, r: 40 },
+    fonts: { h: ptToPx(60), hNoCTA: ptToPx(60), s: ptToPx(40), c: ptToPx(40) },
+    variants: [
+      { id: "1col-hs", label: "1 Column (Head + Sub)", cols: 1, layout: "headline-subhead", hasSub: true, hasCTA: false, requiresLogo: false },
+    ]
+  },
+  {
+    id: "article-cover",
+    name: "Article Cover",
+    category: "Video Graphics",
+    lockElements: true,
+    w: 1200,
+    h: 800,
+    safe: { t: 120, b: 120, l: 110, r: 110 },
+    fonts: { h: 92, hNoCTA: 92, s: 72, c: 0 },
+    variants: [
+      { id: "article-left", label: "Left Aligned", cols: 1, layout: "article-cover-left", hasSub: true, hasCTA: false, requiresLogo: false, lockElements: true },
+      { id: "article-right", label: "Right Aligned", cols: 1, layout: "article-cover-right", hasSub: true, hasCTA: false, requiresLogo: false, lockElements: true }
+    ]
+  },
+  {
+    id: "youtube-video-cover",
+    name: "Youtube Cover",
+    category: "Video Graphics",
+    lockElements: true,
+    w: 960,
+    h: 540,
+    safe: { t: 0, b: 75, l: 90, r: 90 },
+    fonts: { h: ptToPx(58), hNoCTA: ptToPx(58), s: ptToPx(45), c: 0 },
+    variants: [
+      { id: "youtube-left-quote", label: "Left Quote Layout", cols: 1, layout: "youtube-cover-left", hasSub: true, hasCTA: false, requiresLogo: false, lockElements: true },
+      { id: "youtube-right-quote", label: "Right Quote Layout", cols: 1, layout: "youtube-cover-right", hasSub: true, hasCTA: false, requiresLogo: false, lockElements: true }
+    ]
+  },
+  {
+    id: "shorts-cover",
+    name: "Vertical Youtube, Instagram, Tiktok Shorts Cover",
+    category: "Video Graphics",
+    lockElements: true,
+    w: 1080,
+    h: 1920,
+    safe: { t: 400, b: 400, l: 90, r: 90 },
+    fonts: { h: ptToPx(72), hNoCTA: ptToPx(72), s: ptToPx(72), c: 0 },
+    variants: [
+      { id: "default-text", label: "Default Text", cols: 1, layout: "shorts-cover-default", hasSub: true, hasCTA: false, requiresLogo: false, lockElements: true, noCTA: true },
+      { id: "quote-text", label: "Quote Layout", cols: 1, layout: "shorts-cover-quote", hasSub: true, hasCTA: false, requiresLogo: false, lockElements: true, noCTA: true }
+    ]
+  }
+];
+const CATEGORIES = [...new Set(FORMAT_DATABASE.map((f) => f.category))];
+const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, globalSettings, isInteractive = false, activeLayerId = null) => {
+  const { safe, fonts } = format;
+  const { bgImage, logoImage, kvImages, quoteLeftImage, quoteRightImage, zaobaoLogoImage, gradientYoutubeImage, gradientArticleImage, gradientShortsImage, quoteShortsImage, lineShortsImage } = assets;
+  const { headline, subhead, ctaText, showCTA, headlineColor, subheadColor, bgOffsetX, bgOffsetY, bgScale, bgRotate, bgRepeat, logoScale, ctaScale } = state;
+  const { layerOrder, showSafezone } = globalSettings;
+  const hitBoxes = { logo: null, text: null, cta: null, bg: null };
+  let textBounds = { left: 9999, right: -9999, top: 9999, bottom: -9999 };
+  const drawQueue = { bg: null, kv: null, gradient: null, logo: null, text: null, cta: null };
+  const sX = safe.l;
+  const sY = safe.t;
+  const sW = canvas.width - safe.l - safe.r;
+  const sH = canvas.height - safe.t - safe.b;
+  const brandRed = "#e90044";
+  const getSingleLine = (text) => text ? [text.replace(/[\r\n]+/g, " ").trim()] : [];
+  const getLogoSize = (maxWidth, maxHeight) => {
+    const scaleMultiplier = logoScale / 100;
+    let w, h;
+    if (logoImage) {
+      const scale = Math.min(maxWidth / logoImage.width, maxHeight / logoImage.height);
+      w = logoImage.width * scale;
+      h = logoImage.height * scale;
+    } else {
+      w = Math.min(160, maxWidth);
+      h = Math.min(50, maxHeight);
+    }
+    return { w: w * scaleMultiplier, h: h * scaleMultiplier };
+  };
+  const queueLogo = (x, y, maxWidth, maxHeight, align = "center", vAlign = "middle") => {
+    if (!globalSettings.showLogo || state.showBrandLogo === false) return { w: 0, h: 0 };
+    const size = getLogoSize(maxWidth, maxHeight);
+    const drawW = size.w;
+    const drawH = size.h;
+    let dx = x;
+    let dy = y;
+    if (align === "center") dx = x + (maxWidth - drawW) / 2;
+    if (align === "right") dx = x + maxWidth - drawW;
+    if (vAlign === "middle") dy = y + (maxHeight - drawH) / 2;
+    const finalX = dx + offsets.logo.x;
+    const finalY = dy + offsets.logo.y;
+    drawQueue.logo = () => {
+      if (logoImage) {
+        ctx.drawImage(logoImage, finalX, finalY, drawW, drawH);
+      } else {
+        ctx.fillStyle = brandRed;
+        ctx.fillRect(finalX, finalY, drawW, drawH);
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 16px Roboto";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("LOGO", finalX + drawW / 2, finalY + drawH / 2);
+      }
+    };
+    hitBoxes.logo = { x: finalX, y: finalY, w: drawW, h: drawH };
+    return { w: drawW, h: drawH };
+  };
+  const queueTextLine = (text, x, y, align, color, fontStr) => {
+    const finalX = x + offsets.text.x;
+    const finalY = y + offsets.text.y;
+    if (!drawQueue.text) drawQueue.text = [];
+    drawQueue.text.push(() => {
+      ctx.font = fontStr;
+      ctx.fillStyle = color;
+      ctx.textAlign = align;
+      ctx.textBaseline = "top";
+      ctx.fillText(text, finalX, finalY);
+    });
+    const w = ctx.measureText(text).width;
+    const h = parseInt(fontStr.match(/\d+/)[0], 10) * 1.2;
+    let l = finalX;
+    if (align === "center") l = finalX - w / 2;
+    if (align === "right") l = finalX - w;
+    textBounds.left = Math.min(textBounds.left, l);
+    textBounds.right = Math.max(textBounds.right, l + w);
+    textBounds.top = Math.min(textBounds.top, finalY);
+    textBounds.bottom = Math.max(textBounds.bottom, finalY + h);
+  };
+  const queueCTA = (x, y, text, align = "center") => {
+    if (!showCTA || !text || !variant.hasCTA) return { w: 0, h: 0 };
+    const fontSize = fonts.c;
+    ctx.font = `600 ${fontSize}px "Noto Sans SC", "Roboto", sans-serif`;
+    const metrics = ctx.measureText(text);
+    const w = metrics.width + fontSize * 1.5 * 2;
+    const h = fontSize + fontSize * 0.8 * 2;
+    let dx = x;
+    if (align === "center") dx = x - w / 2;
+    if (align === "right") dx = x - w;
+    const finalX = dx + offsets.cta.x;
+    const finalY = y + offsets.cta.y;
+    drawQueue.cta = () => {
+      ctx.beginPath();
+      ctx.roundRect(finalX, finalY, w, h, h / 2);
+      ctx.fillStyle = brandRed;
+      ctx.fill();
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = `600 ${fontSize}px "Noto Sans SC", "Roboto", sans-serif`;
+      ctx.fillText(text, finalX + w / 2, finalY + h / 2);
+    };
+    hitBoxes.cta = { x: finalX, y: finalY, w, h };
+    return { w, h };
+  };
+  const calculateTextStack = (targetW, targetH, isCenter = false) => {
+    let currentHFont = showCTA ? fonts.h : fonts.hNoCTA || fonts.h;
+    let currentSFont = fonts.s;
+    let gap = 16;
+    let linesH = [], linesS = [];
+    let totalH = 0;
+    let ctaStats = { w: 0, h: 0 };
+    if (showCTA && ctaText && variant.hasCTA) {
+      ctx.font = `600 ${fonts.c}px "Noto Sans SC", "Roboto", sans-serif`;
+      ctaStats.w = ctx.measureText(ctaText).width + fonts.c * 1.5 * 2;
+      ctaStats.h = fonts.c + fonts.c * 0.8 * 2;
+    }
+    while (currentHFont >= 8) {
+      const hFontStr = `900 ${currentHFont}px "Noto Sans SC", "Roboto"`;
+      const sFontStr = `400 ${currentSFont}px "Noto Sans SC", "Roboto"`;
+      linesH = getSingleLine(headline);
+      linesS = variant.hasSub ? getSingleLine(subhead) : [];
+      let maxLineW = 0;
+      ctx.font = hFontStr;
+      linesH.forEach((l) => {
+        maxLineW = Math.max(maxLineW, ctx.measureText(l).width);
+      });
+      ctx.font = sFontStr;
+      linesS.forEach((l) => {
+        maxLineW = Math.max(maxLineW, ctx.measureText(l).width);
+      });
+      totalH = linesH.length * (currentHFont * 1.2);
+      if (linesS.length > 0) totalH += gap + linesS.length * (currentSFont * 1.4);
+      if (ctaStats.h > 0 && isCenter) totalH += gap + ctaStats.h;
+      if (totalH <= targetH && maxLineW <= targetW) break;
+      if (currentHFont <= 8) break;
+      currentHFont -= 1;
+      currentSFont -= 0.8;
+    }
+    return { linesH, linesS, currentHFont, currentSFont, totalH, ctaStats, gap };
+  };
+  const queueGradientOverlay = (gradientImage, isRightAligned, isEnabled = true) => {
+    if (!gradientImage || !isEnabled) return;
+    drawQueue.gradient = () => {
+      ctx.save();
+      if (isRightAligned) {
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+      }
+      ctx.drawImage(gradientImage, 0, 0, canvas.width, canvas.height);
+      ctx.restore();
+    };
+  };
+  drawQueue.bg = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (bgImage) {
+      ctx.save();
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      let baseScale = 1;
+      if (!bgRepeat) {
+        baseScale = Math.max(canvas.width / bgImage.width, canvas.height / bgImage.height);
+      }
+      const finalScale = baseScale * ((bgScale !== void 0 ? bgScale : 100) / 100);
+      const moveX = (bgOffsetX || 0) * canvas.width;
+      const moveY = (bgOffsetY || 0) * canvas.height;
+      ctx.translate(cx + moveX, cy + moveY);
+      ctx.rotate((bgRotate || 0) * Math.PI / 180);
+      ctx.scale(finalScale, finalScale);
+      if (bgRepeat) {
+        const pattern = ctx.createPattern(bgImage, "repeat");
+        ctx.fillStyle = pattern;
+        const maxDim = Math.max(canvas.width, canvas.height) * 4 / finalScale;
+        ctx.translate(-maxDim / 2, -maxDim / 2);
+        ctx.fillRect(0, 0, maxDim, maxDim);
+      } else {
+        ctx.drawImage(bgImage, -bgImage.width / 2, -bgImage.height / 2, bgImage.width, bgImage.height);
+      }
+      ctx.restore();
+    } else {
+      ctx.fillStyle = format.id === "youtube-video-cover" ? "#000000" : "#111214";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+  };
+  drawQueue.kv = () => {
+    if (!globalSettings.showKV || !kvImages || kvImages.length === 0) return;
+    kvImages.forEach((kvObj) => {
+      var _a, _b, _c;
+      const { id: kvId, img: kvImage } = kvObj;
+      ctx.save();
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const transform = ((_a = state.kvTransforms) == null ? void 0 : _a[kvId]) || { scale: 100, rotate: 0, offsetX: 0, offsetY: 0 };
+      const baseScale = Math.min(canvas.width / kvImage.width, canvas.height / kvImage.height);
+      const finalScale = baseScale * ((transform.scale !== void 0 ? transform.scale : 100) / 100);
+      const moveX = (transform.offsetX || 0) * canvas.width + (((_b = offsets[kvId]) == null ? void 0 : _b.x) || 0);
+      const moveY = (transform.offsetY || 0) * canvas.height + (((_c = offsets[kvId]) == null ? void 0 : _c.y) || 0);
+      ctx.translate(cx + moveX, cy + moveY);
+      ctx.rotate((transform.rotate || 0) * Math.PI / 180);
+      ctx.scale(finalScale, finalScale);
+      const drawW = kvImage.width;
+      const drawH = kvImage.height;
+      ctx.drawImage(kvImage, -drawW / 2, -drawH / 2, drawW, drawH);
+      if (isInteractive && activeLayerId === kvId) {
+        const s = Math.max(0.01, finalScale);
+        ctx.strokeStyle = "#e90044";
+        ctx.lineWidth = 4 / s;
+        ctx.setLineDash([15 / s, 10 / s]);
+        ctx.strokeRect(-drawW / 2, -drawH / 2, drawW, drawH);
+        ctx.setLineDash([]);
+        ctx.fillStyle = "rgba(233, 0, 68, 0.15)";
+        ctx.fillRect(-drawW / 2, -drawH / 2, drawW, drawH);
+      }
+      ctx.restore();
+      hitBoxes[kvId] = {
+        x: cx + moveX - drawW * finalScale / 2,
+        y: cy + moveY - drawH * finalScale / 2,
+        w: drawW * finalScale,
+        h: drawH * finalScale
+      };
+    });
+  };
+  const drawYoutubeCoverLayout = () => {
+    const isRight = variant.layout === "youtube-cover-right";
+    queueGradientOverlay(gradientYoutubeImage, isRight, state.showYoutubeGradient !== false);
+    const title = state.programTitle || "Program Name";
+    const quoteName = state.quoteName || "\u67D0\u67D0\u67D0";
+    const textOffset = offsets.text || { x: 0, y: 0 };
+    const logoOffset = offsets.logo || { x: 0, y: 0 };
+    const brandLogoScale = (logoScale || 100) / 100;
+    const hasSubhead = !!(subhead || "").trim();
+    const verticalShift = hasSubhead ? 0 : 55;
+    const titleY = (state.showQuoteName === false ? 258 : 194) + verticalShift;
+    const quoteY = 263 + verticalShift;
+    const nameY = quoteY + 20;
+    const titleBox = isRight ? { x: 648, right: 865, y: titleY, align: "right" } : { x: 95, right: null, y: titleY, align: "left" };
+    const quote = isRight ? { markX: 811, nameX: 713, y: quoteY, nameY, textAlign: "right" } : { markX: 90, nameX: 163, y: quoteY, nameY, textAlign: "left" };
+    const sub = isRight ? { x: 870, y: 326, maxW: 446, align: "right" } : { x: 90, y: 326, maxW: 600, align: "left" };
+    const head = isRight ? { x: 870, y: 393, maxW: 605, align: "right" } : { x: 90, y: 393, maxW: 780, align: "left" };
+    const addTextBounds = (x, y, w, h) => {
+      textBounds.left = Math.min(textBounds.left, x);
+      textBounds.right = Math.max(textBounds.right, x + w);
+      textBounds.top = Math.min(textBounds.top, y);
+      textBounds.bottom = Math.max(textBounds.bottom, y + h);
+    };
+    drawQueue.logo = () => {
+      if (!globalSettings.showLogo) return;
+      const zaobaoX = 49;
+      const zaobaoY = 40;
+      const zaobaoSize = 86;
+      if (zaobaoLogoImage) {
+        ctx.drawImage(zaobaoLogoImage, zaobaoX, zaobaoY, zaobaoSize, zaobaoSize);
+      } else {
+        ctx.beginPath();
+        ctx.arc(zaobaoX + zaobaoSize / 2, zaobaoY + zaobaoSize / 2, zaobaoSize / 2, 0, Math.PI * 2);
+        ctx.fillStyle = brandRed;
+        ctx.fill();
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = `900 ${Math.round(zaobaoSize * 0.58)}px "Noto Sans SC", "Roboto"`;
+        ctx.fillText("\u65E9", zaobaoX + zaobaoSize / 2, zaobaoY + zaobaoSize / 2 + zaobaoSize * 0.03);
+      }
+      if (state.showBrandLogo === false) {
+        hitBoxes.logo = { x: zaobaoX, y: zaobaoY, w: zaobaoSize, h: zaobaoSize };
+        return;
+      }
+      const brandRight = 919 + logoOffset.x;
+      const brandY = 40 + logoOffset.y;
+      const brandBoxW = 210 * brandLogoScale;
+      const brandBoxH = 86 * brandLogoScale;
+      const brandX = brandRight - brandBoxW;
+      if (logoImage) {
+        const scale = Math.min(brandBoxW / logoImage.width, brandBoxH / logoImage.height);
+        const drawW = logoImage.width * scale;
+        const drawH = logoImage.height * scale;
+        ctx.drawImage(logoImage, brandRight - drawW, brandY, drawW, drawH);
+      } else {
+        ctx.fillStyle = brandRed;
+        ctx.fillRect(brandX, brandY, brandBoxW, brandBoxH);
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = `900 ${Math.max(12, Math.round(20 * brandLogoScale))}px "Roboto", "Noto Sans SC", sans-serif`;
+        ctx.fillText("LOGO", brandX + brandBoxW / 2, brandY + brandBoxH / 2);
+      }
+      hitBoxes.logo = { x: brandX, y: brandY, w: brandBoxW, h: brandBoxH };
+    };
+    drawQueue.text = [];
+    if (state.showProgramTitle !== false) {
+      const titleFont = '700 25.5px "Noto Sans SC", "Roboto", sans-serif';
+      ctx.font = titleFont;
+      const titleMetrics = ctx.measureText(title);
+      const titleW = Math.ceil(titleMetrics.width) + 20;
+      const titleH = Math.ceil((titleMetrics.actualBoundingBoxAscent || 29) + (titleMetrics.actualBoundingBoxDescent || 0)) + 20;
+      const boxW = Math.max(42, Math.min(titleW, 500));
+      const boxH = titleH;
+      const boxX = isRight ? titleBox.right - boxW : titleBox.x;
+      const x = boxX + textOffset.x;
+      const y = titleBox.y + textOffset.y;
+      drawQueue.text.push(() => {
+        ctx.fillStyle = brandRed;
+        ctx.fillRect(x, y, boxW, boxH);
+        ctx.fillStyle = "#ffffff";
+        ctx.textBaseline = "middle";
+        ctx.textAlign = "left";
+        ctx.font = titleFont;
+        ctx.fillText(title, x + 10, y + boxH / 2);
+      });
+      addTextBounds(x, y, boxW, boxH);
+    }
+    if (state.showQuoteName !== false) {
+      const markX = quote.markX + textOffset.x;
+      const nameX = quote.nameX + textOffset.x;
+      const y = quote.y + textOffset.y;
+      const nameY2 = quote.nameY + textOffset.y;
+      drawQueue.text.push(() => {
+        const quoteImage = isRight ? quoteLeftImage : quoteRightImage;
+        if (quoteImage) {
+          ctx.drawImage(quoteImage, markX, y, 57, 39);
+        } else {
+          ctx.fillStyle = brandRed;
+          ctx.textBaseline = "top";
+          ctx.textAlign = "left";
+          ctx.font = '900 64px "Roboto", "Noto Sans SC", sans-serif';
+          ctx.fillText(isRight ? "\u201D" : "\u201C", markX, y - 13);
+        }
+        ctx.font = '900 26.5px "Noto Sans SC", "Roboto", sans-serif';
+        ctx.textBaseline = "alphabetic";
+        ctx.lineWidth = 7;
+        ctx.strokeStyle = "#1a1a1a";
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = quote.textAlign;
+        ctx.strokeText(quoteName, nameX + (isRight ? 82 : 0), nameY2 + 11);
+        ctx.fillText(quoteName, nameX + (isRight ? 82 : 0), nameY2 + 11);
+      });
+      addTextBounds(Math.min(markX, nameX), y, 155, 45);
+    }
+    const drawOutlinedText = (text, spec, fontSize) => {
+      const x = spec.x + textOffset.x;
+      const y = spec.y + textOffset.y;
+      drawQueue.text.push(() => {
+        ctx.textBaseline = "alphabetic";
+        ctx.textAlign = spec.align;
+        ctx.font = `900 ${fontSize}px "Noto Sans SC", "Roboto", sans-serif`;
+        ctx.lineWidth = Math.max(7, fontSize * 0.12);
+        ctx.strokeStyle = "#1a1a1a";
+        ctx.fillStyle = "#ffffff";
+        ctx.strokeText(text, x, y);
+        ctx.fillText(text, x, y);
+      });
+      addTextBounds(spec.align === "right" ? x - spec.maxW : x, y, spec.maxW, fontSize * 1.2);
+    };
+    drawOutlinedText(subhead, { ...sub, y: 371 }, 49);
+    drawOutlinedText(headline, { ...head, y: 454 }, 66);
+  };
+  const drawArticleCoverLayout = () => {
+    const isRight = variant.layout === "article-cover-right";
+    queueGradientOverlay(gradientArticleImage, isRight, state.showArticleGradient !== false);
+    const articleTopic = state.articleTopic || "Optional - TOPIC";
+    const quoteName = state.articleQuoteName || state.quoteName || "\u67D0\u67D0\u67D0";
+    const showTopic = state.showArticleTopic !== false;
+    const showQuote = state.showArticleQuote === true;
+    const showHeadline = !!(headline || "").trim();
+    const showSubhead = !!(subhead || "").trim();
+    const headlineFirst = state.articleHeadlineFirst !== false;
+    const align = isRight ? "right" : "left";
+    const leftX = 130;
+    const rightX = 1075;
+    const anchorX = isRight ? rightX : leftX;
+    const topicFont = '700 37px "Noto Sans SC", "Roboto", sans-serif';
+    const headlineFont = '900 92px "Noto Sans SC", "Roboto", sans-serif';
+    const subheadFont = '900 72px "Noto Sans SC", "Roboto", sans-serif';
+    const nameFont = '900 34px "Noto Sans SC", "Roboto", sans-serif';
+    const rows = [];
+    ctx.font = topicFont;
+    const topicMetrics = ctx.measureText(articleTopic);
+    const topicBoxW = Math.ceil(topicMetrics.width) + 20;
+    const topicBoxH = Math.ceil((topicMetrics.actualBoundingBoxAscent || 36) + (topicMetrics.actualBoundingBoxDescent || 0)) + 20;
+    const topicRowH = topicBoxH;
+    if (showTopic) rows.push({ type: "topic", h: topicRowH, boxW: topicBoxW, boxH: topicBoxH });
+    if (showQuote) rows.push({ type: "quote", h: 45 });
+    const textRows = [];
+    if (showHeadline) textRows.push({ type: "headline", h: 100 });
+    if (showSubhead) textRows.push({ type: "subhead", h: 80 });
+    if (!headlineFirst) textRows.reverse();
+    rows.push(...textRows);
+    const gap = 24;
+    const totalH = rows.reduce((sum, row) => sum + row.h, 0) + Math.max(0, rows.length - 1) * gap;
+    let y = canvas.height - safe.b - totalH - 8;
+    const textOffset = offsets.text || { x: 0, y: 0 };
+    const addTextBounds = (x, y2, w, h) => {
+      textBounds.left = Math.min(textBounds.left, x);
+      textBounds.right = Math.max(textBounds.right, x + w);
+      textBounds.top = Math.min(textBounds.top, y2);
+      textBounds.bottom = Math.max(textBounds.bottom, y2 + h);
+    };
+    drawQueue.text = [];
+    rows.forEach((row) => {
+      const rowY = y + textOffset.y;
+      if (row.type === "topic") {
+        const boxW = row.boxW;
+        const boxH = row.boxH;
+        const boxX = (isRight ? rightX - boxW : leftX) + textOffset.x;
+        drawQueue.text.push(() => {
+          ctx.fillStyle = brandRed;
+          ctx.fillRect(boxX, rowY, boxW, boxH);
+          ctx.fillStyle = "#ffffff";
+          ctx.textBaseline = "middle";
+          ctx.textAlign = "left";
+          ctx.font = topicFont;
+          ctx.fillText(articleTopic, boxX + 10, rowY + boxH / 2);
+        });
+        addTextBounds(boxX, rowY, boxW, boxH);
+      }
+      if (row.type === "quote") {
+        const quoteImage = isRight ? quoteLeftImage : quoteRightImage;
+        const markX = (isRight ? rightX - 57 : leftX) + textOffset.x;
+        const nameAnchor = isRight ? markX - 18 : markX + 73;
+        drawQueue.text.push(() => {
+          if (quoteImage) {
+            ctx.drawImage(quoteImage, markX, rowY + 3, 57, 39);
+          } else {
+            ctx.fillStyle = brandRed;
+            ctx.textBaseline = "top";
+            ctx.textAlign = "left";
+            ctx.font = '900 64px "Roboto", "Noto Sans SC", sans-serif';
+            ctx.fillText(isRight ? "\u201D" : "\u201C", markX, rowY - 10);
+          }
+          ctx.font = nameFont;
+          ctx.textBaseline = "middle";
+          ctx.textAlign = align;
+          ctx.lineWidth = 7;
+          ctx.strokeStyle = "#1a1a1a";
+          ctx.fillStyle = "#ffffff";
+          ctx.strokeText(quoteName, nameAnchor, rowY + row.h / 2 + 2);
+          ctx.fillText(quoteName, nameAnchor, rowY + row.h / 2 + 2);
+        });
+        addTextBounds(isRight ? nameAnchor - 260 : markX, rowY, 330, row.h);
+      }
+      if (row.type === "headline" || row.type === "subhead") {
+        const text = row.type === "headline" ? headline : subhead;
+        const font = row.type === "headline" ? headlineFont : subheadFont;
+        const fontSize = row.type === "headline" ? 92 : 72;
+        const drawX = anchorX + textOffset.x;
+        drawQueue.text.push(() => {
+          ctx.textBaseline = "top";
+          ctx.textAlign = align;
+          ctx.font = font;
+          ctx.lineWidth = Math.max(8, fontSize * 0.11);
+          ctx.strokeStyle = "#1a1a1a";
+          ctx.fillStyle = "#ffffff";
+          ctx.strokeText(text, drawX, rowY);
+          ctx.fillText(text, drawX, rowY);
+        });
+        addTextBounds(isRight ? drawX - 900 : drawX, rowY, 900, row.h);
+      }
+      y += row.h + gap;
+    });
+  };
+  const drawShortsCoverLayout = () => {
+    const isQuoteLayout = variant.layout === "shorts-cover-quote";
+    queueGradientOverlay(gradientShortsImage, false, state.showShortsGradient !== false);
+    const textOffset = offsets.text || { x: 0, y: 0 };
+    const lineOne = headline || "";
+    const lineTwo = subhead || "";
+    const showLineOne = !!lineOne.trim();
+    const showLineTwo = !!lineTwo.trim();
+    const quoteName = state.shortsQuoteName || state.quoteName || "\u67D0\u67D0\u67D0";
+    const quoteNameLines = quoteName.split(/\n/).map((line) => line.trim()).filter(Boolean).slice(0, 2);
+    if (quoteNameLines.length === 0) quoteNameLines.push("\u67D0\u67D0\u67D0");
+    const centerX = canvas.width / 2 + textOffset.x;
+    const defaultPlacements = {
+      top: { lineY: 440, lineOneOffset: 128, lineTwoOffset: 220 },
+      middle: { lineY: 1012, lineOneOffset: 128, lineTwoOffset: 220 },
+      bottom: { lineY: 1195, lineOneOffset: 114, lineTwoOffset: 206 }
+    };
+    const quotePlacements = {
+      aboveLine: { lineY: 1407, lineOneY: 1264, lineTwoY: 1355, nameY: 1500 },
+      belowLine: { lineY: 1244, lineOneY: 1373, lineTwoY: 1465, nameY: 1211 }
+    };
+    const shortsPlacement = state.shortsPlacement || "middle";
+    const quoteTextPosition = state.shortsQuoteTextPosition || "belowLine";
+    const defaultPlacement = defaultPlacements[shortsPlacement] || defaultPlacements.middle;
+    const quotePlacement = quotePlacements[quoteTextPosition] || quotePlacements.belowLine;
+    const nameFontSize = 60;
+    const nameLineGap = 68;
+    const safeBottomY = canvas.height - safe.b;
+    const quoteShiftUp = isQuoteLayout && quoteTextPosition === "aboveLine" ? Math.max(0, quotePlacement.nameY + (quoteNameLines.length - 1) * nameLineGap + 12 - safeBottomY) : 0;
+    const baseY = (isQuoteLayout ? quotePlacement.lineY - quoteShiftUp : defaultPlacement.lineY) + textOffset.y;
+    const lineW = 346;
+    const lineH = 16;
+    const lineX = centerX - lineW / 2;
+    const lineY = baseY;
+    const titleFontSize = 72;
+    const headlineY = (isQuoteLayout ? quotePlacement.lineOneY - quoteShiftUp : defaultPlacement.lineY + defaultPlacement.lineOneOffset) + textOffset.y;
+    const subheadY = (isQuoteLayout ? quotePlacement.lineTwoY - quoteShiftUp : defaultPlacement.lineY + defaultPlacement.lineTwoOffset) + textOffset.y;
+    const quoteNameStackShift = isQuoteLayout && quoteTextPosition === "belowLine" ? (quoteNameLines.length - 1) * nameLineGap : 0;
+    const nameY = (isQuoteLayout ? quotePlacement.nameY - quoteShiftUp - quoteNameStackShift : 0) + textOffset.y;
+    const addTextBounds = (x, y, w, h) => {
+      textBounds.left = Math.min(textBounds.left, x);
+      textBounds.right = Math.max(textBounds.right, x + w);
+      textBounds.top = Math.min(textBounds.top, y);
+      textBounds.bottom = Math.max(textBounds.bottom, y + h);
+    };
+    drawQueue.text = [];
+    drawQueue.text.push(() => {
+      if (isQuoteLayout && quoteShortsImage) {
+        ctx.globalAlpha = 0.55;
+        ctx.drawImage(quoteShortsImage, 0, 990 + textOffset.y, 397, 276);
+        ctx.globalAlpha = 1;
+      }
+      if (lineShortsImage) {
+        ctx.drawImage(lineShortsImage, lineX, lineY, lineW, lineH);
+      } else {
+        ctx.strokeStyle = brandRed;
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(lineX + 8, lineY + lineH / 2);
+        ctx.lineTo(lineX + lineW - 8, lineY + lineH / 2);
+        ctx.stroke();
+        ctx.fillStyle = brandRed;
+        ctx.beginPath();
+        ctx.arc(lineX + 8, lineY + lineH / 2, 8, 0, Math.PI * 2);
+        ctx.arc(lineX + lineW - 8, lineY + lineH / 2, 8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.textAlign = "center";
+      ctx.textBaseline = "alphabetic";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = "#1a1a1a";
+      ctx.fillStyle = "#ffffff";
+      if (showLineOne) {
+        ctx.font = `900 ${titleFontSize}px "Noto Sans SC", "Roboto", sans-serif`;
+        ctx.lineWidth = 10;
+        ctx.strokeText(lineOne, centerX, headlineY);
+        ctx.fillText(lineOne, centerX, headlineY);
+      }
+      if (showLineTwo) {
+        ctx.font = `900 ${titleFontSize}px "Noto Sans SC", "Roboto", sans-serif`;
+        ctx.lineWidth = 10;
+        ctx.strokeText(lineTwo, centerX, subheadY);
+        ctx.fillText(lineTwo, centerX, subheadY);
+      }
+      if (isQuoteLayout) {
+        ctx.font = `300 ${nameFontSize}px "Noto Sans SC", "Roboto", sans-serif`;
+        ctx.lineWidth = 0;
+        quoteNameLines.forEach((line, index) => {
+          ctx.fillText(line, centerX, nameY + index * nameLineGap);
+        });
+      }
+    });
+    addTextBounds(0, isQuoteLayout ? 990 + textOffset.y : lineY, canvas.width, isQuoteLayout ? 430 : 260);
+  };
+  const drawTrafficDriverLayout = () => {
+    const textOffset = offsets.text || { x: 0, y: 0 };
+    const logoOffset = offsets.logo || { x: 0, y: 0 };
+    const ctaOffset = offsets.cta || { x: 0, y: 0 };
+    const wantsLogo = !!variant.requiresLogo;
+    const wantsSubhead = !!variant.hasSub && !!(subhead || "").trim();
+    const wantsCTA = !!variant.hasCTA && showCTA && !!(ctaText || "").trim();
+    const showLogo = wantsLogo && globalSettings.showLogo && state.showBrandLogo !== false;
+    const addTextBounds = (x, y, w, h) => {
+      textBounds.left = Math.min(textBounds.left, x);
+      textBounds.right = Math.max(textBounds.right, x + w);
+      textBounds.top = Math.min(textBounds.top, y);
+      textBounds.bottom = Math.max(textBounds.bottom, y + h);
+    };
+    const fontFamily = '"Noto Sans SC", "Roboto", sans-serif';
+    const fitTextSize = (text, maxSize, minSize, maxW, weight = 900) => {
+      let size = maxSize;
+      while (size > minSize) {
+        ctx.font = `${weight} ${size}px ${fontFamily}`;
+        if (ctx.measureText(text).width <= maxW) break;
+        size -= 1;
+      }
+      return size;
+    };
+    const queueTrafficText = (text, spec, maxSize, minSize, weight, color, options = {}) => {
+      if (!text) return;
+      const x = spec.x + textOffset.x;
+      const align = spec.align || "center";
+      const maxW = spec.maxW;
+      const size = options.fixedSize ? maxSize : fitTextSize(text, maxSize, minSize, maxW, weight);
+      ctx.font = `${weight} ${size}px ${fontFamily}`;
+      const metrics = ctx.measureText(text);
+      const ascent = metrics.actualBoundingBoxAscent || size * 0.82;
+      const descent = metrics.actualBoundingBoxDescent || size * 0.18;
+      const hasCenterY = spec.centerY !== void 0;
+      const drawMaxW = options.fixedSize ? void 0 : maxW;
+      const y = (hasCenterY ? spec.centerY : spec.y) + textOffset.y;
+      drawQueue.text.push(() => {
+        ctx.font = `${weight} ${size}px ${fontFamily}`;
+        ctx.fillStyle = color;
+        ctx.textAlign = align;
+        ctx.textBaseline = hasCenterY ? "middle" : "alphabetic";
+        ctx.fillText(text, x, y, drawMaxW);
+      });
+      const measuredW = options.fixedSize ? metrics.width : Math.min(metrics.width, maxW);
+      const left = align === "center" ? x - measuredW / 2 : align === "right" ? x - measuredW : x;
+      const textH = ascent + descent;
+      addTextBounds(left, hasCenterY ? y - textH / 2 : y - ascent, measuredW, textH);
+    };
+    const queueTrafficLogo = (box) => {
+      if (!showLogo) return;
+      const logoMultiplier = (logoScale || 100) / 100;
+      const drawBoxW = box.w * logoMultiplier;
+      const drawBoxH = box.h * logoMultiplier;
+      const finalX = box.x + (box.w - drawBoxW) / 2 + logoOffset.x;
+      const finalY = box.y + (box.h - drawBoxH) / 2 + logoOffset.y;
+      drawQueue.logo = () => {
+        if (logoImage) {
+          const padding = 0;
+          const innerW = Math.max(1, drawBoxW - padding * 2);
+          const innerH = Math.max(1, drawBoxH - padding * 2);
+          const scale = Math.min(innerW / logoImage.width, innerH / logoImage.height);
+          const imgW = logoImage.width * scale;
+          const imgH = logoImage.height * scale;
+          ctx.drawImage(logoImage, finalX + (drawBoxW - imgW) / 2, finalY + (drawBoxH - imgH) / 2, imgW, imgH);
+          return;
+        }
+        ctx.fillStyle = brandRed;
+        ctx.fillRect(finalX, finalY, drawBoxW, drawBoxH);
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = `900 ${Math.max(13, drawBoxH * 0.34)}px "Roboto", ${fontFamily}`;
+        ctx.fillText("Logo", finalX + drawBoxW / 2, finalY + drawBoxH / 2);
+      };
+      hitBoxes.logo = { x: finalX, y: finalY, w: drawBoxW, h: drawBoxH };
+    };
+    const queueTrafficCTA = (box, maxFontSize = fonts.c) => {
+      if (!wantsCTA) return;
+      const trimmedText = (ctaText || "").trim();
+      const isSingleCharacter = Array.from(trimmedText).length === 1;
+      const scale = Math.max(0.3, (ctaScale || 100) / 100);
+      const size = Math.max(8, maxFontSize * scale);
+      ctx.font = `700 ${size}px ${fontFamily}`;
+      const textWidth = ctx.measureText(trimmedText).width;
+      const buttonH = box.h * scale;
+      const buttonW = isSingleCharacter ? buttonH : Math.max(buttonH, textWidth + buttonH * 1.4);
+      const centerX = box.x + box.w / 2 + ctaOffset.x;
+      const centerY = box.y + box.h / 2 + ctaOffset.y;
+      const finalX = centerX - buttonW / 2;
+      const finalY = centerY - buttonH / 2;
+      drawQueue.cta = () => {
+        ctx.beginPath();
+        ctx.roundRect(finalX, finalY, buttonW, buttonH, buttonH / 2);
+        ctx.fillStyle = brandRed;
+        ctx.fill();
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = `700 ${size}px ${fontFamily}`;
+        ctx.fillText(trimmedText, centerX, centerY);
+      };
+      hitBoxes.cta = { x: finalX, y: finalY, w: buttonW, h: buttonH };
+    };
+    const drawLeaderboard = () => {
+      const textGap = 40;
+      const rectToTextSpec = (rect) => ({
+        x: rect.x + rect.width / 2,
+        centerY: canvas.height / 2,
+        maxW: rect.width,
+        align: "center"
+      });
+      const measureText = (text, size, weight) => {
+        ctx.font = `${weight} ${size}px ${fontFamily}`;
+        const metrics = ctx.measureText(text);
+        return {
+          width: metrics.width,
+          ascent: metrics.actualBoundingBoxAscent || size * 0.82,
+          descent: metrics.actualBoundingBoxDescent || size * 0.18
+        };
+      };
+      const queueMeasuredText = (text, centerX, centerY, maxW, size, weight, color) => {
+        const metrics = measureText(text, size, weight);
+        const drawX = centerX + textOffset.x;
+        const drawY = centerY + textOffset.y;
+        const measuredW = Math.min(metrics.width, maxW);
+        const textH = metrics.ascent + metrics.descent;
+        drawQueue.text.push(() => {
+          ctx.font = `${weight} ${size}px ${fontFamily}`;
+          ctx.fillStyle = color;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(text, drawX, drawY, maxW);
+        });
+        addTextBounds(drawX - measuredW / 2, drawY - textH / 2, measuredW, textH);
+      };
+      const queueLeaderboardTextPair = (headlineRect, subheadRect) => {
+        if (!headline || !subhead) return;
+        const hasLogoAndCta = !!spec.logo && !!spec.cta;
+        const groupLeft = hasLogoAndCta ? spec.logo.x + spec.logo.width + textGap : headlineRect.x;
+        const groupRight = hasLogoAndCta ? spec.cta.x - textGap : subheadRect.x + subheadRect.width;
+        const groupW = groupRight - groupLeft;
+        let headlineSize = fitTextSize(headline, 55, 12, headlineRect.width, 900);
+        let subheadSize = fitTextSize(subhead, 36, 12, subheadRect.width, 400);
+        while (headlineSize > 12 || subheadSize > 12) {
+          const headlineMetrics = measureText(headline, headlineSize, 900);
+          const subheadMetrics = measureText(subhead, subheadSize, 400);
+          const headlineW2 = Math.min(headlineMetrics.width, headlineRect.width);
+          const subheadW2 = Math.min(subheadMetrics.width, subheadRect.width);
+          if (headlineW2 + textGap + subheadW2 <= groupW) break;
+          if (headlineSize > 12 && (headlineW2 >= subheadW2 || subheadSize <= 12)) {
+            headlineSize -= 1;
+          } else if (subheadSize > 12) {
+            subheadSize -= 1;
+          } else {
+            break;
+          }
+        }
+        const headlineW = Math.min(measureText(headline, headlineSize, 900).width, headlineRect.width);
+        const subheadW = Math.min(measureText(subhead, subheadSize, 400).width, subheadRect.width);
+        const totalW = headlineW + textGap + subheadW;
+        const startX = groupLeft + Math.max(0, (groupW - totalW) / 2);
+        const centerY = canvas.height / 2;
+        queueMeasuredText(headline, startX + headlineW / 2, centerY, headlineRect.width, headlineSize, 900, headlineColor);
+        queueMeasuredText(subhead, startX + headlineW + textGap + subheadW / 2, centerY, subheadRect.width, subheadSize, 400, subheadColor);
+      };
+      const specs = {
+        headline_only: {
+          headline: { x: 508, y: 14, width: 440, height: 157 }
+        },
+        headline_with_subhead: {
+          headline: { x: 301, y: 14, width: 440, height: 157 },
+          subhead: { x: 774, y: 41, width: 288, height: 103 }
+        },
+        headline_with_cta: {
+          headline: { x: 326, y: 11, width: 440, height: 157 },
+          cta: { x: 908, y: 52, width: 200, height: 76 }
+        },
+        headline_subhead_with_cta: {
+          headline: { x: 223, y: 11, width: 440, height: 157 },
+          subhead: { x: 696, y: 39, width: 288, height: 103 },
+          cta: { x: 1074, y: 52, width: 200, height: 76 }
+        },
+        logo_with_headline: {
+          logo: { x: 286, y: 25, width: 350, height: 130 },
+          headline: { x: 674, y: 11, width: 440, height: 157 }
+        },
+        logo_with_headline_subhead: {
+          logo: { x: 144, y: 25, width: 350, height: 130 },
+          headline: { x: 497, y: 14, width: 440, height: 157 },
+          subhead: { x: 970, y: 41, width: 288, height: 103 }
+        },
+        logo_headline_cta: {
+          logo: { x: 130, y: 25, width: 350, height: 130 },
+          headline: { x: 518, y: 11, width: 440, height: 157 },
+          cta: { x: 1094, y: 52, width: 200, height: 76 }
+        },
+        logo_headline_subhead_cta: {
+          logo: { x: 42, y: 25, width: 350, height: 130 },
+          headline: { x: 393, y: 11, width: 440, height: 157 },
+          subhead: { x: 866, y: 39, width: 288, height: 103 },
+          cta: { x: 1190, y: 52, width: 200, height: 76 }
+        }
+      };
+      const spec = specs[variant.specVariant] || specs.headline_only;
+      drawQueue.text = [];
+      if (spec.logo) queueTrafficLogo({ x: spec.logo.x, y: spec.logo.y, w: spec.logo.width, h: spec.logo.height });
+      if (wantsSubhead && spec.subhead) {
+        queueLeaderboardTextPair(spec.headline, spec.subhead);
+      } else if (spec.logo && spec.cta) {
+        const left = spec.logo.x + spec.logo.width + textGap;
+        const right = spec.cta.x - textGap;
+        queueTrafficText(headline, { x: left + (right - left) / 2, centerY: canvas.height / 2, maxW: Math.min(spec.headline.width, right - left), align: "center" }, 55, 12, 900, headlineColor);
+      } else {
+        queueTrafficText(headline, rectToTextSpec(spec.headline), 55, 12, 900, headlineColor, { fixedSize: variant.specVariant === "headline_only" });
+      }
+      if (spec.cta) queueTrafficCTA({ x: spec.cta.x, y: spec.cta.y, w: spec.cta.width, h: spec.cta.height }, 30);
+    };
+    const drawMobileLeaderboard = () => {
+      const mobileTextSpec = (rect) => ({
+        x: rect.x + rect.width / 2,
+        centerY: rect.y + rect.height / 2,
+        maxW: rect.width,
+        align: "center"
+      });
+      const specs = {
+        logo_only: {
+          logo: { x: 203, y: 45, width: 243, height: 112 }
+        },
+        headline_only: {
+          headline: { x: 161, y: 80, width: 344, height: 42 }
+        },
+        logo_with_headline: {
+          logo: { x: 25, y: 49, width: 206, height: 95 },
+          headline: { x: 252, y: 75, width: 344, height: 42 }
+        },
+        headline_with_cta: {
+          headline: { x: 53, y: 75, width: 344, height: 42 },
+          cta: { x: 412, y: 57, width: 200, height: 76 }
+        },
+        logo_with_cta: {
+          logo: { x: 76, y: 44, width: 243, height: 112 },
+          cta: { x: 374, y: 57, width: 200, height: 76 }
+        }
+      };
+      const spec = specs[variant.specVariant] || specs.headline_only;
+      drawQueue.text = [];
+      if (spec.logo) queueTrafficLogo({ x: spec.logo.x, y: spec.logo.y, w: spec.logo.width, h: spec.logo.height });
+      if (spec.headline) queueTrafficText(headline, mobileTextSpec(spec.headline), 44, 12, 900, headlineColor, { fixedSize: variant.specVariant === "headline_only" });
+      if (spec.cta) queueTrafficCTA({ x: spec.cta.x, y: spec.cta.y, w: spec.cta.width, h: spec.cta.height }, 30);
+    };
+    const drawImu = () => {
+      const imuTextSpec = (rect) => ({
+        x: rect.x + rect.width / 2,
+        centerY: rect.y + rect.height / 2,
+        maxW: rect.width,
+        align: "center"
+      });
+      const specs = {
+        logo_headline_subhead_cta: {
+          logo: { x: 158, y: 97, width: 284, height: 130 },
+          headline: { x: 100, y: 204, width: 400, height: 143 },
+          subhead: { x: 156, y: 286, width: 288, height: 103 },
+          cta: { x: 207, y: 373, width: 186, height: 71 }
+        },
+        logo_headline_cta: {
+          logo: { x: 158, y: 97, width: 284, height: 130 },
+          headline: { x: 100, y: 251, width: 400, height: 143 },
+          cta: { x: 207, y: 373, width: 186, height: 71 }
+        },
+        logo_cta: {
+          logo: { x: 158, y: 97, width: 284, height: 130 },
+          cta: { x: 207, y: 373, width: 186, height: 71 }
+        },
+        logo_only: {
+          logo: { x: 144, y: 168, width: 313, height: 144 }
+        },
+        headline_subhead_cta: {
+          headline: { x: 100, y: 204, width: 400, height: 143 },
+          subhead: { x: 156, y: 286, width: 288, height: 103 },
+          cta: { x: 207, y: 373, width: 186, height: 71 }
+        },
+        headline_cta: {
+          headline: { x: 100, y: 251, width: 400, height: 143 },
+          cta: { x: 207, y: 373, width: 186, height: 71 }
+        },
+        cta_only: {
+          cta: { x: 207, y: 373, width: 186, height: 71 }
+        },
+        headline_subhead: {
+          headline: { x: 100, y: 269, width: 400, height: 143 },
+          subhead: { x: 156, y: 351, width: 288, height: 103 }
+        },
+        headline_only: {
+          headline: { x: 100, y: 305, width: 400, height: 143 }
+        }
+      };
+      const spec = specs[variant.specVariant] || specs.headline_only;
+      drawQueue.text = [];
+      if (spec.logo) queueTrafficLogo({ x: spec.logo.x, y: spec.logo.y, w: spec.logo.width, h: spec.logo.height });
+      if (spec.headline) queueTrafficText(headline, imuTextSpec(spec.headline), 50, 12, 900, headlineColor, { fixedSize: variant.specVariant === "headline_only" });
+      if (wantsSubhead && spec.subhead) queueTrafficText(subhead, imuTextSpec(spec.subhead), 36, 12, 400, subheadColor);
+      if (spec.cta) queueTrafficCTA({ x: spec.cta.x, y: spec.cta.y, w: spec.cta.width, h: spec.cta.height }, 28);
+    };
+    if (format.id === "leaderboard") {
+      drawLeaderboard();
+    } else if (format.id === "mobile-leaderboard") {
+      drawMobileLeaderboard();
+    } else if (format.id === "imu") {
+      drawImu();
+    }
+  };
+  if (format.category === "Traffic Driver") {
+    drawTrafficDriverLayout();
+  } else if (variant.layout === "article-cover-left" || variant.layout === "article-cover-right") {
+    drawArticleCoverLayout();
+  } else if (variant.layout === "youtube-cover-left" || variant.layout === "youtube-cover-right") {
+    drawYoutubeCoverLayout();
+  } else if (variant.layout === "shorts-cover-default" || variant.layout === "shorts-cover-quote") {
+    drawShortsCoverLayout();
+  } else if (variant.cols === 1) {
+    let logoBounds = { w: 0, h: 0 };
+    const logoGap = 24;
+    let align = variant.layout.includes("left-align") ? "left" : "center";
+    let drawXAlign = align === "center" ? sX + sW / 2 : sX;
+    if (variant.layout.includes("logo")) {
+      logoBounds = getLogoSize(sW, Math.min(sH * 0.5, 160));
+      logoBounds.h = logoBounds.h * (logoScale / 100);
+    }
+    const availableH = Math.max(sH - (logoBounds.h > 0 ? logoBounds.h + logoGap : 0), 40);
+    const stack = calculateTextStack(sW, availableH, true);
+    let totalBlockH = stack.totalH + (logoBounds.h > 0 ? logoBounds.h + logoGap : 0);
+    let startY = sY + (sH - totalBlockH) / 2;
+    if (variant.layout.includes("logo")) {
+      queueLogo(sX, startY, sW, logoBounds.h / (logoScale / 100), align, "top");
+      startY += logoBounds.h + logoGap;
+    }
+    stack.linesH.forEach((l, i) => {
+      queueTextLine(l, drawXAlign, startY + i * stack.currentHFont * 1.2, align, headlineColor, `900 ${stack.currentHFont}px "Noto Sans SC", "Roboto"`);
+    });
+    startY += stack.linesH.length * stack.currentHFont * 1.2 + stack.gap;
+    if (stack.linesS.length > 0) {
+      stack.linesS.forEach((l, i) => {
+        queueTextLine(l, drawXAlign, startY + i * stack.currentSFont * 1.4, align, subheadColor, `400 ${stack.currentSFont}px "Noto Sans SC", "Roboto"`);
+      });
+      startY += stack.linesS.length * stack.currentSFont * 1.4 + stack.gap;
+    }
+    if (stack.ctaStats.h > 0) {
+      queueCTA(drawXAlign, startY, ctaText, align);
+    }
+  } else if (variant.cols === 2) {
+    if (variant.layout === "text-cta") {
+      const tW = sW * 0.64;
+      const cW = sW * 0.36;
+      const stack = calculateTextStack(tW - 40, sH, false);
+      let tStartY = sY + (sH - stack.totalH) / 2;
+      stack.linesH.forEach((l, i) => {
+        queueTextLine(l, sX, tStartY + i * stack.currentHFont * 1.2, "left", headlineColor, `900 ${stack.currentHFont}px "Noto Sans SC", "Roboto"`);
+      });
+      tStartY += stack.linesH.length * stack.currentHFont * 1.2 + stack.gap;
+      if (stack.linesS.length > 0) {
+        stack.linesS.forEach((l, i) => {
+          queueTextLine(l, sX, tStartY + i * stack.currentSFont * 1.4, "left", subheadColor, `400 ${stack.currentSFont}px "Noto Sans SC", "Roboto"`);
+        });
+      }
+      if (stack.ctaStats.h > 0) {
+        queueCTA(sX + tW + cW / 2, sY + (sH - stack.ctaStats.h) / 2, ctaText, "center");
+      }
+    } else if (variant.layout === "logo-text-left") {
+      const lW = sW * 0.35;
+      const tW = sW * 0.65;
+      const logoSize = getLogoSize(lW - 20, Math.min(sH * 0.85, 140));
+      const stack = calculateTextStack(tW - 40, sH, false);
+      ctx.font = `900 ${stack.currentHFont}px "Noto Sans SC", "Roboto"`;
+      let textW = 0;
+      stack.linesH.forEach((l) => {
+        textW = Math.max(textW, ctx.measureText(l).width);
+      });
+      ctx.font = `400 ${stack.currentSFont}px "Noto Sans SC", "Roboto"`;
+      stack.linesS.forEach((l) => {
+        textW = Math.max(textW, ctx.measureText(l).width);
+      });
+      const gap = 30;
+      const totalBlockW = logoSize.w + gap + textW;
+      const centerOffsetX = sX + (sW - totalBlockW) / 2;
+      queueLogo(centerOffsetX, sY + (sH - logoSize.h) / 2, lW - 20, logoSize.h / (logoScale / 100), "left", "top");
+      let tStartY = sY + (sH - stack.totalH) / 2;
+      const textStartX = centerOffsetX + logoSize.w + gap;
+      stack.linesH.forEach((l, i) => {
+        queueTextLine(l, textStartX, tStartY + i * stack.currentHFont * 1.2, "left", headlineColor, `900 ${stack.currentHFont}px "Noto Sans SC", "Roboto"`);
+      });
+      tStartY += stack.linesH.length * stack.currentHFont * 1.2 + stack.gap;
+      if (stack.linesS.length > 0) {
+        stack.linesS.forEach((l, i) => {
+          queueTextLine(l, textStartX, tStartY + i * stack.currentSFont * 1.4, "left", subheadColor, `400 ${stack.currentSFont}px "Noto Sans SC", "Roboto"`);
+        });
+      }
+    } else if (variant.layout === "logo-text-cta" || variant.layout === "logo-headline") {
+      const lW = sW * 0.35;
+      const tW = sW * 0.65;
+      const logoSize = getLogoSize(lW - 20, Math.min(sH * 0.85, 140));
+      const stack = calculateTextStack(tW - 40, sH, true);
+      ctx.font = `900 ${stack.currentHFont}px "Noto Sans SC", "Roboto"`;
+      let textW = 0;
+      stack.linesH.forEach((l) => {
+        textW = Math.max(textW, ctx.measureText(l).width);
+      });
+      ctx.font = `400 ${stack.currentSFont}px "Noto Sans SC", "Roboto"`;
+      stack.linesS.forEach((l) => {
+        textW = Math.max(textW, ctx.measureText(l).width);
+      });
+      const blockW = Math.max(textW, stack.ctaStats.w || 0);
+      const gap = 30;
+      const totalBlockW = logoSize.w + gap + blockW;
+      const centerOffsetX = sX + (sW - totalBlockW) / 2;
+      queueLogo(centerOffsetX, sY + (sH - logoSize.h) / 2, lW - 20, logoSize.h / (logoScale / 100), "left", "top");
+      let tStartY = sY + (sH - stack.totalH) / 2;
+      const textCenterX = centerOffsetX + logoSize.w + gap + blockW / 2;
+      stack.linesH.forEach((l, i) => {
+        queueTextLine(l, textCenterX, tStartY + i * stack.currentHFont * 1.2, "center", headlineColor, `900 ${stack.currentHFont}px "Noto Sans SC", "Roboto"`);
+      });
+      tStartY += stack.linesH.length * stack.currentHFont * 1.2 + stack.gap;
+      if (stack.linesS.length > 0) {
+        stack.linesS.forEach((l, i) => {
+          queueTextLine(l, textCenterX, tStartY + i * stack.currentSFont * 1.4, "center", subheadColor, `400 ${stack.currentSFont}px "Noto Sans SC", "Roboto"`);
+        });
+        tStartY += stack.linesS.length * stack.currentSFont * 1.4 + stack.gap;
+      }
+      if (stack.ctaStats.h > 0) {
+        queueCTA(textCenterX, tStartY, ctaText, "center");
+      }
+    }
+  } else if (variant.cols === 3) {
+    if (variant.layout === "logo-headline-cta") {
+      const lW = sW * 0.2;
+      const tW = sW * 0.6;
+      const cW = sW * 0.2;
+      const logoSize = getLogoSize(lW - 20, Math.min(sH * 0.8, 120));
+      queueLogo(sX, sY + (sH - logoSize.h) / 2, lW - 20, logoSize.h / (logoScale / 100), "left", "top");
+      const stack = calculateTextStack(tW - 40, sH, false);
+      let tStartY = sY + (sH - stack.totalH) / 2;
+      const tX = sX + lW + tW / 2;
+      stack.linesH.forEach((l, i) => {
+        queueTextLine(l, tX, tStartY + i * stack.currentHFont * 1.2, "center", headlineColor, `900 ${stack.currentHFont}px "Noto Sans SC", "Roboto"`);
+      });
+      tStartY += stack.linesH.length * stack.currentHFont * 1.2 + stack.gap;
+      if (stack.linesS.length > 0) {
+        stack.linesS.forEach((l, i) => {
+          queueTextLine(l, tX, tStartY + i * stack.currentSFont * 1.4, "center", subheadColor, `400 ${stack.currentSFont}px "Noto Sans SC", "Roboto"`);
+        });
+      }
+      if (stack.ctaStats.h > 0) {
+        queueCTA(sX + lW + tW + cW / 2, sY + (sH - stack.ctaStats.h) / 2, ctaText, "center");
+      }
+    }
+  }
+  layerOrder.forEach((layer) => {
+    if (layer === "bg" && drawQueue.bg) drawQueue.bg();
+    if (layer === "bg" && drawQueue.gradient) drawQueue.gradient();
+    if (layer === "kv" && drawQueue.kv) drawQueue.kv();
+    if (layer === "logo" && drawQueue.logo) drawQueue.logo();
+    if (layer === "text" && drawQueue.text) drawQueue.text.forEach((fn) => fn());
+    if (layer === "cta" && drawQueue.cta) drawQueue.cta();
+  });
+  if (showSafezone) {
+    ctx.fillStyle = "rgba(0, 80, 200, 0.20)";
+    ctx.fillRect(0, 0, canvas.width, safe.t);
+    ctx.fillRect(0, canvas.height - safe.b, canvas.width, safe.b);
+    ctx.fillRect(0, safe.t, safe.l, canvas.height - safe.t - safe.b);
+    ctx.fillRect(canvas.width - safe.r, safe.t, safe.r, canvas.height - safe.t - safe.b);
+    ctx.strokeStyle = "rgba(60, 140, 255, 0.85)";
+    ctx.setLineDash([8, 8]);
+    ctx.strokeRect(safe.l, safe.t, canvas.width - safe.l - safe.r, canvas.height - safe.t - safe.b);
+    ctx.setLineDash([]);
+  }
+  if (textBounds.left !== 9999) {
+    const pad = 12;
+    hitBoxes.text = {
+      x: textBounds.left - pad,
+      y: textBounds.top - pad,
+      w: textBounds.right - textBounds.left + pad * 2,
+      h: textBounds.bottom - textBounds.top + pad * 2
+    };
+  }
+  if (isInteractive && activeLayerId && activeLayerId !== "bg" && hitBoxes[activeLayerId]) {
+    const box = hitBoxes[activeLayerId];
+    ctx.save();
+    ctx.strokeStyle = "#e90044";
+    ctx.lineWidth = 3;
+    ctx.setLineDash([6, 4]);
+    ctx.strokeRect(box.x, box.y, box.w, box.h);
+    ctx.fillStyle = "rgba(233, 0, 68, 0.08)";
+    ctx.fillRect(box.x, box.y, box.w, box.h);
+    ctx.restore();
+  }
+  return hitBoxes;
+};
+const InteractiveCanvas = ({ format, variant, state, assets, onCanvasReady, isActive, onSelect, globalSettings, isInteractive = true, onOffsetChange, activeLayerId, onElementSelect, showEditorChrome = true, compact = false, showCompactHistoryControls = false }) => {
+  const canvasRef = useRef(null);
+  const elementsLocked = !!(format.lockElements || variant.lockElements);
+  const initialOffsets = state.offsets || { logo: { x: 0, y: 0 }, text: { x: 0, y: 0 }, cta: { x: 0, y: 0 }, kv: { x: 0, y: 0 } };
+  const [offsets, setOffsets] = useState(initialOffsets);
+  const offsetsRef = useRef(initialOffsets);
+  const [history, setHistory] = useState([initialOffsets]);
+  const [historyIndex, setHistoryIndex] = useState(0);
+  const [fontReadyTick, setFontReadyTick] = useState(0);
+  useEffect(() => {
+    if (state.offsets && JSON.stringify(state.offsets) !== JSON.stringify(offsetsRef.current)) {
+      setOffsets(state.offsets);
+      offsetsRef.current = state.offsets;
+    }
+  }, [state.offsets]);
+  useEffect(() => {
+    const timers = [80, 250, 600, 1200].map((ms) => setTimeout(() => setFontReadyTick((t) => t + 1), ms));
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => setFontReadyTick((t) => t + 1));
+    }
+    return () => timers.forEach(clearTimeout);
+  }, []);
+  const hitBoxes = useRef({ logo: null, text: null, cta: null, bg: null });
+  const dragRef = useRef({ isDragging: false, element: null, startX: 0, startY: 0, initOffX: 0, initOffY: 0 });
+  const [cursor, setCursor] = useState("default");
+  const getMousePos = (e) => {
+    if (!canvasRef.current) return { x: 0, y: 0 };
+    const rect = canvasRef.current.getBoundingClientRect();
+    const scaleX = canvasRef.current.width / rect.width;
+    const scaleY = canvasRef.current.height / rect.height;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+  };
+  const checkHit = (pos) => {
+    if (elementsLocked) return "bg";
+    const hit = (box) => box && pos.x >= box.x && pos.x <= box.x + box.w && pos.y >= box.y && pos.y <= box.y + box.h;
+    for (let i = globalSettings.layerOrder.length - 1; i >= 0; i--) {
+      const layer = globalSettings.layerOrder[i];
+      if (layer === "kv" && assets.kvImages) {
+        for (let j = assets.kvImages.length - 1; j >= 0; j--) {
+          const kvId = assets.kvImages[j].id;
+          if (hit(hitBoxes.current[kvId])) return kvId;
+        }
+      } else if (layer !== "bg" && layer !== "kv" && hit(hitBoxes.current[layer])) {
+        return layer;
+      }
+    }
+    return "bg";
+  };
+  const handlePointerDown = (e) => {
+    if (onSelect) onSelect();
+    if (!isInteractive || elementsLocked) return;
+    const pos = getMousePos(e);
+    const el = checkHit(pos);
+    if (el) {
+      if (onElementSelect) onElementSelect(el);
+      if (el !== "bg") {
+        const elOffset = offsetsRef.current[el] || { x: 0, y: 0 };
+        dragRef.current = {
+          isDragging: true,
+          element: el,
+          startX: pos.x,
+          startY: pos.y,
+          initOffX: elOffset.x,
+          initOffY: elOffset.y
+        };
+      }
+    }
+  };
+  const handlePointerMove = (e) => {
+    const pos = getMousePos(e);
+    if (dragRef.current.isDragging) {
+      const el = dragRef.current.element;
+      const dx = pos.x - dragRef.current.startX;
+      const dy = pos.y - dragRef.current.startY;
+      const newOffsets = {
+        ...offsetsRef.current,
+        [el]: { x: dragRef.current.initOffX + dx, y: dragRef.current.initOffY + dy }
+      };
+      offsetsRef.current = newOffsets;
+      setOffsets(newOffsets);
+      setCursor("grabbing");
+    } else {
+      const el = checkHit(pos);
+      setCursor(!elementsLocked && el && el !== "bg" ? "grab" : "default");
+    }
+  };
+  const handlePointerUp = () => {
+    if (dragRef.current.isDragging) {
+      const finalOffsets = offsetsRef.current;
+      const currentHistoryState = history[historyIndex];
+      if (JSON.stringify(currentHistoryState) !== JSON.stringify(finalOffsets)) {
+        const newHistory = history.slice(0, historyIndex + 1);
+        newHistory.push(finalOffsets);
+        setHistory(newHistory);
+        setHistoryIndex(newHistory.length - 1);
+      }
+      if (onOffsetChange) onOffsetChange(finalOffsets);
+    }
+    dragRef.current.isDragging = false;
+    setCursor("default");
+  };
+  const handleUndo = (e) => {
+    e.stopPropagation();
+    if (historyIndex > 0) {
+      const newIndex = historyIndex - 1;
+      setHistoryIndex(newIndex);
+      const prevOffsets = history[newIndex];
+      offsetsRef.current = prevOffsets;
+      setOffsets(prevOffsets);
+      if (onOffsetChange) onOffsetChange(prevOffsets);
+    }
+  };
+  const handleRedo = (e) => {
+    e.stopPropagation();
+    if (historyIndex < history.length - 1) {
+      const newIndex = historyIndex + 1;
+      setHistoryIndex(newIndex);
+      const nextOffsets = history[newIndex];
+      offsetsRef.current = nextOffsets;
+      setOffsets(nextOffsets);
+      if (onOffsetChange) onOffsetChange(nextOffsets);
+    }
+  };
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const newHitBoxes = renderBanner(ctx, canvas, format, variant, state, assets, offsets, globalSettings, isInteractive, activeLayerId);
+    hitBoxes.current = newHitBoxes;
+    if (onCanvasReady) onCanvasReady(canvas);
+  }, [format, variant, state, assets, offsets, globalSettings, isInteractive, activeLayerId, fontReadyTick]);
+  return /* @__PURE__ */ React.createElement("div", { onClick: !isInteractive ? onSelect : void 0, className: `bg-surface rounded-2xl border transition-all ${isInteractive ? `${compact ? "p-3 w-fit mx-auto max-w-full" : "p-6 w-fit mx-auto min-w-[500px] max-w-full"}` : "p-2 w-full cursor-pointer hover:border-brandRed/40 hover:scale-[1.01] shadow-lg hover:shadow-2xl"} ${isActive ? "border-brandRed shadow-[0_0_20px_rgba(233,0,68,0.15)] ring-1 ring-brandRed" : "border-borderInput"}` }, isInteractive && showEditorChrome && /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-5 pb-3 border-b border-borderMain/40" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-4" }, /* @__PURE__ */ React.createElement("span", { className: "text-[13px] font-bold uppercase tracking-wider text-brandRed" }, format.name), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono font-medium text-textDim bg-surfaceElevated border border-borderMain px-2.5 py-1 rounded-md" }, format.w, "x", format.h)), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1.5" }, /* @__PURE__ */ React.createElement("button", { onClick: handleUndo, disabled: historyIndex === 0, className: `p-1.5 rounded-lg transition-colors ${historyIndex > 0 ? "bg-surfaceElevated border border-borderMain text-textPri hover:bg-borderInput hover:text-white" : "bg-transparent text-textDim cursor-not-allowed opacity-40"}` }, /* @__PURE__ */ React.createElement("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, /* @__PURE__ */ React.createElement("path", { d: "M3 7v6h6" }), /* @__PURE__ */ React.createElement("path", { d: "M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" }))), /* @__PURE__ */ React.createElement("button", { onClick: handleRedo, disabled: historyIndex === history.length - 1, className: `p-1.5 rounded-lg transition-colors ${historyIndex < history.length - 1 ? "bg-surfaceElevated border border-borderMain text-textPri hover:bg-borderInput hover:text-white" : "bg-transparent text-textDim cursor-not-allowed opacity-40"}` }, /* @__PURE__ */ React.createElement("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, /* @__PURE__ */ React.createElement("path", { d: "M21 7v6h-6" }), /* @__PURE__ */ React.createElement("path", { d: "M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7" }))))), isInteractive && !showEditorChrome && showCompactHistoryControls && !elementsLocked && /* @__PURE__ */ React.createElement("div", { className: "mb-2 flex items-center justify-end gap-1.5" }, /* @__PURE__ */ React.createElement("button", { onClick: handleUndo, disabled: historyIndex === 0, title: "Undo", "aria-label": "Undo", className: `p-1.5 rounded-lg transition-colors ${historyIndex > 0 ? "bg-surfaceElevated border border-borderMain text-textPri hover:bg-borderInput hover:text-white" : "bg-transparent text-textDim cursor-not-allowed opacity-40"}` }, /* @__PURE__ */ React.createElement("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, /* @__PURE__ */ React.createElement("path", { d: "M3 7v6h6" }), /* @__PURE__ */ React.createElement("path", { d: "M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" }))), /* @__PURE__ */ React.createElement("button", { onClick: handleRedo, disabled: historyIndex === history.length - 1, title: "Redo", "aria-label": "Redo", className: `p-1.5 rounded-lg transition-colors ${historyIndex < history.length - 1 ? "bg-surfaceElevated border border-borderMain text-textPri hover:bg-borderInput hover:text-white" : "bg-transparent text-textDim cursor-not-allowed opacity-40"}` }, /* @__PURE__ */ React.createElement("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, /* @__PURE__ */ React.createElement("path", { d: "M21 7v6h-6" }), /* @__PURE__ */ React.createElement("path", { d: "M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7" })))), isInteractive && showEditorChrome && !elementsLocked && /* @__PURE__ */ React.createElement("div", { className: "mb-6 flex justify-center" }, /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-bold text-textPri bg-brandRed border border-brandRed px-4 py-1.5 rounded-full inline-flex items-center gap-2 shadow-lg" }, /* @__PURE__ */ React.createElement("svg", { width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, /* @__PURE__ */ React.createElement("path", { d: "M5 9l-3 3 3 3M9 5l3-3 3 3M19 9l3 3-3 3M9 19l3 3 3 3M2 12h20M12 2v20" })), "Select & Drag any element to move")), /* @__PURE__ */ React.createElement("div", { className: `mx-auto flex items-center justify-center overflow-hidden rounded-lg bg-bgCore border border-borderMain relative shadow-inner ${isInteractive ? "w-fit" : "w-full"}` }, /* @__PURE__ */ React.createElement(
+    "canvas",
+    {
+      ref: canvasRef,
+      width: format.w,
+      height: format.h,
+      onMouseDown: handlePointerDown,
+      onMouseMove: handlePointerMove,
+      onMouseUp: handlePointerUp,
+      onMouseLeave: handlePointerUp,
+      onTouchStart: handlePointerDown,
+      onTouchMove: handlePointerMove,
+      onTouchEnd: handlePointerUp,
+      className: `block mx-auto max-w-full object-contain ${isInteractive ? `${compact ? "max-h-[28vh]" : "max-h-[60vh]"} w-auto` : "h-auto w-full"}`,
+      style: { cursor, touchAction: "none" }
+    }
+  )));
+};
+const TrafficGifPreview = ({ format, slides = [], slideStates = [], slideVariants = [], assets, globalSettings, isActive, onSelect, onCanvasReady }) => {
+  const canvasRef = useRef(null);
+  const [frameIndex, setFrameIndex] = useState(0);
+  useEffect(() => {
+    var _a, _b;
+    if (!slides || slides.length <= 1) return;
+    const safeIndex = Math.min(frameIndex, slides.length - 1);
+    const seconds = Math.max(0.2, Number(((_a = slideStates[safeIndex]) == null ? void 0 : _a.durationSeconds) || ((_b = slides[safeIndex]) == null ? void 0 : _b.durationSeconds) || 2));
+    const timer = setTimeout(() => {
+      setFrameIndex((index) => (index + 1) % slides.length);
+    }, seconds * 1e3);
+    return () => clearTimeout(timer);
+  }, [slides, slideStates, frameIndex]);
+  useEffect(() => {
+    if (!slides || slides.length === 0) return;
+    if (frameIndex >= slides.length) setFrameIndex(0);
+  }, [slides == null ? void 0 : slides.length, frameIndex]);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !slides || slides.length === 0) return;
+    const safeIndex = Math.min(frameIndex, slides.length - 1);
+    const ctx = canvas.getContext("2d");
+    const state = slideStates[safeIndex] || {};
+    const variant = slideVariants[safeIndex] || slideVariants[0] || format.variants[0];
+    renderBanner(ctx, canvas, format, variant, state, assets, state.offsets || { logo: { x: 0, y: 0 }, text: { x: 0, y: 0 }, cta: { x: 0, y: 0 } }, globalSettings, false, null);
+    if (onCanvasReady) onCanvasReady(canvas);
+  }, [format, slides, slideStates, slideVariants, assets, globalSettings, frameIndex]);
+  return /* @__PURE__ */ React.createElement("div", { onClick: onSelect, className: `bg-surface rounded-2xl border transition-all p-2 w-full cursor-pointer hover:border-brandRed/40 hover:scale-[1.01] shadow-lg hover:shadow-2xl ${isActive ? "border-brandRed shadow-[0_0_20px_rgba(233,0,68,0.15)] ring-1 ring-brandRed" : "border-borderInput"}` }, /* @__PURE__ */ React.createElement("div", { className: "mb-2 flex items-center justify-between px-2" }, /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-black uppercase tracking-wider text-brandRed" }, "GIF Preview"), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-bold text-textDim uppercase tracking-wider" }, "Slide ", Math.min(frameIndex + 1, slides.length), " / ", slides.length)), /* @__PURE__ */ React.createElement("div", { className: "mx-auto flex items-center justify-center overflow-hidden rounded-lg bg-bgCore border border-borderMain relative shadow-inner w-full" }, /* @__PURE__ */ React.createElement(
+    "canvas",
+    {
+      ref: canvasRef,
+      width: format.w,
+      height: format.h,
+      className: "block mx-auto max-w-full object-contain h-auto w-full"
+    }
+  )));
+};
+const DEFAULT_BANNER_STATE = {
+  headline: "\u5927\u6807\u9898\u5927\u6807\u9898",
+  subhead: "\u5C0F\u6807\u9898\u5C0F\u6807\u9898",
+  ctaText: "\u4E86\u89E3\u66F4\u591A",
+  showCTA: true,
+  headlineColor: "#ffffff",
+  subheadColor: "#ffffff",
+  showBrandLogo: true,
+  showProgramTitle: true,
+  programTitle: "Program Name",
+  showQuoteName: true,
+  quoteName: "\u67D0\u67D0\u67D0",
+  showYoutubeGradient: true,
+  showArticleTopic: true,
+  articleTopic: "Optional - TOPIC",
+  showArticleQuote: false,
+  articleQuoteName: "\u67D0\u67D0\u67D0",
+  showArticleGradient: true,
+  showArticleHeadline: true,
+  showArticleSubhead: true,
+  articleHeadlineFirst: true,
+  showShortsGradient: true,
+  shortsQuoteName: "\u67D0\u67D0\u67D0",
+  shortsPlacement: "middle",
+  shortsQuoteTextPosition: "belowLine",
+  bgOffsetX: 0,
+  bgOffsetY: 0,
+  bgScale: 100,
+  bgRotate: 0,
+  bgRepeat: false,
+  kvTransforms: {},
+  logoScale: 100,
+  ctaScale: 100,
+  durationSeconds: 2,
+  offsets: { logo: { x: 0, y: 0 }, text: { x: 0, y: 0 }, cta: { x: 0, y: 0 } }
+};
+function App() {
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [globalSettings, setGlobalSettings] = useState({
+    layerOrder: ["bg", "kv", "logo", "text", "cta"],
+    // Default: bottom to top
+    showCTA: true,
+    showLogo: true,
+    // New Global Logo Toggle
+    showKV: true,
+    // New Global KV Toggle
+    showSafezone: false,
+    textColor: "white",
+    // Controls the global preset (headline/subhead colors)
+    strictMode: false
+    // Smart toggle: activated upon user interaction
+  });
+  const [assets, setAssets] = useState({ bgImage: null, logoImage: null, kvImages: [], quoteLeftImage: null, quoteRightImage: null, zaobaoLogoImage: null, gradientYoutubeImage: null, gradientArticleImage: null, gradientShortsImage: null, quoteShortsImage: null, lineShortsImage: null });
+  const [fileNames, setFileNames] = useState({ bg: "", logo: "" });
+  const [bannerStates, setBannerStates] = useState({});
+  const [activeBannerId, setActiveBannerId] = useState(null);
+  const [activeSlideIndexes, setActiveSlideIndexes] = useState({});
+  const [activeLayerId, setActiveLayerId] = useState("text");
+  const textRef = useRef(null);
+  const logoRef = useRef(null);
+  const ctaRef = useRef(null);
+  const bgRef = useRef(null);
+  const kvRef = useRef(null);
+  const [approvedBanners, setApprovedBanners] = useState(/* @__PURE__ */ new Set());
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [isEditorModalOpen, setIsEditorModalOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [campaignName, setCampaignName] = useState("my-campaign");
+  const [globalPayload, setGlobalPayload] = useState({
+    headline: DEFAULT_BANNER_STATE.headline,
+    subhead: DEFAULT_BANNER_STATE.subhead,
+    ctaText: DEFAULT_BANNER_STATE.ctaText
+  });
+  const [previewImages, setPreviewImages] = useState({});
+  const canvasRefs = useRef({});
+  useEffect(() => {
+    const loadStaticImage = (key, src) => {
+      const img = new Image();
+      img.onload = () => setAssets((prev) => ({ ...prev, [key]: img }));
+      img.src = src;
+    };
+    loadStaticImage("zaobaoLogoImage", "assets/zaobao-logo.png");
+    loadStaticImage("quoteLeftImage", "assets/quotation-left.png");
+    loadStaticImage("quoteRightImage", "assets/quotation-right.png");
+    loadStaticImage("gradientYoutubeImage", "assets/gradient-youtube-cover.png");
+    loadStaticImage("gradientArticleImage", "assets/gradient-article-cover.png");
+    loadStaticImage("gradientShortsImage", "assets/gradient-shorts-cover.png");
+    loadStaticImage("quoteShortsImage", "assets/quotation-shorts-cover.png");
+    loadStaticImage("lineShortsImage", "assets/shorts-cover-line.png");
+  }, []);
+  const getVisibleFormats = () => {
+    let visible = [];
+    selectedCategories.forEach((cat) => {
+      const formatsInCategory = FORMAT_DATABASE.filter((f) => f.category === cat).map((f) => {
+        const validVariants = f.variants.filter((v) => {
+          if (f.category === "Video Graphics") return true;
+          if (f.category === "Traffic Driver") {
+            if (!globalSettings.strictMode) return true;
+            const hasLogo2 = !!assets.logoImage && globalSettings.showLogo;
+            if (hasLogo2 && !v.requiresLogo) return false;
+            if (!globalSettings.showLogo && v.requiresLogo) return false;
+            if (!globalSettings.showCTA && v.hasCTA) return false;
+            return true;
+          }
+          if (!globalSettings.strictMode) return true;
+          const hasLogo = !!assets.logoImage && globalSettings.showLogo;
+          if (hasLogo !== !!v.requiresLogo) return false;
+          if (globalSettings.showCTA !== !!v.hasCTA) return false;
+          return true;
+        });
+        return { ...f, variants: validVariants };
+      }).filter((f) => f.variants.length > 0);
+      visible = [...visible, ...formatsInCategory];
+    });
+    return visible;
+  };
+  const visibleFormats = getVisibleFormats();
+  useEffect(() => {
+    if (!isEditorModalOpen) return;
+    const targetRef = (activeLayerId == null ? void 0 : activeLayerId.startsWith("kv-")) ? kvRef : { text: textRef, logo: logoRef, cta: ctaRef, bg: bgRef }[activeLayerId];
+    if (targetRef && targetRef.current) {
+      targetRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [activeLayerId, isEditorModalOpen]);
+  useEffect(() => {
+    if (assets.kvImages.length > 0 && (activeLayerId == null ? void 0 : activeLayerId.startsWith("kv-")) && !assets.kvImages.find((k) => k.id === activeLayerId)) {
+      setActiveLayerId(assets.kvImages[0].id);
+    }
+  }, [assets.kvImages, activeLayerId]);
+  useEffect(() => {
+    let firstId = null;
+    const newStates = {};
+    visibleFormats.forEach((f) => {
+      f.variants.forEach((v) => {
+        const id = `${f.id}-${v.id}`;
+        if (!firstId) firstId = id;
+        newStates[id] = bannerStates[id] || {
+          ...DEFAULT_BANNER_STATE,
+          headline: globalPayload.headline,
+          subhead: globalPayload.subhead,
+          ctaText: globalPayload.ctaText,
+          headlineColor: globalSettings.textColor === "white" ? "#ffffff" : "#000000",
+          subheadColor: globalSettings.textColor === "white" ? "#ffffff" : "#333333"
+        };
+      });
+    });
+    setBannerStates((prev) => ({ ...prev, ...newStates }));
+    if (!activeBannerId || !newStates[activeBannerId]) {
+      setActiveBannerId(firstId);
+    }
+  }, [selectedCategories, assets.logoImage, globalSettings.showCTA, globalSettings.showLogo, globalSettings.showKV, globalSettings.strictMode]);
+  const handleUpload = (e, type) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFileNames((prev) => ({ ...prev, [type]: file.name }));
+      const img = new Image();
+      img.onload = () => {
+        setAssets((prev) => ({ ...prev, [`${type}Image`]: img }));
+        if (type === "logo") {
+          setGlobalSettings((prev) => ({ ...prev, strictMode: true }));
+        }
+      };
+      img.src = URL.createObjectURL(file);
+    }
+  };
+  const handleUploadKV = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const id = "kv-" + Date.now();
+      const img = new Image();
+      img.onload = () => {
+        setAssets((prev) => ({
+          ...prev,
+          kvImages: [...prev.kvImages, { id, img, name: file.name }]
+        }));
+        setActiveLayerId(id);
+        setGlobalSettings((prev) => ({ ...prev, strictMode: true }));
+      };
+      img.src = URL.createObjectURL(file);
+    }
+    e.target.value = null;
+  };
+  const getFormatByCanvasId = (canvasId) => {
+    if (!canvasId) return null;
+    return FORMAT_DATABASE.find((f) => canvasId.startsWith(f.id + "-")) || null;
+  };
+  const getVariantIdFromCanvasId = (canvasId) => {
+    const format = getFormatByCanvasId(canvasId);
+    if (!canvasId || !format) return "";
+    return canvasId.slice(format.id.length + 1);
+  };
+  const getVariantById = (format, variantId) => {
+    if (!format) return null;
+    return format.variants.find((v) => v.id === variantId) || null;
+  };
+  const getSlideVariant = (format, canvasId, slide = {}, fallbackVariant = null) => {
+    var _a;
+    const variantId = slide.variantId || getVariantIdFromCanvasId(canvasId);
+    return getVariantById(format, variantId) || fallbackVariant || ((_a = format == null ? void 0 : format.variants) == null ? void 0 : _a[0]) || null;
+  };
+  const isTrafficDriverCanvasId = (canvasId) => {
+    const format = getFormatByCanvasId(canvasId);
+    return (format == null ? void 0 : format.category) === "Traffic Driver";
+  };
+  const getSlidesFromState = (state = {}) => {
+    if (Array.isArray(state.slides) && state.slides.length > 0) {
+      return state.slides;
+    }
+    const { slides, ...singleSlideState } = state || {};
+    return [singleSlideState];
+  };
+  const getClampedSlideIndex = (canvasId, slides) => {
+    const maxIndex = Math.max(((slides == null ? void 0 : slides.length) || 1) - 1, 0);
+    const requestedIndex = activeSlideIndexes[canvasId] || 0;
+    return Math.min(Math.max(requestedIndex, 0), maxIndex);
+  };
+  const cloneSlideState = (slide = {}) => JSON.parse(JSON.stringify(slide || {}));
+  const getTrafficSlides = (canvasId) => getSlidesFromState(bannerStates[canvasId] || {});
+  const getNextTrafficVariantId = (canvasId, slides) => {
+    var _a;
+    const format = getFormatByCanvasId(canvasId);
+    if (!format) return getVariantIdFromCanvasId(canvasId);
+    const baseVariantId = getVariantIdFromCanvasId(canvasId);
+    const usedVariantIds = new Set(slides.map((slide) => slide.variantId || baseVariantId));
+    const baseIndex = Math.max(0, format.variants.findIndex((v) => v.id === baseVariantId));
+    const candidates = [
+      ...format.variants.slice(baseIndex + 1),
+      ...format.variants.slice(0, baseIndex + 1)
+    ];
+    return ((_a = candidates.find((v) => !usedVariantIds.has(v.id)) || format.variants[baseIndex] || format.variants[0]) == null ? void 0 : _a.id) || baseVariantId;
+  };
+  const updateTrafficSlideState = (canvasId, slideIndex, updates) => {
+    if (!canvasId || !isTrafficDriverCanvasId(canvasId)) return;
+    setBannerStates((prev) => {
+      const currentState = prev[canvasId] || {};
+      const slides = getSlidesFromState(currentState);
+      const safeIndex = Math.min(Math.max(slideIndex, 0), Math.max(slides.length - 1, 0));
+      const nextSlides = slides.map((slide, index) => index === safeIndex ? { ...slide, ...updates } : slide);
+      return {
+        ...prev,
+        [canvasId]: { ...currentState, slides: nextSlides }
+      };
+    });
+  };
+  const updateActiveState = (updates) => {
+    if (!activeBannerId) return;
+    if (isTrafficDriverCanvasId(activeBannerId)) {
+      const slides = getTrafficSlides(activeBannerId);
+      updateTrafficSlideState(activeBannerId, getClampedSlideIndex(activeBannerId, slides), updates);
+      return;
+    }
+    setBannerStates((prev) => ({
+      ...prev,
+      [activeBannerId]: { ...prev[activeBannerId], ...updates }
+    }));
+  };
+  const addTrafficSlide = (canvasId) => {
+    if (!canvasId || !isTrafficDriverCanvasId(canvasId)) return;
+    const currentState = bannerStates[canvasId] || {};
+    const currentSlides = getSlidesFromState(currentState);
+    if (currentSlides.length >= 3) return;
+    const sourceSlide = currentSlides[0] || {};
+    const newSlide = cloneSlideState(sourceSlide);
+    if (newSlide.variantId === void 0) newSlide.variantId = getVariantIdFromCanvasId(canvasId);
+    if (newSlide.headline === void 0) newSlide.headline = globalPayload.headline;
+    if (newSlide.subhead === void 0) newSlide.subhead = globalPayload.subhead;
+    if (newSlide.ctaText === void 0) newSlide.ctaText = globalPayload.ctaText;
+    if (newSlide.durationSeconds === void 0) newSlide.durationSeconds = 2;
+    const nextIndex = currentSlides.length;
+    setBannerStates((prev) => {
+      const stateAtUpdate = prev[canvasId] || {};
+      const slidesAtUpdate = getSlidesFromState(stateAtUpdate);
+      if (slidesAtUpdate.length >= 3) return prev;
+      return {
+        ...prev,
+        [canvasId]: {
+          ...stateAtUpdate,
+          slides: [...slidesAtUpdate, newSlide]
+        }
+      };
+    });
+    setActiveSlideIndexes((prev) => ({ ...prev, [canvasId]: nextIndex }));
+    setActiveLayerId("text");
+  };
+  const deleteTrafficSlide = (canvasId, slideIndex) => {
+    if (!canvasId || !isTrafficDriverCanvasId(canvasId)) return;
+    if (slideIndex <= 0) return;
+    const currentSlides = getTrafficSlides(canvasId);
+    if (currentSlides.length <= 1 || slideIndex >= currentSlides.length) return;
+    setBannerStates((prev) => {
+      const currentState = prev[canvasId] || {};
+      const slides = getSlidesFromState(currentState);
+      if (slides.length <= 1 || slideIndex >= slides.length) return prev;
+      return {
+        ...prev,
+        [canvasId]: {
+          ...currentState,
+          slides: slides.filter((_, index) => index !== slideIndex)
+        }
+      };
+    });
+    setActiveSlideIndexes((prev) => {
+      const currentIndex = prev[canvasId] || 0;
+      let nextIndex = currentIndex;
+      if (currentIndex === slideIndex) nextIndex = Math.max(0, slideIndex - 1);
+      if (currentIndex > slideIndex) nextIndex = currentIndex - 1;
+      return { ...prev, [canvasId]: nextIndex };
+    });
+    setActiveLayerId("text");
+  };
+  const applyToAll = (key, value) => {
+    setBannerStates((prev) => {
+      const next = { ...prev };
+      Object.keys(next).forEach((id) => {
+        if (Array.isArray(next[id].slides) && next[id].slides.length > 0) {
+          next[id] = {
+            ...next[id],
+            slides: next[id].slides.map((slide) => ({ ...slide, [key]: value }))
+          };
+        } else {
+          next[id] = { ...next[id], [key]: value };
+        }
+      });
+      return next;
+    });
+  };
+  const getTrafficSelectedCanvasId = (format) => {
+    if (format.category !== "Traffic Driver") return null;
+    return Object.keys(bannerStates).find((id) => {
+      var _a;
+      return id.startsWith(format.id + "-") && Array.isArray((_a = bannerStates[id]) == null ? void 0 : _a.slides) && bannerStates[id].slides.length > 1;
+    }) || null;
+  };
+  const getGalleryVariants = (format) => {
+    const selectedCanvasId = getTrafficSelectedCanvasId(format);
+    if (!selectedCanvasId) return format.variants;
+    const selectedVariantId = getVariantIdFromCanvasId(selectedCanvasId);
+    const fullFormat = getFormatByCanvasId(selectedCanvasId) || format;
+    return fullFormat.variants.filter((v) => v.id === selectedVariantId);
+  };
+  const toggleApproval = (id) => {
+    setApprovedBanners((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+        setPreviewImages((curr) => {
+          const nextImgs = { ...curr };
+          delete nextImgs[id];
+          return nextImgs;
+        });
+      } else {
+        next.add(id);
+        const canvas = canvasRefs.current[id];
+        if (canvas) {
+          setPreviewImages((curr) => ({ ...curr, [id]: canvas.toDataURL("image/png") }));
+        }
+      }
+      return next;
+    });
+  };
+  const handleBatchDownload = async () => {
+    if (approvedBanners.size === 0) return;
+    if (isExporting) return;
+    if (typeof JSZip === "undefined" || typeof saveAs === "undefined") {
+      alert("Download tools are still loading. Please refresh the page and try again.");
+      return;
+    }
+    setIsExporting(true);
+    await waitForNextPaint();
+    try {
+      const zip = new JSZip();
+      const finalCampaignName = campaignName.trim() || "campaign";
+      const folder = zip.folder(finalCampaignName);
+      let count = 0;
+      const usedNames = /* @__PURE__ */ new Set();
+      for (let id of approvedBanners) {
+        const canvas = canvasRefs.current[id];
+        let formatObj = null;
+        FORMAT_DATABASE.forEach((f) => {
+          if (id.startsWith(f.id + "-")) formatObj = f;
+        });
+        if (!formatObj) continue;
+        let baseName = `${finalCampaignName}-${formatObj.w}x${formatObj.h}`;
+        let fileName = baseName;
+        let counter = 2;
+        while (usedNames.has(fileName)) {
+          fileName = `${baseName}-v${counter}`;
+          counter++;
+        }
+        usedNames.add(fileName);
+        if (formatObj.category === "Traffic Driver") {
+          const trafficSlideCount = getTrafficSlideRenderItems(id).length;
+          const fileName2x = fileName.replace(`${formatObj.w}x${formatObj.h}`, `${formatObj.w * 2}x${formatObj.h * 2}`);
+          if (trafficSlideCount > 1) {
+            let gifBlob = null;
+            let gifBlob2x = null;
+            try {
+              gifBlob = await buildTrafficDriverGif(id, 1);
+              gifBlob2x = await buildTrafficDriverGif(id, 2);
+            } catch (err) {
+              console.warn("GIF export failed.", err);
+            }
+            if (gifBlob && gifBlob2x) {
+              folder.file(`${fileName}.gif`, gifBlob);
+              folder.file(`${fileName2x}.gif`, gifBlob2x);
+              count++;
+            }
+          } else {
+            let pngBlob = null;
+            let pngBlob2x = null;
+            try {
+              pngBlob = await buildTrafficDriverPng(id, 1);
+              pngBlob2x = await buildTrafficDriverPng(id, 2);
+            } catch (err) {
+              console.warn("PNG export failed.", err);
+            }
+            if (pngBlob && pngBlob2x) {
+              folder.file(`${fileName}.png`, pngBlob);
+              folder.file(`${fileName2x}.png`, pngBlob2x);
+              count++;
+            }
+          }
+        } else if (canvas) {
+          const dataUrl = canvas.toDataURL("image/png");
+          const base64Data = dataUrl.replace(/^data:image\/(png|jpg);base64,/, "");
+          folder.file(`${fileName}.png`, base64Data, { base64: true });
+          count++;
+        }
+      }
+      if (count > 0) {
+        const content = await zip.generateAsync({ type: "blob" });
+        saveAs(content, `${finalCampaignName}.zip`);
+      } else {
+        alert("No approved banners are ready to export yet. Please wait for the previews to finish loading, then try again.");
+      }
+    } catch (err) {
+      console.warn("ZIP export failed.", err);
+      alert("Could not prepare the ZIP. Please refresh the page and try again.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+  const mergeBannerState = (override = {}) => {
+    return {
+      variantId: override.variantId,
+      headline: override.headline !== void 0 ? override.headline : globalPayload.headline,
+      subhead: override.subhead !== void 0 ? override.subhead : globalPayload.subhead,
+      ctaText: override.ctaText !== void 0 ? override.ctaText : globalPayload.ctaText,
+      headlineColor: override.headlineColor || (globalSettings.textColor === "white" ? "#ffffff" : "#000000"),
+      subheadColor: override.subheadColor || (globalSettings.textColor === "white" ? "#ffffff" : "#333333"),
+      showBrandLogo: override.showBrandLogo !== void 0 ? override.showBrandLogo : true,
+      showProgramTitle: override.showProgramTitle !== void 0 ? override.showProgramTitle : true,
+      programTitle: override.programTitle !== void 0 ? override.programTitle : "Program Name",
+      showQuoteName: override.showQuoteName !== void 0 ? override.showQuoteName : true,
+      quoteName: override.quoteName !== void 0 ? override.quoteName : "\u67D0\u67D0\u67D0",
+      showYoutubeGradient: override.showYoutubeGradient !== void 0 ? override.showYoutubeGradient : true,
+      showArticleTopic: override.showArticleTopic !== void 0 ? override.showArticleTopic : true,
+      articleTopic: override.articleTopic !== void 0 ? override.articleTopic : "Optional - TOPIC",
+      showArticleQuote: override.showArticleQuote !== void 0 ? override.showArticleQuote : false,
+      articleQuoteName: override.articleQuoteName !== void 0 ? override.articleQuoteName : "\u67D0\u67D0\u67D0",
+      showArticleGradient: override.showArticleGradient !== void 0 ? override.showArticleGradient : true,
+      showArticleHeadline: override.showArticleHeadline !== void 0 ? override.showArticleHeadline : true,
+      showArticleSubhead: override.showArticleSubhead !== void 0 ? override.showArticleSubhead : true,
+      articleHeadlineFirst: override.articleHeadlineFirst !== void 0 ? override.articleHeadlineFirst : true,
+      showShortsGradient: override.showShortsGradient !== void 0 ? override.showShortsGradient : true,
+      shortsQuoteName: override.shortsQuoteName !== void 0 ? override.shortsQuoteName : "\u67D0\u67D0\u67D0",
+      shortsPlacement: override.shortsPlacement !== void 0 ? override.shortsPlacement : "middle",
+      shortsQuoteTextPosition: override.shortsQuoteTextPosition !== void 0 ? override.shortsQuoteTextPosition : "belowLine",
+      logoScale: override.logoScale || 100,
+      ctaScale: override.ctaScale || 100,
+      showCTA: override.showCTA !== void 0 ? override.showCTA : globalSettings.showCTA,
+      bgOffsetX: override.bgOffsetX || 0,
+      bgOffsetY: override.bgOffsetY || 0,
+      bgScale: override.bgScale !== void 0 ? override.bgScale : 100,
+      bgRotate: override.bgRotate || 0,
+      bgRepeat: override.bgRepeat || false,
+      kvTransforms: override.kvTransforms || {},
+      offsets: override.offsets || { logo: { x: 0, y: 0 }, text: { x: 0, y: 0 }, cta: { x: 0, y: 0 } },
+      durationSeconds: override.durationSeconds !== void 0 ? override.durationSeconds : 2
+    };
+  };
+  const getMergedSlideState = (canvasId, slideIndex) => {
+    const rawOverride = bannerStates[canvasId] || {};
+    const slides = getSlidesFromState(rawOverride);
+    const safeIndex = Math.min(Math.max(slideIndex, 0), Math.max(slides.length - 1, 0));
+    return mergeBannerState(slides[safeIndex] || {});
+  };
+  const getMergedState = (canvasId) => {
+    const rawOverride = bannerStates[canvasId] || {};
+    if (isTrafficDriverCanvasId(canvasId)) {
+      const slides = getSlidesFromState(rawOverride);
+      const slideIndex = getClampedSlideIndex(canvasId, slides);
+      return mergeBannerState(slides[slideIndex] || {});
+    }
+    return mergeBannerState(rawOverride);
+  };
+  const getTrafficSlideRenderItems = (canvasId) => {
+    const format = getFormatByCanvasId(canvasId);
+    if (!format || format.category !== "Traffic Driver") return [];
+    const baseVariant = getVariantById(format, getVariantIdFromCanvasId(canvasId)) || format.variants[0];
+    return getTrafficSlides(canvasId).map((slide, index) => {
+      const state = getMergedSlideState(canvasId, index);
+      return {
+        state,
+        variant: getSlideVariant(format, canvasId, slide, baseVariant) || baseVariant,
+        durationMs: Math.max(200, Number(state.durationSeconds || 2) * 1e3)
+      };
+    });
+  };
+  const renderTrafficSlideCanvas = (format, item, scale = 1) => {
+    const frameCanvas = document.createElement("canvas");
+    const exportScale = Math.max(1, scale || 1);
+    frameCanvas.width = format.w * exportScale;
+    frameCanvas.height = format.h * exportScale;
+    const ctx = frameCanvas.getContext("2d");
+    ctx.save();
+    ctx.scale(exportScale, exportScale);
+    renderBanner(ctx, { width: format.w, height: format.h }, format, item.variant, item.state, assets, item.state.offsets || { logo: { x: 0, y: 0 }, text: { x: 0, y: 0 }, cta: { x: 0, y: 0 } }, globalSettings, false, null);
+    ctx.restore();
+    return frameCanvas;
+  };
+  const waitForNextPaint = () => new Promise((resolve) => {
+    if (typeof requestAnimationFrame === "function") {
+      requestAnimationFrame(() => resolve());
+      return;
+    }
+    setTimeout(resolve, 0);
+  });
+  const getGifColorBucketKey = (r, g, b) => r >> 3 << 11 | g >> 2 << 5 | b >> 3;
+  const collectGifColors = (frames) => {
+    const buckets = /* @__PURE__ */ new Map();
+    const totalPixels = frames.reduce((sum, frame) => sum + frame.canvas.width * frame.canvas.height, 0);
+    const stride = Math.max(1, Math.floor(totalPixels / 12e4));
+    frames.forEach((frame) => {
+      const ctx = frame.canvas.getContext("2d");
+      const data = ctx.getImageData(0, 0, frame.canvas.width, frame.canvas.height).data;
+      for (let src = 0; src < data.length; src += 4 * stride) {
+        if (data[src + 3] < 128) continue;
+        const r = data[src];
+        const g = data[src + 1];
+        const b = data[src + 2];
+        const key = getGifColorBucketKey(r, g, b);
+        const bucket = buckets.get(key) || { r: 0, g: 0, b: 0, count: 0 };
+        bucket.r += r;
+        bucket.g += g;
+        bucket.b += b;
+        bucket.count += 1;
+        buckets.set(key, bucket);
+      }
+    });
+    return Array.from(buckets.values()).map((bucket) => ({
+      r: Math.round(bucket.r / bucket.count),
+      g: Math.round(bucket.g / bucket.count),
+      b: Math.round(bucket.b / bucket.count),
+      count: bucket.count
+    }));
+  };
+  const buildAdaptiveGifPalette = (frames) => {
+    const reservedColors = [
+      [233, 0, 68],
+      [255, 255, 255],
+      [0, 0, 0]
+    ];
+    const colors = collectGifColors(frames);
+    const paletteColors = [];
+    const addPaletteColor = (color) => {
+      const key = `${color[0]},${color[1]},${color[2]}`;
+      if (paletteColors.some((existing) => existing.key === key)) return;
+      paletteColors.push({ key, value: color });
+    };
+    reservedColors.forEach(addPaletteColor);
+    colors.slice().sort((a, b) => b.count - a.count).forEach((color) => {
+      if (paletteColors.length < 256) addPaletteColor([color.r, color.g, color.b]);
+    });
+    while (paletteColors.length < 256) {
+      paletteColors.push({ key: `pad-${paletteColors.length}`, value: [0, 0, 0] });
+    }
+    const palette = new Uint8Array(256 * 3);
+    paletteColors.slice(0, 256).forEach((color, index) => {
+      palette[index * 3] = color.value[0];
+      palette[index * 3 + 1] = color.value[1];
+      palette[index * 3 + 2] = color.value[2];
+    });
+    return palette;
+  };
+  const createGifQuantizer = (palette) => {
+    const colors = [];
+    for (let i = 0; i < 256; i++) {
+      colors.push({
+        r: palette[i * 3],
+        g: palette[i * 3 + 1],
+        b: palette[i * 3 + 2]
+      });
+    }
+    const cache = new Int16Array(1 << 16);
+    cache.fill(-1);
+    const findClosestColorIndex = (r, g, b) => {
+      const key = getGifColorBucketKey(r, g, b);
+      const cached = cache[key];
+      if (cached >= 0) return cached;
+      let bestIndex = 0;
+      let bestDistance = Infinity;
+      for (let i = 0; i < colors.length; i++) {
+        const dr = r - colors[i].r;
+        const dg = g - colors[i].g;
+        const db = b - colors[i].b;
+        const distance = dr * dr * 30 + dg * dg * 59 + db * db * 11;
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestIndex = i;
+        }
+      }
+      cache[key] = bestIndex;
+      return bestIndex;
+    };
+    return (canvas) => {
+      const ctx = canvas.getContext("2d");
+      const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      const indexes = new Uint8Array(canvas.width * canvas.height);
+      for (let src = 0, dst = 0; src < data.length; src += 4, dst++) {
+        indexes[dst] = findClosestColorIndex(data[src], data[src + 1], data[src + 2]);
+      }
+      return indexes;
+    };
+  };
+  const lzwEncodeGifIndexes = (indexes) => {
+    const minCodeSize = 8;
+    const clearCode = 1 << minCodeSize;
+    const endCode = clearCode + 1;
+    const bytes = [];
+    let bitBuffer = 0;
+    let bitCount = 0;
+    let literalCount = 0;
+    const codeSize = minCodeSize + 1;
+    const writeCode = (code) => {
+      bitBuffer |= code << bitCount;
+      bitCount += codeSize;
+      while (bitCount >= 8) {
+        bytes.push(bitBuffer & 255);
+        bitBuffer >>= 8;
+        bitCount -= 8;
+      }
+    };
+    writeCode(clearCode);
+    for (let i = 0; i < indexes.length; i++) {
+      const index = indexes[i];
+      if (literalCount >= 250) {
+        writeCode(clearCode);
+        literalCount = 0;
+      }
+      writeCode(index);
+      literalCount++;
+    }
+    writeCode(endCode);
+    if (bitCount > 0) bytes.push(bitBuffer & 255);
+    return bytes;
+  };
+  const encodeGifFromCanvases = async (frames, width, height) => {
+    const bytes = [];
+    const writeByte = (value) => bytes.push(value & 255);
+    const writeShort = (value) => {
+      writeByte(value);
+      writeByte(value >> 8);
+    };
+    const writeString = (value) => {
+      for (let i = 0; i < value.length; i++) writeByte(value.charCodeAt(i));
+    };
+    const writeBlocks = (data) => {
+      for (let offset = 0; offset < data.length; offset += 255) {
+        const chunk = data.slice(offset, offset + 255);
+        writeByte(chunk.length);
+        chunk.forEach(writeByte);
+      }
+      writeByte(0);
+    };
+    writeString("GIF89a");
+    writeShort(width);
+    writeShort(height);
+    writeByte(112);
+    writeByte(0);
+    writeByte(0);
+    writeByte(33);
+    writeByte(255);
+    writeByte(11);
+    writeString("NETSCAPE2.0");
+    writeByte(3);
+    writeByte(1);
+    writeShort(0);
+    writeByte(0);
+    for (const frame of frames) {
+      const framePalette = buildAdaptiveGifPalette([frame]);
+      const quantizeFrame = createGifQuantizer(framePalette);
+      writeByte(33);
+      writeByte(249);
+      writeByte(4);
+      writeByte(4);
+      writeShort(Math.max(2, Math.round(frame.delayMs / 10)));
+      writeByte(0);
+      writeByte(0);
+      writeByte(44);
+      writeShort(0);
+      writeShort(0);
+      writeShort(width);
+      writeShort(height);
+      writeByte(135);
+      framePalette.forEach(writeByte);
+      writeByte(8);
+      writeBlocks(lzwEncodeGifIndexes(quantizeFrame(frame.canvas)));
+      await waitForNextPaint();
+    }
+    writeByte(59);
+    return new Blob([new Uint8Array(bytes)], { type: "image/gif" });
+  };
+  const canvasToPngBlob = (canvas) => new Promise((resolve) => {
+    if (canvas.toBlob) {
+      canvas.toBlob((blob) => resolve(blob), "image/png");
+      return;
+    }
+    const dataUrl = canvas.toDataURL("image/png");
+    const byteString = atob(dataUrl.split(",")[1]);
+    const bytes = new Uint8Array(byteString.length);
+    for (let i = 0; i < byteString.length; i++) {
+      bytes[i] = byteString.charCodeAt(i);
+    }
+    resolve(new Blob([bytes], { type: "image/png" }));
+  });
+  const buildTrafficDriverPng = async (canvasId, scale = 1) => {
+    const format = getFormatByCanvasId(canvasId);
+    const items = getTrafficSlideRenderItems(canvasId);
+    if (!format || items.length === 0) return null;
+    const exportScale = Math.max(1, scale || 1);
+    const canvas = renderTrafficSlideCanvas(format, items[0], exportScale);
+    await waitForNextPaint();
+    return await canvasToPngBlob(canvas);
+  };
+  const buildTrafficDriverGif = async (canvasId, scale = 1) => {
+    const format = getFormatByCanvasId(canvasId);
+    const items = getTrafficSlideRenderItems(canvasId);
+    if (!format || items.length === 0) return null;
+    const exportScale = Math.max(1, scale || 1);
+    const frames = [];
+    for (const item of items) {
+      frames.push({
+        canvas: renderTrafficSlideCanvas(format, item, exportScale),
+        delayMs: item.durationMs
+      });
+      await waitForNextPaint();
+    }
+    await waitForNextPaint();
+    return await encodeGifFromCanvases(frames, format.w * exportScale, format.h * exportScale);
+  };
+  const activeState = getMergedState(activeBannerId);
+  let activeFormatName = "";
+  let activeVariantName = "";
+  let activeVariantLayout = "";
+  let activeFormatCategory = "";
+  let activeFormatObj = null;
+  let activeBaseVariant = null;
+  FORMAT_DATABASE.forEach((f) => f.variants.forEach((v) => {
+    if (`${f.id}-${v.id}` === activeBannerId) {
+      activeFormatName = f.name;
+      activeVariantName = v.label;
+      activeVariantLayout = v.layout;
+      activeFormatCategory = f.category;
+      activeFormatObj = f;
+      activeBaseVariant = v;
+    }
+  }));
+  const isTrafficDriverActive = activeFormatCategory === "Traffic Driver";
+  const activeTrafficSlides = isTrafficDriverActive ? getTrafficSlides(activeBannerId) : [];
+  const activeSlideIndex = isTrafficDriverActive ? getClampedSlideIndex(activeBannerId, activeTrafficSlides) : 0;
+  const activeSlideVariant = isTrafficDriverActive ? getSlideVariant(activeFormatObj, activeBannerId, activeTrafficSlides[activeSlideIndex], activeBaseVariant) : activeBaseVariant;
+  if (isTrafficDriverActive && activeSlideVariant) {
+    activeVariantName = activeSlideVariant.label;
+    activeVariantLayout = activeSlideVariant.layout;
+  }
+  const activeSlideVariantRequiresLogo = !!(activeSlideVariant == null ? void 0 : activeSlideVariant.requiresLogo);
+  const isYoutubeVideoCoverActive = activeBannerId == null ? void 0 : activeBannerId.startsWith("youtube-video-cover-");
+  const isArticleCoverActive = activeBannerId == null ? void 0 : activeBannerId.startsWith("article-cover-");
+  const isShortsCoverActive = activeBannerId == null ? void 0 : activeBannerId.startsWith("shorts-cover-");
+  const isVideoGraphicFixedCover = isYoutubeVideoCoverActive || isArticleCoverActive || isShortsCoverActive;
+  const [draggedLayerIdx, setDraggedLayerIdx] = useState(null);
+  const handleDragStart = (e, index) => {
+    setDraggedLayerIdx(index);
+    e.dataTransfer.effectAllowed = "move";
+  };
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+  const handleDrop = (e, targetIdx) => {
+    e.preventDefault();
+    if (draggedLayerIdx === null || draggedLayerIdx === targetIdx) return;
+    const newOrder = [...globalSettings.layerOrder];
+    const [movedItem] = newOrder.splice(draggedLayerIdx, 1);
+    newOrder.splice(targetIdx, 0, movedItem);
+    setGlobalSettings({ ...globalSettings, layerOrder: newOrder });
+    setDraggedLayerIdx(null);
+  };
+  const LayerIcon = ({ type }) => {
+    if (type === "bg") return /* @__PURE__ */ React.createElement("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" }, /* @__PURE__ */ React.createElement("rect", { x: "3", y: "3", width: "18", height: "18", rx: "2", ry: "2" }), /* @__PURE__ */ React.createElement("circle", { cx: "8.5", cy: "8.5", r: "1.5" }), /* @__PURE__ */ React.createElement("polyline", { points: "21 15 16 10 5 21" }));
+    if (type === "kv") return /* @__PURE__ */ React.createElement("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" }, /* @__PURE__ */ React.createElement("polygon", { points: "12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" }));
+    if (type === "logo") return /* @__PURE__ */ React.createElement("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" }, /* @__PURE__ */ React.createElement("path", { d: "M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" }));
+    if (type === "text") return /* @__PURE__ */ React.createElement("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" }, /* @__PURE__ */ React.createElement("polyline", { points: "4 7 4 4 20 4 20 7" }), /* @__PURE__ */ React.createElement("line", { x1: "9", y1: "20", x2: "15", y2: "20" }), /* @__PURE__ */ React.createElement("line", { x1: "12", y1: "4", x2: "12", y2: "20" }));
+    if (type === "cta") return /* @__PURE__ */ React.createElement("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" }, /* @__PURE__ */ React.createElement("rect", { x: "3", y: "8", width: "18", height: "8", rx: "4" }));
+    if (type === "layout") return /* @__PURE__ */ React.createElement("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" }, /* @__PURE__ */ React.createElement("rect", { x: "3", y: "3", width: "7", height: "7", rx: "1" }), /* @__PURE__ */ React.createElement("rect", { x: "14", y: "3", width: "7", height: "7", rx: "1" }), /* @__PURE__ */ React.createElement("rect", { x: "3", y: "14", width: "7", height: "7", rx: "1" }), /* @__PURE__ */ React.createElement("rect", { x: "14", y: "14", width: "7", height: "7", rx: "1" }));
+    return null;
+  };
+  const LayerTitle = ({ type }) => {
+    if (type === "bg") return "BACKGROUND IMAGE";
+    if (type === "kv") return "KEY VISUAL";
+    if (type === "logo") return "BRAND LOGO";
+    if (type === "text") return "SMART TEXT PAYLOAD";
+    if (type === "cta") return "CALL TO ACTION";
+    return "";
+  };
+  return /* @__PURE__ */ React.createElement("div", { className: "flex flex-col h-screen font-sans bg-bgCore text-textPri" }, /* @__PURE__ */ React.createElement("header", { className: "h-14 bg-sidebar border-b border-borderMain flex items-center justify-between px-6 z-20 shrink-0 shadow-sm" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3" }, /* @__PURE__ */ React.createElement("div", { className: "w-7 h-7 rounded-lg bg-brandRed flex items-center justify-center text-white font-black text-xs shadow-inner" }, "A"), /* @__PURE__ */ React.createElement("h1", { className: "font-bold text-white tracking-tight" }, "AutoBanner Engine ", /* @__PURE__ */ React.createElement("span", { className: "text-[10px] text-brandRed bg-brandRed/10 border border-brandRed/20 px-2 py-0.5 rounded ml-2 uppercase font-mono tracking-wider" }, "v3.0 Production"))), /* @__PURE__ */ React.createElement("div", { className: "flex gap-3" }, /* @__PURE__ */ React.createElement("button", { onClick: () => setIsReviewModalOpen(true), className: "bg-surfaceElevated hover:bg-borderInput border border-borderMain text-white font-bold py-1.5 px-4 rounded-md text-xs transition shadow flex items-center gap-2" }, /* @__PURE__ */ React.createElement("div", { className: "w-4 h-4 bg-brandRed rounded-sm flex items-center justify-center text-[9px]" }, approvedBanners.size), "Review Approved"))), /* @__PURE__ */ React.createElement("div", { className: "flex flex-1 overflow-hidden" }, /* @__PURE__ */ React.createElement("aside", { className: "w-[320px] bg-sidebar border-r border-borderMain flex flex-col shrink-0 z-10 overflow-y-auto" }, /* @__PURE__ */ React.createElement("div", { className: "p-6 space-y-8" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-[0.2em] mb-4" }, "1. Campaign Formats"), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-2 gap-2.5" }, CATEGORIES.map((cat) => /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      key: cat,
+      onClick: () => {
+        setSelectedCategories((prev) => prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]);
+      },
+      className: `py-2 px-3 text-xs font-bold rounded-lg border transition-all ${selectedCategories.includes(cat) ? "bg-brandRed/10 border-brandRed text-brandRed shadow-[0_0_10px_rgba(233,0,68,0.1)]" : "bg-surface border-borderInput text-textDim hover:border-textMut hover:text-textPri"}`
+    },
+    cat
+  ))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between mt-5 p-3 bg-surfaceElevated border border-borderInput rounded-lg shadow-sm" }, /* @__PURE__ */ React.createElement("label", { className: "text-[11px] font-bold text-textPri uppercase tracking-wider" }, "Render Safezone"), /* @__PURE__ */ React.createElement("button", { onClick: () => setGlobalSettings({ ...globalSettings, showSafezone: !globalSettings.showSafezone }), className: `w-8 h-4 rounded-full relative transition-colors ${globalSettings.showSafezone ? "bg-blue-600" : "bg-borderInput"}` }, /* @__PURE__ */ React.createElement("div", { className: `w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${globalSettings.showSafezone ? "left-4.5" : "left-0.5"}` })))), /* @__PURE__ */ React.createElement("div", { className: "h-px bg-borderMain w-full" }), /* @__PURE__ */ React.createElement("div", { className: "space-y-4" }, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-end" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-[0.2em]" }, "2. Global Layer Stack")), /* @__PURE__ */ React.createElement("div", { className: "space-y-3" }, [...globalSettings.layerOrder].reverse().map((layer, index) => {
+    const realIndex = globalSettings.layerOrder.indexOf(layer);
+    return /* @__PURE__ */ React.createElement(
+      "div",
+      {
+        key: layer,
+        draggable: true,
+        onDragStart: (e) => handleDragStart(e, realIndex),
+        onDragOver: (e) => handleDragOver(e, realIndex),
+        onDrop: (e) => handleDrop(e, realIndex),
+        className: `bg-surface border border-borderInput rounded-xl transition-all shadow-sm flex flex-col overflow-hidden ${draggedLayerIdx === realIndex ? "opacity-50 border-brandRed shadow-lg" : "hover:border-textMut"}`
+      },
+      /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3 p-3 bg-surfaceElevated border-b border-borderMain/50 cursor-move" }, /* @__PURE__ */ React.createElement("svg", { className: "text-textMut", width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" }, /* @__PURE__ */ React.createElement("circle", { cx: "9", cy: "12", r: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: "9", cy: "5", r: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: "9", cy: "19", r: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: "15", cy: "12", r: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: "15", cy: "5", r: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: "15", cy: "19", r: "1" })), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 text-[10px] font-bold text-white uppercase tracking-widest pointer-events-none" }, /* @__PURE__ */ React.createElement(LayerIcon, { type: "layer" }), /* @__PURE__ */ React.createElement("span", { className: "translate-y-px" }, layer === "bg" ? "BACKGROUND" : layer === "kv" ? "KEY VISUAL" : layer === "logo" ? "BRAND LOGO" : layer === "text" ? "SMART TEXT" : "CALL TO ACTION"))),
+      /* @__PURE__ */ React.createElement("div", { className: "p-3 bg-surface" }, layer === "bg" && /* @__PURE__ */ React.createElement("div", { className: "relative border border-dashed border-borderMain rounded-lg bg-bgCore hover:border-textMut transition cursor-pointer p-2.5 flex items-center gap-3" }, /* @__PURE__ */ React.createElement("input", { type: "file", className: "absolute inset-0 w-full h-full opacity-0 cursor-pointer", accept: "image/*", onChange: (e) => handleUpload(e, "bg") }), /* @__PURE__ */ React.createElement("div", { className: "w-8 h-8 rounded bg-surfaceElevated flex items-center justify-center overflow-hidden shrink-0 border border-borderInput" }, assets.bgImage ? /* @__PURE__ */ React.createElement("img", { src: assets.bgImage.src, className: "w-full h-full object-cover" }) : /* @__PURE__ */ React.createElement(LayerIcon, { type: "bg" })), /* @__PURE__ */ React.createElement("span", { className: "text-[11px] font-medium text-textPri truncate" }, fileNames.bg || "Upload Background Image")), layer === "kv" && /* @__PURE__ */ React.createElement("div", { className: "space-y-3" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Enable KV Layer"), /* @__PURE__ */ React.createElement("button", { onClick: () => setGlobalSettings({ ...globalSettings, showKV: !globalSettings.showKV }), className: `w-8 h-4 rounded-full relative transition-colors ${globalSettings.showKV ? "bg-brandRed" : "bg-borderInput"}` }, /* @__PURE__ */ React.createElement("div", { className: `w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${globalSettings.showKV ? "left-4.5" : "left-0.5"}` }))), globalSettings.showKV && /* @__PURE__ */ React.createElement("div", { className: "space-y-2 mt-2 bg-bgCore p-2 rounded-lg border border-borderMain/50" }, assets.kvImages.map((kv) => /* @__PURE__ */ React.createElement("div", { key: kv.id, className: "flex items-center justify-between bg-surface border border-borderInput rounded-md p-1.5 shadow-sm" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3 overflow-hidden" }, /* @__PURE__ */ React.createElement("div", { className: "w-6 h-6 bg-surfaceElevated rounded flex items-center justify-center shrink-0 border border-borderMain" }, /* @__PURE__ */ React.createElement("img", { src: kv.img.src, className: "max-w-full max-h-full object-contain" })), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-medium text-textPri truncate" }, kv.name)), /* @__PURE__ */ React.createElement("button", { onClick: () => setAssets((prev) => ({ ...prev, kvImages: prev.kvImages.filter((k) => k.id !== kv.id) })), className: "text-textMut hover:text-brandRed transition px-1.5 py-1 bg-bgCore rounded border border-transparent hover:border-brandRed/30" }, /* @__PURE__ */ React.createElement("svg", { width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" }, /* @__PURE__ */ React.createElement("line", { x1: "18", y1: "6", x2: "6", y2: "18" }), /* @__PURE__ */ React.createElement("line", { x1: "6", y1: "6", x2: "18", y2: "18" }))))), /* @__PURE__ */ React.createElement("button", { onClick: () => document.getElementById("kv-upload").click(), className: "w-full py-2 bg-surfaceElevated border border-borderInput border-dashed rounded-md text-[11px] font-bold text-textDim hover:text-white hover:border-brandRed hover:bg-brandRed/5 transition flex items-center justify-center gap-2" }, /* @__PURE__ */ React.createElement("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" }, /* @__PURE__ */ React.createElement("line", { x1: "12", y1: "5", x2: "12", y2: "19" }), /* @__PURE__ */ React.createElement("line", { x1: "5", y1: "12", x2: "19", y2: "12" })), "ADD KV ELEMENT"), /* @__PURE__ */ React.createElement("input", { id: "kv-upload", type: "file", className: "hidden", accept: "image/png, image/svg+xml", onChange: handleUploadKV }))), layer === "logo" && /* @__PURE__ */ React.createElement("div", { className: "space-y-3" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Enable Logo Layer"), /* @__PURE__ */ React.createElement("button", { onClick: () => setGlobalSettings({ ...globalSettings, showLogo: !globalSettings.showLogo, strictMode: true }), className: `w-8 h-4 rounded-full relative transition-colors ${globalSettings.showLogo ? "bg-brandRed" : "bg-borderInput"}` }, /* @__PURE__ */ React.createElement("div", { className: `w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${globalSettings.showLogo ? "left-4.5" : "left-0.5"}` }))), globalSettings.showLogo && /* @__PURE__ */ React.createElement("div", { className: "relative border border-dashed border-borderMain rounded-lg bg-bgCore hover:border-textMut transition cursor-pointer p-2.5 flex items-center gap-3" }, /* @__PURE__ */ React.createElement("input", { type: "file", className: "absolute inset-0 w-full h-full opacity-0 cursor-pointer", accept: "image/png, image/svg+xml", onChange: (e) => handleUpload(e, "logo") }), /* @__PURE__ */ React.createElement("div", { className: "w-8 h-8 rounded bg-surfaceElevated flex items-center justify-center overflow-hidden shrink-0 border border-borderInput p-1" }, assets.logoImage ? /* @__PURE__ */ React.createElement("img", { src: assets.logoImage.src, className: "w-full h-full object-contain" }) : /* @__PURE__ */ React.createElement(LayerIcon, { type: "logo" })), /* @__PURE__ */ React.createElement("span", { className: "text-[11px] font-medium text-textPri truncate" }, fileNames.logo || "Upload SVG / PNG Logo"))), layer === "text" && /* @__PURE__ */ React.createElement("div", { className: "space-y-4" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut mb-1.5 uppercase tracking-wider" }, "Headline Payload"), /* @__PURE__ */ React.createElement("input", { type: "text", value: globalPayload.headline, onChange: (e) => {
+        setGlobalPayload((p) => ({ ...p, headline: e.target.value }));
+        applyToAll("headline", e.target.value);
+      }, className: "w-full bg-bgCore border border-borderInput rounded-md p-2.5 text-xs font-medium text-white focus:outline-none focus:border-brandRed shadow-inner" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut mb-1.5 uppercase tracking-wider" }, "Subhead Payload"), /* @__PURE__ */ React.createElement("input", { type: "text", value: globalPayload.subhead, onChange: (e) => {
+        setGlobalPayload((p) => ({ ...p, subhead: e.target.value }));
+        applyToAll("subhead", e.target.value);
+      }, className: "w-full bg-bgCore border border-borderInput rounded-md p-2.5 text-xs font-medium text-white focus:outline-none focus:border-brandRed shadow-inner" })), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between pt-3 border-t border-borderMain/50" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Light/Dark Mode Preset"), /* @__PURE__ */ React.createElement(
+        "button",
+        {
+          onClick: () => {
+            const isNowDark = globalSettings.textColor === "black";
+            setGlobalSettings({ ...globalSettings, textColor: isNowDark ? "white" : "black" });
+            applyToAll("headlineColor", isNowDark ? "#ffffff" : "#000000");
+            applyToAll("subheadColor", isNowDark ? "#ffffff" : "#333333");
+          },
+          className: `w-8 h-4 rounded-full relative transition-colors ${globalSettings.textColor === "black" ? "bg-brandRed" : "bg-borderInput"}`
+        },
+        /* @__PURE__ */ React.createElement("div", { className: `w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${globalSettings.textColor === "black" ? "left-4.5" : "left-0.5"}` })
+      ))), layer === "cta" && /* @__PURE__ */ React.createElement("div", { className: "space-y-4" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Enable CTA Module"), /* @__PURE__ */ React.createElement("button", { onClick: () => setGlobalSettings({ ...globalSettings, showCTA: !globalSettings.showCTA, strictMode: true }), className: `w-8 h-4 rounded-full relative transition-colors ${globalSettings.showCTA ? "bg-brandRed" : "bg-borderInput"}` }, /* @__PURE__ */ React.createElement("div", { className: `w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${globalSettings.showCTA ? "left-4.5" : "left-0.5"}` }))), globalSettings.showCTA && /* @__PURE__ */ React.createElement("div", { className: "pt-2 border-t border-borderMain/50" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut mb-1.5 uppercase tracking-wider" }, "CTA Text Payload"), /* @__PURE__ */ React.createElement(
+        "input",
+        {
+          type: "text",
+          value: globalPayload.ctaText,
+          onChange: (e) => {
+            setGlobalPayload((p) => ({ ...p, ctaText: e.target.value }));
+            applyToAll("ctaText", e.target.value);
+          },
+          className: "w-full bg-bgCore border border-borderInput rounded-md p-2.5 text-xs font-medium text-white focus:outline-none focus:border-brandRed shadow-inner"
+        }
+      ))))
+    );
+  }))))), /* @__PURE__ */ React.createElement("main", { className: "flex-1 overflow-y-auto p-10 relative bg-bgCore flex flex-col items-center panel-scroll" }, /* @__PURE__ */ React.createElement("div", { className: "w-full max-w-5xl space-y-8 pb-32" }, selectedCategories.length > 0 && visibleFormats.length > 0 && /* @__PURE__ */ React.createElement("div", { className: "w-full bg-surfaceElevated border border-borderMain rounded-2xl p-4 flex items-center gap-4 text-sm font-medium text-textPri shadow-md" }, /* @__PURE__ */ React.createElement("span", { className: "flex h-8 w-8 items-center justify-center rounded-lg bg-brandRed/10 text-brandRed" }, /* @__PURE__ */ React.createElement("svg", { width: "18", height: "18", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" }, /* @__PURE__ */ React.createElement("circle", { cx: "12", cy: "12", r: "10" }), /* @__PURE__ */ React.createElement("path", { d: "M12 16v-4M12 8h.01" }))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { className: "font-bold text-white block" }, "Interactive Canvas Gallery"), /* @__PURE__ */ React.createElement("span", { className: "text-textMut text-xs" }, "Click directly on any banner layout below to adjust styles, move layers, rotate backgrounds, or fine-tune alignments."))), selectedCategories.length === 0 ? /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-center h-full pt-32" }, /* @__PURE__ */ React.createElement("div", { className: "text-center space-y-5 max-w-md" }, /* @__PURE__ */ React.createElement("div", { className: "w-20 h-20 bg-surface border border-borderInput rounded-3xl flex items-center justify-center mx-auto mb-6 text-borderInput shadow-2xl" }, /* @__PURE__ */ React.createElement("svg", { width: "40", height: "40", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, /* @__PURE__ */ React.createElement("rect", { x: "3", y: "3", width: "18", height: "18", rx: "2", ry: "2" }), /* @__PURE__ */ React.createElement("circle", { cx: "8.5", cy: "8.5", r: "1.5" }), /* @__PURE__ */ React.createElement("polyline", { points: "21 15 16 10 5 21" }))), /* @__PURE__ */ React.createElement("h3", { className: "text-xl font-bold text-textPri" }, "Select Target Banner Sets"), /* @__PURE__ */ React.createElement("p", { className: "text-sm text-textDim leading-relaxed" }, "Choose one or more platform categories from the left menu. The engine will instantly generate all optimized formats based on your global layer stack."))) : visibleFormats.map((format) => /* @__PURE__ */ React.createElement("div", { key: format.id, className: "space-y-6 bg-surfaceElevated p-8 rounded-3xl border border-borderMain shadow-lg" }, /* @__PURE__ */ React.createElement("div", { className: "border-b border-borderMain pb-4 mb-2 flex items-center justify-between" }, /* @__PURE__ */ React.createElement("h2", { className: "text-2xl font-black text-white tracking-tight flex items-center gap-3" }, format.name), /* @__PURE__ */ React.createElement("span", { className: "text-xs font-mono font-bold text-textDim bg-surface px-3 py-1.5 rounded-lg border border-borderInput shadow-inner" }, format.w, " \xD7 ", format.h, "px")), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 gap-12" }, getGalleryVariants(format).map((variant) => {
+    const canvasId = `${format.id}-${variant.id}`;
+    const renderFormat = format.category === "Traffic Driver" ? getFormatByCanvasId(canvasId) || format : format;
+    const gallerySlides = format.category === "Traffic Driver" ? getTrafficSlides(canvasId) : [];
+    const galleryRenderItems = format.category === "Traffic Driver" ? getTrafficSlideRenderItems(canvasId) : [];
+    const gallerySlideIndex = format.category === "Traffic Driver" ? getClampedSlideIndex(canvasId, gallerySlides) : 0;
+    const galleryVariant = format.category === "Traffic Driver" ? getSlideVariant(renderFormat, canvasId, gallerySlides[gallerySlideIndex], variant) : variant;
+    const gallerySlideStates = format.category === "Traffic Driver" ? galleryRenderItems.map((item) => item.state) : [];
+    const gallerySlideVariants = format.category === "Traffic Driver" ? galleryRenderItems.map((item) => item.variant) : [];
+    const shouldShowGifPreview = format.category === "Traffic Driver" && gallerySlides.length > 1;
+    return /* @__PURE__ */ React.createElement("div", { key: variant.id, className: "flex flex-col gap-0 bg-surface rounded-2xl border border-borderMain overflow-hidden shadow-md group transition-all duration-300" }, /* @__PURE__ */ React.createElement("div", { className: "p-1" }, shouldShowGifPreview ? /* @__PURE__ */ React.createElement(
+      TrafficGifPreview,
+      {
+        format: renderFormat,
+        slides: gallerySlides,
+        slideStates: gallerySlideStates,
+        slideVariants: gallerySlideVariants,
+        assets,
+        globalSettings,
+        isActive: activeBannerId === canvasId,
+        onSelect: () => {
+          setActiveBannerId(canvasId);
+          setIsEditorModalOpen(true);
+        },
+        onCanvasReady: (canvas) => canvasRefs.current[canvasId] = canvas
+      }
+    ) : /* @__PURE__ */ React.createElement(
+      InteractiveCanvas,
+      {
+        format: renderFormat,
+        variant: galleryVariant || variant,
+        state: getMergedState(canvasId),
+        assets,
+        globalSettings,
+        isActive: activeBannerId === canvasId,
+        isInteractive: false,
+        onSelect: () => {
+          setActiveBannerId(canvasId);
+          setIsEditorModalOpen(true);
+        },
+        onCanvasReady: (canvas) => canvasRefs.current[canvasId] = canvas,
+        onOffsetChange: (newOffsets) => {
+          setBannerStates((prev) => ({
+            ...prev,
+            [canvasId]: { ...prev[canvasId] || {}, offsets: newOffsets }
+          }));
+        }
+      }
+    )), /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: () => toggleApproval(canvasId),
+        className: `flex items-center justify-center gap-2.5 w-full py-4.5 font-bold text-sm transition-all duration-300 outline-none uppercase tracking-wider ${approvedBanners.has(canvasId) ? "bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-t border-green-500 text-green-400 hover:from-green-500/30 hover:to-emerald-500/30 shadow-[0_4px_20px_rgba(34,197,94,0.15)]" : "bg-gradient-to-r from-surfaceElevated to-surfaceElevated/80 border-t border-borderMain text-textDim hover:text-white hover:from-brandRed/10 hover:to-brandRed/20 hover:border-brandRed/50 shadow-md"}`
+      },
+      approvedBanners.has(canvasId) ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("svg", { width: "18", height: "18", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3.5", strokeLinecap: "round", strokeLinejoin: "round", className: "text-green-400 animate-bounce" }, /* @__PURE__ */ React.createElement("polyline", { points: "20 6 9 17 4 12" })), /* @__PURE__ */ React.createElement("span", null, "APPROVED & LOCKED FOR EXPORT")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("svg", { width: "18", height: "18", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.5", strokeLinecap: "round", strokeLinejoin: "round", className: "text-textDim group-hover:text-white" }, /* @__PURE__ */ React.createElement("circle", { cx: "12", cy: "12", r: "10" }), /* @__PURE__ */ React.createElement("polyline", { points: "12 8 12 12 16 14" })), /* @__PURE__ */ React.createElement("span", null, "MARK AS APPROVED"))
+    ));
+  }))))))), isEditorModalOpen && activeBannerId && /* @__PURE__ */ React.createElement("div", { className: "fixed inset-0 z-[60] bg-bgCore/95 flex backdrop-blur-sm" }, /* @__PURE__ */ React.createElement("div", { className: "flex-1 flex flex-col p-10 items-center justify-center overflow-hidden relative" }, /* @__PURE__ */ React.createElement("div", { className: "absolute top-8 left-8 z-10" }, /* @__PURE__ */ React.createElement("button", { onClick: () => setIsEditorModalOpen(false), className: "flex items-center gap-2 text-white font-bold bg-surfaceElevated hover:bg-borderInput border border-borderMain shadow-xl px-5 py-2.5 rounded-full transition-all" }, /* @__PURE__ */ React.createElement("svg", { width: "18", height: "18", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.5", strokeLinecap: "round", strokeLinejoin: "round" }, /* @__PURE__ */ React.createElement("line", { x1: "19", y1: "12", x2: "5", y2: "12" }), /* @__PURE__ */ React.createElement("polyline", { points: "12 19 5 12 12 5" })), isTrafficDriverActive ? "Apply Changes & Return" : "Return to Gallery")), (() => {
+    let format, variant;
+    FORMAT_DATABASE.forEach((f) => f.variants.forEach((v) => {
+      if (`${f.id}-${v.id}` === activeBannerId) {
+        format = f;
+        variant = v;
+      }
+    }));
+    const isTrafficDriverEditor = (format == null ? void 0 : format.category) === "Traffic Driver";
+    const editorSlides = isTrafficDriverEditor ? getTrafficSlides(activeBannerId) : [];
+    const editorSlideIndex = isTrafficDriverEditor ? getClampedSlideIndex(activeBannerId, editorSlides) : 0;
+    const canAddSlide = editorSlides.length < 3;
+    if (!format || !variant) return null;
+    if (isTrafficDriverEditor) {
+      return /* @__PURE__ */ React.createElement("div", { className: "w-full h-full max-w-[92%] overflow-y-auto panel-scroll pt-20 pb-10" }, /* @__PURE__ */ React.createElement("div", { className: "mx-auto w-fit max-w-full space-y-5" }, /* @__PURE__ */ React.createElement("div", { className: "bg-surface rounded-2xl border border-borderInput p-5 w-fit max-w-full mx-auto" }, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center gap-8 mb-4 pb-3 border-b border-borderMain/40" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-4" }, /* @__PURE__ */ React.createElement("span", { className: "text-[13px] font-bold uppercase tracking-wider text-brandRed" }, format.name), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono font-medium text-textDim bg-surfaceElevated border border-borderMain px-2.5 py-1 rounded-md" }, format.w, "x", format.h)), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-bold text-textDim uppercase tracking-wider" }, editorSlides.length, " Slide", editorSlides.length > 1 ? "s" : "")), /* @__PURE__ */ React.createElement("div", { className: "mb-5 flex justify-center" }, /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-bold text-textPri bg-brandRed border border-brandRed px-4 py-1.5 rounded-full inline-flex items-center gap-2 shadow-lg" }, /* @__PURE__ */ React.createElement("svg", { width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, /* @__PURE__ */ React.createElement("path", { d: "M5 9l-3 3 3 3M9 5l3-3 3 3M19 9l3 3-3 3M9 19l3 3 3 3M2 12h20M12 2v20" })), "Select & Drag any element to move")), /* @__PURE__ */ React.createElement("div", { className: "space-y-4" }, editorSlides.map((slide, index) => {
+        const slideVariant = getSlideVariant(format, activeBannerId, slide, variant);
+        const slideState = getMergedSlideState(activeBannerId, index);
+        const isSelectedSlide = index === editorSlideIndex;
+        return /* @__PURE__ */ React.createElement("div", { key: `traffic-slide-${index}`, className: "space-y-3" }, /* @__PURE__ */ React.createElement(
+          "div",
+          {
+            onClick: () => {
+              setActiveSlideIndexes((prev) => ({ ...prev, [activeBannerId]: index }));
+            },
+            className: `rounded-2xl border p-3 transition-all ${isSelectedSlide ? "border-brandRed shadow-[0_0_22px_rgba(233,0,68,0.18)] bg-surfaceElevated" : "border-borderMain bg-bgCore/30 hover:border-brandRed/60"}`
+          },
+          /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-6 mb-3 px-1" }, /* @__PURE__ */ React.createElement(
+            "button",
+            {
+              type: "button",
+              className: `h-8 min-w-[78px] px-4 rounded-full border text-[10px] font-black uppercase tracking-wider transition-all ${isSelectedSlide ? "bg-brandRed text-white border-brandRed" : "bg-surfaceElevated text-textPri border-borderMain"}`
+            },
+            "Slide ",
+            index + 1
+          ), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider truncate max-w-[220px]" }, (slideVariant == null ? void 0 : slideVariant.label) || variant.label), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2", onClick: (e) => e.stopPropagation() }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 bg-bgCore border border-borderInput rounded-md px-2 py-1 shadow-inner" }, /* @__PURE__ */ React.createElement(
+            "input",
+            {
+              type: "number",
+              min: "0.5",
+              max: "30",
+              step: "0.5",
+              value: slideState.durationSeconds,
+              onFocus: () => setActiveSlideIndexes((prev) => ({ ...prev, [activeBannerId]: index })),
+              onChange: (e) => {
+                const parsedSeconds = parseFloat(e.target.value);
+                const nextSeconds = e.target.value === "" ? "" : Number.isFinite(parsedSeconds) ? Math.max(0.5, parsedSeconds) : 0.5;
+                updateTrafficSlideState(activeBannerId, index, { durationSeconds: nextSeconds });
+              },
+              className: "w-10 bg-transparent text-[11px] font-mono font-medium text-textPri text-center focus:outline-none"
+            }
+          ), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-bold text-textMut" }, "s")), index > 0 && /* @__PURE__ */ React.createElement(
+            "button",
+            {
+              type: "button",
+              title: "Delete slide",
+              "aria-label": "Delete slide",
+              onClick: () => deleteTrafficSlide(activeBannerId, index),
+              className: "h-8 w-8 rounded-lg border border-borderInput bg-surfaceElevated text-textDim hover:text-white hover:border-brandRed hover:bg-brandRed transition flex items-center justify-center"
+            },
+            /* @__PURE__ */ React.createElement("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.4", strokeLinecap: "round", strokeLinejoin: "round" }, /* @__PURE__ */ React.createElement("path", { d: "M3 6h18" }), /* @__PURE__ */ React.createElement("path", { d: "M8 6V4h8v2" }), /* @__PURE__ */ React.createElement("path", { d: "M19 6l-1 14H6L5 6" }), /* @__PURE__ */ React.createElement("path", { d: "M10 11v5M14 11v5" }))
+          ))),
+          /* @__PURE__ */ React.createElement(
+            InteractiveCanvas,
+            {
+              key: `editor-${activeBannerId}-${index}-${(slideVariant == null ? void 0 : slideVariant.id) || variant.id}`,
+              format,
+              variant: slideVariant || variant,
+              state: slideState,
+              assets,
+              globalSettings,
+              isActive: isSelectedSlide,
+              isInteractive: true,
+              showEditorChrome: false,
+              compact: true,
+              showCompactHistoryControls: true,
+              onSelect: () => {
+                setActiveSlideIndexes((prev) => ({ ...prev, [activeBannerId]: index }));
+              },
+              onOffsetChange: (newOffsets) => updateTrafficSlideState(activeBannerId, index, { offsets: newOffsets }),
+              activeLayerId: isSelectedSlide ? activeLayerId : null,
+              onElementSelect: (el) => {
+                setActiveSlideIndexes((prev) => ({ ...prev, [activeBannerId]: index }));
+                setActiveLayerId(el);
+              }
+            }
+          )
+        ), index === editorSlides.length - 1 && /* @__PURE__ */ React.createElement("div", { className: "flex justify-center" }, /* @__PURE__ */ React.createElement(
+          "button",
+          {
+            type: "button",
+            title: "Add slide",
+            "aria-label": "Add slide",
+            disabled: !canAddSlide,
+            onClick: () => addTrafficSlide(activeBannerId),
+            className: `h-10 w-10 rounded-full border flex items-center justify-center transition-all ${canAddSlide ? "bg-surfaceElevated border-brandRed text-brandRed hover:bg-brandRed hover:text-white shadow-[0_0_16px_rgba(233,0,68,0.18)]" : "bg-transparent border-borderInput text-textDim cursor-not-allowed opacity-40"}`
+          },
+          /* @__PURE__ */ React.createElement("svg", { width: "17", height: "17", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round" }, /* @__PURE__ */ React.createElement("path", { d: "M12 5v14M5 12h14" }))
+        )));
+      })))));
+    }
+    return /* @__PURE__ */ React.createElement("div", { className: "w-full max-w-[90%] flex flex-col items-center justify-center overflow-visible" }, /* @__PURE__ */ React.createElement("div", { className: "shadow-2xl rounded-2xl ring-1 ring-white/10 w-fit max-w-full" }, /* @__PURE__ */ React.createElement(
+      InteractiveCanvas,
+      {
+        key: `editor-${activeBannerId}-${editorSlideIndex}`,
+        format,
+        variant,
+        state: activeState,
+        assets,
+        globalSettings,
+        isActive: true,
+        isInteractive: true,
+        onOffsetChange: (newOffsets) => updateActiveState({ offsets: newOffsets }),
+        activeLayerId,
+        onElementSelect: (el) => setActiveLayerId(el)
+      }
+    )));
+  })()), /* @__PURE__ */ React.createElement("aside", { className: "w-[360px] bg-sidebar border-l border-borderMain flex flex-col shrink-0 shadow-2xl relative z-20" }, /* @__PURE__ */ React.createElement("div", { className: "p-6 space-y-5 overflow-y-auto flex-1 panel-scroll pb-24" }, /* @__PURE__ */ React.createElement("div", { className: "bg-surfaceElevated border border-borderMain p-4 rounded-xl text-center mb-2 shadow-sm" }, /* @__PURE__ */ React.createElement("span", { className: "block text-[10px] text-brandRed font-bold uppercase tracking-[0.2em] mb-1.5" }, "Editing Layout"), /* @__PURE__ */ React.createElement("span", { className: "block text-xs font-bold text-white mb-0.5" }, activeFormatName), /* @__PURE__ */ React.createElement("span", { className: "block text-[11px] font-medium text-textMut" }, activeVariantName), isTrafficDriverActive && /* @__PURE__ */ React.createElement("span", { className: "inline-flex mt-3 px-2.5 py-1 rounded-full bg-bgCore border border-borderInput text-[10px] font-bold text-textPri uppercase tracking-wider" }, "Slide ", activeSlideIndex + 1, " / ", activeTrafficSlides.length)), isTrafficDriverActive && activeFormatObj && /* @__PURE__ */ React.createElement("div", { className: "p-4 rounded-xl border bg-surface/50 border-borderInput" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 mb-3 pb-2.5 border-b border-borderMain/50" }, /* @__PURE__ */ React.createElement(LayerIcon, { type: "layout" }), /* @__PURE__ */ React.createElement("label", { className: "text-[11px] font-bold text-white uppercase tracking-widest pointer-events-none" }, "Slide Layout")), /* @__PURE__ */ React.createElement(
+    "select",
+    {
+      value: (activeSlideVariant == null ? void 0 : activeSlideVariant.id) || getVariantIdFromCanvasId(activeBannerId),
+      onChange: (e) => {
+        updateActiveState({ variantId: e.target.value });
+        setActiveLayerId("text");
+      },
+      className: "w-full bg-bgCore border border-borderInput rounded-md p-2 text-sm font-medium text-white focus:outline-none focus:border-brandRed shadow-inner"
+    },
+    activeFormatObj.variants.map((option) => /* @__PURE__ */ React.createElement("option", { key: option.id, value: option.id }, option.label))
+  )), /* @__PURE__ */ React.createElement("div", { ref: textRef, onClick: () => setActiveLayerId("text"), className: `p-4 rounded-xl border transition-all duration-300 cursor-pointer ${activeLayerId === "text" ? "bg-surfaceElevated border-brandRed shadow-[0_0_20px_rgba(233,0,68,0.15)] ring-1 ring-brandRed/50" : "bg-surface/50 border-borderInput hover:border-borderMain hover:bg-surface"}` }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 mb-4 pb-2.5 border-b border-borderMain/50" }, /* @__PURE__ */ React.createElement(LayerIcon, { type: "text" }), /* @__PURE__ */ React.createElement("label", { className: "text-[11px] font-bold text-white uppercase tracking-widest pointer-events-none" }, "Text Elements")), /* @__PURE__ */ React.createElement("div", { className: "space-y-4" }, isYoutubeVideoCoverActive && /* @__PURE__ */ React.createElement("div", { className: "space-y-4 pb-4 border-b border-borderMain/50" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Gradient Overlay"), /* @__PURE__ */ React.createElement("button", { onClick: (e) => {
+    e.stopPropagation();
+    updateActiveState({ showYoutubeGradient: !activeState.showYoutubeGradient });
+  }, className: `w-8 h-4 rounded-full relative transition-colors ${activeState.showYoutubeGradient ? "bg-brandRed" : "bg-borderInput"}` }, /* @__PURE__ */ React.createElement("div", { className: `w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${activeState.showYoutubeGradient ? "left-4.5" : "left-0.5"}` }))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Program Title"), /* @__PURE__ */ React.createElement("button", { onClick: (e) => {
+    e.stopPropagation();
+    updateActiveState({ showProgramTitle: !activeState.showProgramTitle });
+  }, className: `w-8 h-4 rounded-full relative transition-colors ${activeState.showProgramTitle ? "bg-brandRed" : "bg-borderInput"}` }, /* @__PURE__ */ React.createElement("div", { className: `w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${activeState.showProgramTitle ? "left-4.5" : "left-0.5"}` }))), activeState.showProgramTitle && /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut mb-1.5 uppercase tracking-wider" }, "Override Program Title"), /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      type: "text",
+      value: activeState.programTitle,
+      onChange: (e) => updateActiveState({ programTitle: e.target.value }),
+      className: "w-full bg-bgCore border border-borderInput rounded-md p-2 text-sm font-medium text-white focus:outline-none focus:border-brandRed shadow-inner"
+    }
+  )), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Quotation Mark + Name"), /* @__PURE__ */ React.createElement("button", { onClick: (e) => {
+    e.stopPropagation();
+    updateActiveState({ showQuoteName: !activeState.showQuoteName });
+  }, className: `w-8 h-4 rounded-full relative transition-colors ${activeState.showQuoteName ? "bg-brandRed" : "bg-borderInput"}` }, /* @__PURE__ */ React.createElement("div", { className: `w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${activeState.showQuoteName ? "left-4.5" : "left-0.5"}` }))), activeState.showQuoteName && /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut mb-1.5 uppercase tracking-wider" }, "Override Name"), /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      type: "text",
+      value: activeState.quoteName,
+      onChange: (e) => updateActiveState({ quoteName: e.target.value }),
+      className: "w-full bg-bgCore border border-borderInput rounded-md p-2 text-sm font-medium text-white focus:outline-none focus:border-brandRed shadow-inner"
+    }
+  ))), isArticleCoverActive && /* @__PURE__ */ React.createElement("div", { className: "space-y-4 pb-4 border-b border-borderMain/50" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Gradient Overlay"), /* @__PURE__ */ React.createElement("button", { onClick: (e) => {
+    e.stopPropagation();
+    updateActiveState({ showArticleGradient: !activeState.showArticleGradient });
+  }, className: `w-8 h-4 rounded-full relative transition-colors ${activeState.showArticleGradient ? "bg-brandRed" : "bg-borderInput"}` }, /* @__PURE__ */ React.createElement("div", { className: `w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${activeState.showArticleGradient ? "left-4.5" : "left-0.5"}` }))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Optional Topic"), /* @__PURE__ */ React.createElement("button", { onClick: (e) => {
+    e.stopPropagation();
+    updateActiveState({ showArticleTopic: !activeState.showArticleTopic });
+  }, className: `w-8 h-4 rounded-full relative transition-colors ${activeState.showArticleTopic ? "bg-brandRed" : "bg-borderInput"}` }, /* @__PURE__ */ React.createElement("div", { className: `w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${activeState.showArticleTopic ? "left-4.5" : "left-0.5"}` }))), activeState.showArticleTopic && /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut mb-1.5 uppercase tracking-wider" }, "Override Topic"), /* @__PURE__ */ React.createElement("input", { type: "text", value: activeState.articleTopic, onChange: (e) => updateActiveState({ articleTopic: e.target.value }), className: "w-full bg-bgCore border border-borderInput rounded-md p-2 text-sm font-medium text-white focus:outline-none focus:border-brandRed shadow-inner" })), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Quotation Mark + Name"), /* @__PURE__ */ React.createElement("button", { onClick: (e) => {
+    e.stopPropagation();
+    updateActiveState({ showArticleQuote: !activeState.showArticleQuote });
+  }, className: `w-8 h-4 rounded-full relative transition-colors ${activeState.showArticleQuote ? "bg-brandRed" : "bg-borderInput"}` }, /* @__PURE__ */ React.createElement("div", { className: `w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${activeState.showArticleQuote ? "left-4.5" : "left-0.5"}` }))), activeState.showArticleQuote && /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut mb-1.5 uppercase tracking-wider" }, "Override Name"), /* @__PURE__ */ React.createElement("input", { type: "text", value: activeState.articleQuoteName, onChange: (e) => updateActiveState({ articleQuoteName: e.target.value }), className: "w-full bg-bgCore border border-borderInput rounded-md p-2 text-sm font-medium text-white focus:outline-none focus:border-brandRed shadow-inner" })), /* @__PURE__ */ React.createElement("button", { onClick: (e) => {
+    e.stopPropagation();
+    updateActiveState({ articleHeadlineFirst: !activeState.articleHeadlineFirst });
+  }, className: "w-full py-2 px-3 bg-bgCore border border-borderInput rounded-md text-[10px] font-bold text-textPri uppercase tracking-wider hover:border-brandRed transition" }, activeState.articleHeadlineFirst ? "Reverse Order: \u5C0F\u6807\u9898 then \u5927\u6807\u9898" : "Reverse Order: \u5927\u6807\u9898 then \u5C0F\u6807\u9898")), isShortsCoverActive && /* @__PURE__ */ React.createElement("div", { className: "space-y-4 pb-4 border-b border-borderMain/50" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Gradient Overlay"), /* @__PURE__ */ React.createElement("button", { onClick: (e) => {
+    e.stopPropagation();
+    updateActiveState({ showShortsGradient: !activeState.showShortsGradient });
+  }, className: `w-8 h-4 rounded-full relative transition-colors ${activeState.showShortsGradient ? "bg-brandRed" : "bg-borderInput"}` }, /* @__PURE__ */ React.createElement("div", { className: `w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${activeState.showShortsGradient ? "left-4.5" : "left-0.5"}` }))), activeVariantLayout === "shorts-cover-default" && /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut mb-2 uppercase tracking-wider" }, "Text Placement"), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-3 gap-2" }, [
+    { value: "top", label: "Top" },
+    { value: "middle", label: "Middle" },
+    { value: "bottom", label: "Bottom" }
+  ].map((option) => /* @__PURE__ */ React.createElement("button", { key: option.value, onClick: (e) => {
+    e.stopPropagation();
+    updateActiveState({ shortsPlacement: option.value });
+  }, className: `py-2 px-2 rounded-md border text-[10px] font-bold uppercase tracking-wider transition ${activeState.shortsPlacement === option.value ? "bg-brandRed text-white border-brandRed" : "bg-bgCore text-textPri border-borderInput hover:border-brandRed"}` }, option.label)))), activeVariantLayout === "shorts-cover-quote" && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut mb-2 uppercase tracking-wider" }, "Text Placement"), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-2 gap-2" }, [
+    { value: "aboveLine", label: "Text Above Line" },
+    { value: "belowLine", label: "Text Below Line" }
+  ].map((option) => /* @__PURE__ */ React.createElement("button", { key: option.value, onClick: (e) => {
+    e.stopPropagation();
+    updateActiveState({ shortsQuoteTextPosition: option.value });
+  }, className: `py-2 px-2 rounded-md border text-[10px] font-bold uppercase tracking-wider transition ${activeState.shortsQuoteTextPosition === option.value ? "bg-brandRed text-white border-brandRed" : "bg-bgCore text-textPri border-borderInput hover:border-brandRed"}` }, option.label)))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut mb-1.5 uppercase tracking-wider" }, "Override Name"), /* @__PURE__ */ React.createElement("textarea", { rows: "2", value: activeState.shortsQuoteName, onChange: (e) => updateActiveState({ shortsQuoteName: e.target.value }), className: "w-full bg-bgCore border border-borderInput rounded-md p-2 text-sm font-medium text-white focus:outline-none focus:border-brandRed shadow-inner resize-none" })))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut mb-1.5 uppercase tracking-wider" }, isShortsCoverActive ? "Override Text Line 1" : "Override Headline"), /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      type: "text",
+      value: activeState.headline,
+      onChange: (e) => updateActiveState({ headline: e.target.value }),
+      className: "w-full bg-bgCore border border-borderInput rounded-md p-2 text-sm font-medium text-white focus:outline-none focus:border-brandRed shadow-inner"
+    }
+  )), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut mb-1.5 uppercase tracking-wider" }, isShortsCoverActive ? "Override Text Line 2" : "Override Subhead"), /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      type: "text",
+      value: activeState.subhead,
+      onChange: (e) => updateActiveState({ subhead: e.target.value }),
+      className: "w-full bg-bgCore border border-borderInput rounded-md p-2 text-sm font-medium text-white focus:outline-none focus:border-brandRed shadow-inner"
+    }
+  )), !isVideoGraphicFixedCover && /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-2 gap-3 pt-2" }, /* @__PURE__ */ React.createElement("div", { className: "bg-bgCore p-2 rounded border border-borderInput" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[9px] font-bold text-textMut mb-1.5 uppercase tracking-wider text-center" }, "Headline Color"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-center gap-2" }, /* @__PURE__ */ React.createElement("input", { type: "color", value: activeState.headlineColor, onChange: (e) => updateActiveState({ headlineColor: e.target.value }), className: "w-5 h-5 rounded cursor-pointer" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono font-medium text-textPri uppercase" }, activeState.headlineColor))), /* @__PURE__ */ React.createElement("div", { className: "bg-bgCore p-2 rounded border border-borderInput" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[9px] font-bold text-textMut mb-1.5 uppercase tracking-wider text-center" }, "Subhead Color"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-center gap-2" }, /* @__PURE__ */ React.createElement("input", { type: "color", value: activeState.subheadColor, onChange: (e) => updateActiveState({ subheadColor: e.target.value }), className: "w-5 h-5 rounded cursor-pointer" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono font-medium text-textPri uppercase" }, activeState.subheadColor)))))), !isArticleCoverActive && !isShortsCoverActive && (!isTrafficDriverActive || activeSlideVariantRequiresLogo) && /* @__PURE__ */ React.createElement("div", { ref: logoRef, onClick: () => setActiveLayerId("logo"), className: `p-4 rounded-xl border transition-all duration-300 cursor-pointer ${activeLayerId === "logo" ? "bg-surfaceElevated border-brandRed shadow-[0_0_20px_rgba(233,0,68,0.15)] ring-1 ring-brandRed/50" : "bg-surface/50 border-borderInput hover:border-borderMain hover:bg-surface"}` }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 mb-4 pb-2.5 border-b border-borderMain/50" }, /* @__PURE__ */ React.createElement(LayerIcon, { type: "logo" }), /* @__PURE__ */ React.createElement("label", { className: "text-[11px] font-bold text-white uppercase tracking-widest pointer-events-none" }, "Brand Logo")), /* @__PURE__ */ React.createElement("div", { className: "space-y-4" }, isTrafficDriverActive && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Show Logo on This Slide"), /* @__PURE__ */ React.createElement("button", { onClick: (e) => {
+    e.stopPropagation();
+    updateActiveState({ showBrandLogo: !activeState.showBrandLogo });
+  }, className: `w-8 h-4 rounded-full relative transition-colors ${activeState.showBrandLogo ? "bg-brandRed" : "bg-borderInput"}` }, /* @__PURE__ */ React.createElement("div", { className: `w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${activeState.showBrandLogo ? "left-4.5" : "left-0.5"}` }))), activeState.showBrandLogo && /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-2" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Logo Scale"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 bg-bgCore border border-borderInput rounded-md px-1.5 py-0.5 shadow-inner" }, /* @__PURE__ */ React.createElement("input", { type: "number", min: "30", max: "250", value: activeState.logoScale, onChange: (e) => updateActiveState({ logoScale: e.target.value === "" ? "" : parseInt(e.target.value) }), className: "w-9 bg-transparent text-[11px] font-mono font-medium text-textPri text-center focus:outline-none" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono text-textMut" }, "%"))), /* @__PURE__ */ React.createElement("input", { type: "range", min: "30", max: "250", step: "1", value: activeState.logoScale || 100, onChange: (e) => updateActiveState({ logoScale: parseInt(e.target.value) }), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full", title: "Logo Scale" }))), isYoutubeVideoCoverActive && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Show Brand Logo"), /* @__PURE__ */ React.createElement("button", { onClick: (e) => {
+    e.stopPropagation();
+    updateActiveState({ showBrandLogo: !activeState.showBrandLogo });
+  }, className: `w-8 h-4 rounded-full relative transition-colors ${activeState.showBrandLogo ? "bg-brandRed" : "bg-borderInput"}` }, /* @__PURE__ */ React.createElement("div", { className: `w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${activeState.showBrandLogo ? "left-4.5" : "left-0.5"}` }))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-2" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Logo Scale"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 bg-bgCore border border-borderInput rounded-md px-1.5 py-0.5 shadow-inner" }, /* @__PURE__ */ React.createElement("input", { type: "number", min: "30", max: "250", value: activeState.logoScale, onChange: (e) => updateActiveState({ logoScale: e.target.value === "" ? "" : parseInt(e.target.value) }), className: "w-9 bg-transparent text-[11px] font-mono font-medium text-textPri text-center focus:outline-none" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono text-textMut" }, "%"))), /* @__PURE__ */ React.createElement("input", { type: "range", min: "30", max: "250", step: "1", value: activeState.logoScale || 100, onChange: (e) => updateActiveState({ logoScale: parseInt(e.target.value) }), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full", title: "Logo Scale" }))), !isYoutubeVideoCoverActive && !isTrafficDriverActive && /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-2" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Logo Scale"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 bg-bgCore border border-borderInput rounded-md px-1.5 py-0.5 shadow-inner" }, /* @__PURE__ */ React.createElement("input", { type: "number", min: "30", max: "250", value: activeState.logoScale, onChange: (e) => updateActiveState({ logoScale: e.target.value === "" ? "" : parseInt(e.target.value) }), className: "w-9 bg-transparent text-[11px] font-mono font-medium text-textPri text-center focus:outline-none" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono text-textMut" }, "%"))), /* @__PURE__ */ React.createElement("input", { type: "range", min: "30", max: "250", step: "1", value: activeState.logoScale || 100, onChange: (e) => updateActiveState({ logoScale: parseInt(e.target.value) }), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full", title: "Logo Scale" })))), !isVideoGraphicFixedCover && /* @__PURE__ */ React.createElement("div", { ref: ctaRef, onClick: () => setActiveLayerId("cta"), className: `p-4 rounded-xl border transition-all duration-300 cursor-pointer ${activeLayerId === "cta" ? "bg-surfaceElevated border-brandRed shadow-[0_0_20px_rgba(233,0,68,0.15)] ring-1 ring-brandRed/50" : "bg-surface/50 border-borderInput hover:border-borderMain hover:bg-surface"}` }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 mb-4 pb-2.5 border-b border-borderMain/50" }, /* @__PURE__ */ React.createElement(LayerIcon, { type: "cta" }), /* @__PURE__ */ React.createElement("label", { className: "text-[11px] font-bold text-white uppercase tracking-widest pointer-events-none" }, "Call to Action")), /* @__PURE__ */ React.createElement("div", { className: "space-y-4" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Show CTA on Canvas"), /* @__PURE__ */ React.createElement("button", { onClick: (e) => {
+    e.stopPropagation();
+    updateActiveState({ showCTA: !activeState.showCTA });
+  }, className: `w-8 h-4 rounded-full relative transition-colors ${activeState.showCTA ? "bg-brandRed" : "bg-borderInput"}` }, /* @__PURE__ */ React.createElement("div", { className: `w-3 h-3 bg-white rounded-full absolute top-0.5 transition-all ${activeState.showCTA ? "left-4.5" : "left-0.5"}` }))), activeState.showCTA && /* @__PURE__ */ React.createElement("div", { className: "pt-2 border-t border-borderMain/30" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut mb-1.5 uppercase tracking-wider" }, "Override Text"), /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      type: "text",
+      value: activeState.ctaText,
+      onChange: (e) => updateActiveState({ ctaText: e.target.value }),
+      className: "w-full bg-bgCore border border-borderInput rounded-md p-2 text-sm font-medium text-white focus:outline-none focus:border-brandRed shadow-inner"
+    }
+  ), isTrafficDriverActive && (activeSlideVariant == null ? void 0 : activeSlideVariant.hasCTA) && /* @__PURE__ */ React.createElement("div", { className: "mt-4" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between mb-2" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "CTA Scale"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 bg-bgCore border border-borderInput rounded-md px-1.5 py-0.5 shadow-inner" }, /* @__PURE__ */ React.createElement("input", { type: "number", min: "30", max: "250", value: activeState.ctaScale || 100, onChange: (e) => updateActiveState({ ctaScale: e.target.value === "" ? "" : parseInt(e.target.value) }), className: "w-9 bg-transparent text-[11px] font-mono font-medium text-textPri text-center focus:outline-none" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono text-textMut" }, "%"))), /* @__PURE__ */ React.createElement("input", { type: "range", min: "30", max: "250", step: "1", value: activeState.ctaScale || 100, onChange: (e) => updateActiveState({ ctaScale: parseInt(e.target.value) }), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full", title: "CTA Scale" }))))), assets.bgImage && /* @__PURE__ */ React.createElement("div", { ref: bgRef, onClick: () => setActiveLayerId("bg"), className: `p-4 rounded-xl border transition-all duration-300 cursor-pointer ${activeLayerId === "bg" ? "bg-surfaceElevated border-brandRed shadow-[0_0_20px_rgba(233,0,68,0.15)] ring-1 ring-brandRed/50" : "bg-surface/50 border-borderInput hover:border-borderMain hover:bg-surface"}` }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between border-b border-borderMain/50 pb-2.5 mb-4" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement(LayerIcon, { type: "bg" }), /* @__PURE__ */ React.createElement("label", { className: "text-[11px] font-bold text-white uppercase tracking-widest pointer-events-none" }, "Background")), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 bg-bgCore px-2 py-1 rounded border border-borderInput" }, /* @__PURE__ */ React.createElement("span", { className: "text-[9px] text-textMut font-bold uppercase tracking-wider pointer-events-none" }, "Repeat"), /* @__PURE__ */ React.createElement("button", { onClick: (e) => {
+    e.stopPropagation();
+    updateActiveState({ bgRepeat: !activeState.bgRepeat });
+  }, className: `w-6 h-3 rounded-full relative transition-colors ${activeState.bgRepeat ? "bg-brandRed" : "bg-borderInput"}` }, /* @__PURE__ */ React.createElement("div", { className: `w-2 h-2 bg-white rounded-full absolute top-0.5 transition-all ${activeState.bgRepeat ? "left-3.5" : "left-0.5"}` })))), /* @__PURE__ */ React.createElement("div", { className: "space-y-5" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-2" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Scale"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 bg-bgCore border border-borderInput rounded-md px-1.5 py-0.5 shadow-inner" }, /* @__PURE__ */ React.createElement("input", { type: "number", min: "10", max: "400", value: activeState.bgScale, onChange: (e) => updateActiveState({ bgScale: e.target.value === "" ? "" : parseInt(e.target.value) }), className: "w-9 bg-transparent text-[11px] font-mono font-medium text-textPri text-center focus:outline-none" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono text-textMut" }, "%"))), /* @__PURE__ */ React.createElement("input", { type: "range", min: "10", max: "400", step: "1", value: activeState.bgScale || 100, onChange: (e) => updateActiveState({ bgScale: parseInt(e.target.value) }), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-2" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Rotation"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 bg-bgCore border border-borderInput rounded-md px-1.5 py-0.5 shadow-inner" }, /* @__PURE__ */ React.createElement("input", { type: "number", min: "-180", max: "180", value: activeState.bgRotate, onChange: (e) => updateActiveState({ bgRotate: e.target.value === "" ? "" : parseInt(e.target.value) }), className: "w-9 bg-transparent text-[11px] font-mono font-medium text-textPri text-center focus:outline-none" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono text-textMut" }, "\xB0"))), /* @__PURE__ */ React.createElement("input", { type: "range", min: "-180", max: "180", step: "1", value: activeState.bgRotate || 0, onChange: (e) => updateActiveState({ bgRotate: parseInt(e.target.value) }), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full" })), /* @__PURE__ */ React.createElement("div", { className: "pt-1" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider mb-3" }, "Pivot Position X / Y"), /* @__PURE__ */ React.createElement("input", { type: "range", min: "-1", max: "1", step: "0.02", value: activeState.bgOffsetX, onChange: (e) => updateActiveState({ bgOffsetX: parseFloat(e.target.value) }), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full mb-3" }), /* @__PURE__ */ React.createElement("input", { type: "range", min: "-1", max: "1", step: "0.02", value: activeState.bgOffsetY, onChange: (e) => updateActiveState({ bgOffsetY: parseFloat(e.target.value) }), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full" })))), assets.kvImages && assets.kvImages.length > 0 && globalSettings.showKV && /* @__PURE__ */ React.createElement("div", { ref: kvRef, className: `p-4 rounded-lg border transition-all duration-300 ${(activeLayerId == null ? void 0 : activeLayerId.startsWith("kv-")) ? "bg-surfaceElevated border-brandRed shadow-[0_0_15px_rgba(233,0,68,0.15)] ring-1 ring-brandRed/50" : "bg-surface/40 border-borderInput hover:border-borderMain hover:bg-surface"}` }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 mb-4 pb-2.5 border-b border-borderMain/50" }, /* @__PURE__ */ React.createElement(LayerIcon, { type: "kv" }), /* @__PURE__ */ React.createElement("label", { className: "text-[11px] font-bold text-white uppercase tracking-widest pointer-events-none" }, "Key Visual Elements")), assets.kvImages.length > 1 && /* @__PURE__ */ React.createElement("div", { className: "flex gap-2 overflow-x-auto pb-3 mb-3 scrollbar-hide" }, assets.kvImages.map((kv) => {
+    const isActiveKV = (activeLayerId || assets.kvImages[0].id) === kv.id;
+    return /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        key: kv.id,
+        onClick: () => setActiveLayerId(kv.id),
+        className: `px-3 py-1.5 rounded-lg text-[10px] font-bold truncate shrink-0 max-w-[120px] transition-colors shadow-sm ${isActiveKV ? "bg-brandRed text-white border border-brandRed" : "bg-bgCore border border-borderInput text-textDim hover:text-white hover:border-borderMain"}`,
+        title: kv.name
+      },
+      kv.name
+    );
+  })), (() => {
+    var _a;
+    const kvId = ((activeLayerId == null ? void 0 : activeLayerId.startsWith("kv-")) ? activeLayerId : null) || assets.kvImages[0].id;
+    const transform = ((_a = activeState.kvTransforms) == null ? void 0 : _a[kvId]) || { scale: 100, rotate: 0, offsetX: 0, offsetY: 0 };
+    const updateKV = (key, val) => {
+      const currentTransforms = activeState.kvTransforms || {};
+      const currentElement = currentTransforms[kvId] || { scale: 100, rotate: 0, offsetX: 0, offsetY: 0 };
+      updateActiveState({
+        kvTransforms: {
+          ...currentTransforms,
+          [kvId]: { ...currentElement, [key]: val }
+        }
+      });
+    };
+    return /* @__PURE__ */ React.createElement("div", { className: "space-y-5" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-2" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Scale"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 bg-bgCore border border-borderInput rounded-md px-1.5 py-0.5 shadow-inner" }, /* @__PURE__ */ React.createElement("input", { type: "number", min: "10", max: "400", value: transform.scale, onChange: (e) => updateKV("scale", e.target.value === "" ? "" : parseInt(e.target.value)), className: "w-9 bg-transparent text-[11px] font-mono font-medium text-textPri text-center focus:outline-none" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono text-textMut" }, "%"))), /* @__PURE__ */ React.createElement("input", { type: "range", min: "10", max: "400", step: "1", value: transform.scale, onChange: (e) => updateKV("scale", parseInt(e.target.value)), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-2" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Rotation"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 bg-bgCore border border-borderInput rounded-md px-1.5 py-0.5 shadow-inner" }, /* @__PURE__ */ React.createElement("input", { type: "number", min: "-180", max: "180", value: transform.rotate, onChange: (e) => updateKV("rotate", e.target.value === "" ? "" : parseInt(e.target.value)), className: "w-9 bg-transparent text-[11px] font-mono font-medium text-textPri text-center focus:outline-none" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono text-textMut" }, "\xB0"))), /* @__PURE__ */ React.createElement("input", { type: "range", min: "-180", max: "180", step: "1", value: transform.rotate, onChange: (e) => updateKV("rotate", parseInt(e.target.value)), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider mb-3" }, "Pivot Position X / Y"), /* @__PURE__ */ React.createElement("input", { type: "range", min: "-1", max: "1", step: "0.02", value: transform.offsetX, onChange: (e) => updateKV("offsetX", parseFloat(e.target.value)), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full mb-3" }), /* @__PURE__ */ React.createElement("input", { type: "range", min: "-1", max: "1", step: "0.02", value: transform.offsetY, onChange: (e) => updateKV("offsetY", parseFloat(e.target.value)), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full" })));
+  })())), /* @__PURE__ */ React.createElement("div", { className: "p-6 border-t border-borderMain bg-sidebar sticky bottom-0 z-10 shrink-0" }, /* @__PURE__ */ React.createElement("button", { onClick: () => setIsEditorModalOpen(false), className: "w-full bg-brandRed hover:bg-rose-600 text-white font-bold py-3.5 px-4 rounded-xl transition-all shadow-[0_0_20px_rgba(233,0,68,0.25)] hover:shadow-[0_0_25px_rgba(233,0,68,0.4)] flex items-center justify-center gap-2" }, /* @__PURE__ */ React.createElement("svg", { width: "18", height: "18", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round" }, /* @__PURE__ */ React.createElement("polyline", { points: "20 6 9 17 4 12" })), "Apply Changes & Return")))), isReviewModalOpen && /* @__PURE__ */ React.createElement("div", { className: "fixed inset-0 z-50 bg-bgCore/95 flex flex-col backdrop-blur-sm" }, /* @__PURE__ */ React.createElement("div", { className: "h-20 px-8 border-b border-white/10 flex items-center justify-between shrink-0 bg-sidebar shadow-lg" }, /* @__PURE__ */ React.createElement("h2", { className: "text-xl font-bold text-white flex items-center gap-3" }, /* @__PURE__ */ React.createElement("svg", { width: "24", height: "24", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.5", strokeLinecap: "round", strokeLinejoin: "round", className: "text-green-500" }, /* @__PURE__ */ React.createElement("polyline", { points: "20 6 9 17 4 12" })), "Review Approved Banners (", approvedBanners.size, ")"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-5" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center bg-bgCore border border-borderInput rounded-xl overflow-hidden focus-within:border-brandRed transition-colors shadow-inner" }, /* @__PURE__ */ React.createElement("span", { className: "px-4 py-2.5 text-textDim text-[11px] font-bold uppercase tracking-widest bg-surface border-r border-borderInput" }, "Campaign Name"), /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      type: "text",
+      placeholder: "e.g. summer-sale",
+      value: campaignName,
+      onChange: (e) => {
+        const val = e.target.value.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-");
+        setCampaignName(val);
+      },
+      className: "bg-transparent text-white px-4 py-2.5 text-sm font-medium outline-none w-56 placeholder:text-borderInput"
+    }
+  )), /* @__PURE__ */ React.createElement("button", { onClick: handleBatchDownload, disabled: isExporting || approvedBanners.size === 0, className: "bg-brandRed hover:bg-rose-600 text-white font-bold py-2.5 px-6 rounded-xl text-sm transition shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2" }, /* @__PURE__ */ React.createElement("svg", { width: "18", height: "18", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.5" }, /* @__PURE__ */ React.createElement("path", { d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }), /* @__PURE__ */ React.createElement("polyline", { points: "7 10 12 15 17 10" }), /* @__PURE__ */ React.createElement("line", { x1: "12", y1: "15", x2: "12", y2: "3" })), isExporting ? "Preparing ZIP..." : "Download ZIP Archive"), /* @__PURE__ */ React.createElement("div", { className: "h-8 w-px bg-borderMain mx-2" }), /* @__PURE__ */ React.createElement("button", { onClick: () => setIsReviewModalOpen(false), className: "w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 text-white transition" }, /* @__PURE__ */ React.createElement("svg", { width: "24", height: "24", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, /* @__PURE__ */ React.createElement("line", { x1: "18", y1: "6", x2: "6", y2: "18" }), /* @__PURE__ */ React.createElement("line", { x1: "6", y1: "6", x2: "18", y2: "18" }))))), /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto p-10 panel-scroll" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8" }, approvedBanners.size === 0 ? /* @__PURE__ */ React.createElement("div", { className: "col-span-12 text-center text-textDim py-32 font-bold text-lg" }, "No banners approved yet. Go back to the gallery to mark banners for export.") : Array.from(approvedBanners).map((id) => {
+    let formatObj = null;
+    FORMAT_DATABASE.forEach((f) => {
+      if (id.startsWith(f.id + "-")) formatObj = f;
+    });
+    if (!formatObj) return null;
+    const ratio = formatObj.w / formatObj.h;
+    let colSpanClass = "col-span-12 md:col-span-4";
+    if (ratio >= 5) {
+      colSpanClass = "col-span-12";
+    } else if (ratio >= 2) {
+      colSpanClass = "col-span-12 md:col-span-6";
+    }
+    return /* @__PURE__ */ React.createElement("div", { key: id, className: `${colSpanClass} bg-surface rounded-2xl p-6 border border-borderMain shadow-2xl flex flex-col gap-4 relative group` }, /* @__PURE__ */ React.createElement("button", { onClick: () => toggleApproval(id), className: "absolute top-5 right-5 w-10 h-10 bg-red-500/10 text-brandRed rounded-full flex items-center justify-center hover:bg-brandRed hover:text-white transition shadow-sm border border-brandRed/20" }, /* @__PURE__ */ React.createElement("svg", { width: "18", height: "18", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round" }, /* @__PURE__ */ React.createElement("line", { x1: "18", y1: "6", x2: "6", y2: "18" }), /* @__PURE__ */ React.createElement("line", { x1: "6", y1: "6", x2: "18", y2: "18" }))), /* @__PURE__ */ React.createElement("div", { className: "text-sm font-mono font-medium text-textMut bg-bgCore inline-block self-start px-3 py-1.5 rounded-lg border border-borderInput" }, id), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-center overflow-hidden rounded-xl bg-bgCore border border-borderMain shadow-inner" }, /* @__PURE__ */ React.createElement("img", { src: previewImages[id], alt: id, className: "w-full h-auto" })));
+  })))));
+}
+const startupFallback = document.getElementById("startup-fallback");
+if (startupFallback) startupFallback.remove();
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(/* @__PURE__ */ React.createElement(App, null));
+
+}
+</script>
+</body>
+</html>
