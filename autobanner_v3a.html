@@ -3,52 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AutoBanner Generator - Production Build</title>
-  
-  <!-- Tailwind CSS -->
+  <title>AutoBanner Generator - Website Fix Build</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Typography System -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;600;700;900&family=Roboto:wght@400;600;700;900&family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
-
-  <!-- React Core (No Build Step Required) -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-
-  <!-- JSZip & FileSaver for Batch Downloads -->
   <script src="vendor/jszip.min.js"></script>
   <script src="vendor/FileSaver.js"></script>
-
   <script>
     window.tailwind = window.tailwind || {};
     tailwind.config = {
       theme: {
         extend: {
-          colors: {
-            bgCore: '#0b0c0e',
-            sidebar: '#111214',
-            surface: '#181a1f',
-            surfaceElevated: '#1f2229',
-            borderMain: '#23262e',
-            borderInput: '#2d313b',
-            textPri: '#e2e4e9',
-            textMut: '#8a8f9a',
-            textDim: '#6b7280',
-            brandRed: '#e90044',
-            blueZone: 'rgba(0, 80, 200, 0.20)',
-            blueLine: 'rgba(60, 140, 255, 0.85)'
-          },
-          fontFamily: {
-            sans: ['Space Grotesk', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
-          }
+          colors: { bgCore: '#0b0c0e', sidebar: '#111214', surface: '#181a1f', surfaceElevated: '#1f2229', borderMain: '#23262e', borderInput: '#2d313b', textPri: '#e2e4e9', textMut: '#8a8f9a', textDim: '#6b7280', brandRed: '#e90044', blueZone: 'rgba(0, 80, 200, 0.20)', blueLine: 'rgba(60, 140, 255, 0.85)' },
+          fontFamily: { sans: ['Space Grotesk', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] }
         }
       }
     }
   </script>
-
   <style>
     body { background: #0b0c0e; color: #e2e4e9; overflow: hidden; margin: 0; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -58,17 +32,12 @@
     input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
     input[type="color"]::-webkit-color-swatch { border: none; border-radius: 4px; }
     .dragging { opacity: 0.5; }
-
-    /* Hide up/down arrows for number inputs */
-    input[type="number"]::-webkit-inner-spin-button,
-    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     input[type="number"] { -moz-appearance: textfield; }
-    
     .panel-scroll { overflow-y: auto; overflow-x: hidden; }
   </style>
 </head>
 <body>
-
   <div id="startup-fallback" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:Arial,sans-serif;color:#e2e4e9;background:#0b0c0e;">
     <div>
       <div style="font-size:18px;font-weight:700;margin-bottom:8px;">Loading AutoBanner...</div>
@@ -97,6 +66,7 @@ const FORMAT_DATABASE = [
     safe: { t: 24, b: 24, l: 130, r: 130 },
     fonts: { h: 64, hNoCTA: 64, s: 64, c: 30 },
     variants: [
+      { id: "1col-t-side-center", label: "1 Col (Side-by-Side Text Center)", cols: 1, layout: "text-side-by-side-center", hasSub: true, hasCTA: false, requiresLogo: false },
       { id: "2col-tc-side", label: "2 Col (Side-by-Side Text, CTA Right)", cols: 2, layout: "text-side-by-side-cta", hasSub: true, hasCTA: true, requiresLogo: false },
       { id: "3col-lhc", label: "3 Col (Logo + Text + CTA)", cols: 3, layout: "logo-headline-cta", hasSub: true, hasCTA: true, requiresLogo: true }
     ]
@@ -111,7 +81,7 @@ const FORMAT_DATABASE = [
     fonts: { h: 36, hNoCTA: 36, s: 32, c: 24 },
     variants: [
       { id: "1col-hc", label: "Headline with CTA", cols: 1, layout: "headline-cta", hasSub: false, hasCTA: true, requiresLogo: false },
-      { id: "1col-hsc", label: "Headline + Subhead with CTA", cols: 1, layout: "headline-subhead-cta", hasSub: true, hasCTA: true, requiresLogo: false },
+      { id: "1col-hsc", label: "Headline + Subhead (Left) CTA (Right)", cols: 2, layout: "text-cta", hasSub: true, hasCTA: true, requiresLogo: false },
       { id: "1col-hs", label: "Headline + Subhead Only", cols: 1, layout: "headline-subhead", hasSub: true, hasCTA: false, requiresLogo: false }
     ]
   },
@@ -147,7 +117,7 @@ const FORMAT_DATABASE = [
     id: "in-app-banner",
     name: "In App Banner",
     category: "App",
-    w: 1e3,
+    w: 1000,
     h: 265,
     safe: { t: 25, b: 30, l: 50, r: 50 },
     fonts: { h: ptToPx(36), hNoCTA: ptToPx(40), s: ptToPx(32), c: ptToPx(24) },
@@ -290,7 +260,6 @@ const FORMAT_DATABASE = [
     fonts: { h: ptToPx(75), hNoCTA: ptToPx(75), s: ptToPx(50), c: 0 },
     variants: [
       { id: "1col-hs", label: "Right Aligned (Head + Sub)", cols: 1, layout: "headline-subhead-left-align", hasSub: true, hasCTA: false, requiresLogo: false }
-      // uses left alignment within its right-shifted safezone
     ]
   },
   {
@@ -529,12 +498,27 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
     hitBoxes.cta = { x: finalX, y: finalY, w, h };
     return { w, h };
   };
+
+  const enforceWordLimit = (text, maxWords) => {
+    if (!text) return "";
+    const words = text.trim().split(/\s+/);
+    if (words.length <= maxWords) return text;
+    return words.slice(0, maxWords).join(" ") + "...";
+  };
+
+  const isWebsite = format.category === "Website";
+  const rawHeadline = headline || "大标题大标题";
+  const rawSubhead = subhead || "小标题小标题";
+
+  const headlineText = isWebsite ? enforceWordLimit(rawHeadline, 9) : rawHeadline;
+  const subheadText = isWebsite ? enforceWordLimit(rawSubhead, 9) : rawSubhead;
+
   const calculateTextStack = (targetW, targetH, isCenter = false) => {
     const currentHFont = showCTA ? fonts.h : fonts.hNoCTA || fonts.h;
     const currentSFont = fonts.s;
     let gap = format.id === "fb-cover-brand-logo" || format.id === "ig-story-brand-logo" || format.id === "ig-link-bio-brand-logo" ? 8 : 16;
-    const linesH = getTextLines(headline);
-    const linesS = variant.hasSub ? getTextLines(subhead) : [];
+    const linesH = getTextLines(headlineText);
+    const linesS = variant.hasSub ? getTextLines(subheadText) : [];
     let ctaStats = { w: 0, h: 0 };
     if (showCTA && ctaText && variant.hasCTA) {
       ctx.font = `600 ${fonts.c}px "Noto Sans SC", "Roboto", sans-serif`;
@@ -546,6 +530,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
     if (ctaStats.h > 0 && isCenter) totalH += gap + ctaStats.h;
     return { linesH, linesS, currentHFont, currentSFont, totalH, ctaStats, gap };
   };
+
   const queueGradientOverlay = (gradientImage, isRightAligned, isEnabled = true) => {
     if (!gradientImage || !isEnabled) return;
     drawQueue.gradient = () => {
@@ -901,7 +886,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
     const lineY = baseY;
     const titleFontSize = 72;
     const headlineY = (isQuoteLayout ? quotePlacement.lineOneY - quoteShiftUp : defaultPlacement.lineY + defaultPlacement.lineOneOffset) + textOffset.y;
-    const subheadY = (isQuoteLayout ? quotePlacement.lineTwoY - quoteShiftUp : defaultPlacement.lineY + defaultPlacement.lineTwoOffset) + textOffset.y;
+    const subheadY = (isQuoteLayout ? quotePlacement.lineTwoY - quoteShiftUp : defaultPlacement.lineY + defaultPlacement.lineOneOffset + 92) + textOffset.y;
     const quoteNameStackShift = isQuoteLayout && quoteTextPosition === "belowLine" ? (quoteNameLines.length - 1) * nameLineGap : 0;
     const nameY = (isQuoteLayout ? quotePlacement.nameY - quoteShiftUp - quoteNameStackShift : 0) + textOffset.y;
     const addTextBounds = (x, y, w, h) => {
@@ -1271,18 +1256,44 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       queueLogo(sX, startY, sW, logoBounds.h / (logoScale / 100), align, "top");
       startY += logoBounds.h + logoGap;
     }
-    stack.linesH.forEach((l, i) => {
-      queueTextLine(l, drawXAlign, startY + i * stack.currentHFont * 1.2, align, headlineColor, `900 ${stack.currentHFont}px "Noto Sans SC", "Roboto"`);
-    });
-    startY += stack.linesH.length * stack.currentHFont * 1.2 + stack.gap;
-    if (stack.linesS.length > 0) {
-      stack.linesS.forEach((l, i) => {
-        queueTextLine(l, drawXAlign, startY + i * stack.currentSFont * 1.4, align, subheadColor, `400 ${stack.currentSFont}px "Noto Sans SC", "Roboto"`);
+    
+    if (variant.layout === "text-side-by-side-center") {
+      let tStartY = sY + (sH - fonts.h * 1.2) / 2;
+      
+      ctx.font = `900 ${fonts.h}px "Noto Sans SC", "Roboto"`;
+      const hW = headlineText ? ctx.measureText(headlineText).width : 0;
+      
+      ctx.font = `400 ${fonts.s}px "Noto Sans SC", "Roboto"`;
+      const sW_measure = subheadText && variant.hasSub ? ctx.measureText(subheadText).width : 0;
+      
+      const gap = 32;
+      const totalW = hW + (sW_measure > 0 ? gap + sW_measure : 0);
+      let currentX = sX + (sW - totalW) / 2;
+      
+      if (headlineText) {
+        ctx.font = `900 ${fonts.h}px "Noto Sans SC", "Roboto"`;
+        queueTextLine(headlineText, currentX, tStartY, "left", headlineColor, ctx.font);
+        currentX += hW + gap;
+      }
+      
+      if (subheadText && variant.hasSub) {
+        ctx.font = `400 ${fonts.s}px "Noto Sans SC", "Roboto"`;
+        queueTextLine(subheadText, currentX, tStartY + (fonts.h * 1.2 - fonts.s * 1.2) / 2, "left", subheadColor, ctx.font);
+      }
+    } else {
+      stack.linesH.forEach((l, i) => {
+        queueTextLine(l, drawXAlign, startY + i * stack.currentHFont * 1.2, align, headlineColor, `900 ${stack.currentHFont}px "Noto Sans SC", "Roboto"`);
       });
-      startY += stack.linesS.length * stack.currentSFont * 1.4 + stack.gap;
-    }
-    if (stack.ctaStats.h > 0) {
-      queueCTA(drawXAlign, startY, ctaText, align);
+      startY += stack.linesH.length * stack.currentHFont * 1.2 + stack.gap;
+      if (stack.linesS.length > 0) {
+        stack.linesS.forEach((l, i) => {
+          queueTextLine(l, drawXAlign, startY + i * stack.currentSFont * 1.4, align, subheadColor, `400 ${stack.currentSFont}px "Noto Sans SC", "Roboto"`);
+        });
+        startY += stack.linesS.length * stack.currentSFont * 1.4 + stack.gap;
+      }
+      if (stack.ctaStats.h > 0) {
+        queueCTA(drawXAlign, startY, ctaText, align);
+      }
     }
   } else if (variant.cols === 2) {
     if (variant.layout === "text-side-by-side-cta") {
@@ -1291,17 +1302,15 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       let tStartY = sY + (sH - fonts.h * 1.2) / 2;
       let currentX = sX;
       
-      const linesH = getTextLines(headline);
-      if (linesH.length > 0) {
+      if (headlineText) {
         ctx.font = `900 ${fonts.h}px "Noto Sans SC", "Roboto"`;
-        queueTextLine(linesH[0], currentX, tStartY, "left", headlineColor, ctx.font);
-        currentX += ctx.measureText(linesH[0]).width + 32;
+        queueTextLine(headlineText, currentX, tStartY, "left", headlineColor, ctx.font);
+        currentX += ctx.measureText(headlineText).width + 32;
       }
       
-      const linesS = variant.hasSub ? getTextLines(subhead) : [];
-      if (linesS.length > 0) {
+      if (subheadText && variant.hasSub) {
         ctx.font = `400 ${fonts.s}px "Noto Sans SC", "Roboto"`;
-        queueTextLine(linesS[0], currentX, tStartY + (fonts.h * 1.2 - fonts.s * 1.2) / 2, "left", subheadColor, ctx.font);
+        queueTextLine(subheadText, currentX, tStartY + (fonts.h * 1.2 - fonts.s * 1.2) / 2, "left", subheadColor, ctx.font);
       }
       
       if (showCTA && ctaText && variant.hasCTA) {
@@ -1328,8 +1337,8 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       const cW = sW * 0.36;
       
       if (variant.textDir === "horizontal") {
-        const hLine = (headline || "").replace(/\r?\n/g, " ").trim();
-        const sLine = variant.hasSub ? (subhead || "").replace(/\r?\n/g, " ").trim() : "";
+        const hLine = (headlineText || "").replace(/\r?\n/g, " ").trim();
+        const sLine = variant.hasSub ? (subheadText || "").replace(/\r?\n/g, " ").trim() : "";
         const hFontStr = `900 ${fonts.h}px "Noto Sans SC", "Roboto"`;
         const sFontStr = `400 ${fonts.s}px "Noto Sans SC", "Roboto"`;
         
@@ -1435,8 +1444,8 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       queueLogo(sX, sY + (sH - logoSize.h) / 2, lW - 20, logoSize.h / (logoScale / 100), "left", "top");
       
       if (variant.textDir === "horizontal") {
-        const hLine = (headline || "").replace(/\r?\n/g, " ").trim();
-        const sLine = variant.hasSub ? (subhead || "").replace(/\r?\n/g, " ").trim() : "";
+        const hLine = (headlineText || "").replace(/\r?\n/g, " ").trim();
+        const sLine = variant.hasSub ? (subheadText || "").replace(/\r?\n/g, " ").trim() : "";
         const hFontStr = `900 ${fonts.h}px "Noto Sans SC", "Roboto"`;
         const sFontStr = `400 ${fonts.s}px "Noto Sans SC", "Roboto"`;
         
@@ -1752,17 +1761,12 @@ function App() {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [globalSettings, setGlobalSettings] = useState({
     layerOrder: ["bg", "kv", "logo", "text", "cta"],
-    // Default: bottom to top
     showCTA: true,
     showLogo: false,
-    // New Global Logo Toggle
     showKV: true,
-    // New Global KV Toggle
     showSafezone: false,
     textColor: "white",
-    // Controls the global preset (headline/subhead colors)
     strictMode: false
-    // Smart toggle: activated upon user interaction
   });
   const [assets, setAssets] = useState({ bgImage: null, logoImage: null, kvImages: [], quoteLeftImage: null, quoteRightImage: null, zaobaoLogoImage: null, igPostLogoImage: null, gradientYoutubeImage: null, gradientArticleImage: null, gradientShortsImage: null, quoteShortsImage: null, lineShortsImage: null });
   const [fileNames, setFileNames] = useState({ bg: "", logo: "" });
@@ -1829,6 +1833,14 @@ function App() {
       setActiveLayerId(assets.kvImages[0].id);
     }
   }, [assets.kvImages, activeLayerId]);
+
+  const enforceWordLimit = (text, maxWords) => {
+    if (!text) return "";
+    const words = text.trim().split(/\s+/);
+    if (words.length <= maxWords) return text;
+    return words.slice(0, maxWords).join(" ") + "...";
+  };
+
   useEffect(() => {
     let firstId = null;
     const newStates = {};
@@ -1836,10 +1848,13 @@ function App() {
       f.variants.forEach((v) => {
         const id = `${f.id}-${v.id}`;
         if (!firstId) firstId = id;
+        
+        const isWebsite = f.category === "Website";
+
         newStates[id] = bannerStates[id] || {
           ...DEFAULT_BANNER_STATE,
-          headline: globalPayload.headline,
-          subhead: globalPayload.subhead,
+          headline: isWebsite ? enforceWordLimit(globalPayload.headline, 9) : globalPayload.headline,
+          subhead: isWebsite ? enforceWordLimit(globalPayload.subhead, 9) : globalPayload.subhead,
           ctaText: globalPayload.ctaText,
           headlineColor: globalSettings.textColor === "white" ? "#ffffff" : "#000000",
           subheadColor: globalSettings.textColor === "white" ? "#ffffff" : "#333333"
@@ -1851,6 +1866,7 @@ function App() {
       setActiveBannerId(firstId);
     }
   }, [selectedCategories, assets.logoImage, globalSettings.showCTA, globalSettings.showLogo, globalSettings.showKV, globalSettings.strictMode]);
+
   const handleUpload = (e, type) => {
     const file = e.target.files[0];
     if (file) {
@@ -2014,13 +2030,18 @@ function App() {
     setBannerStates((prev) => {
       const next = { ...prev };
       Object.keys(next).forEach((id) => {
+        const format = getFormatByCanvasId(id);
+        const isWebsite = format && format.category === "Website";
+        const needsLimit = isWebsite && (key === "headline" || key === "subhead");
+        const finalValue = needsLimit && typeof value === "string" ? enforceWordLimit(value, 9) : value;
+
         if (Array.isArray(next[id].slides) && next[id].slides.length > 0) {
           next[id] = {
             ...next[id],
-            slides: next[id].slides.map((slide) => ({ ...slide, [key]: value }))
+            slides: next[id].slides.map((slide) => ({ ...slide, [key]: finalValue }))
           };
         } else {
-          next[id] = { ...next[id], [key]: value };
+          next[id] = { ...next[id], [key]: finalValue };
         }
       });
       return next;
@@ -2142,11 +2163,19 @@ function App() {
       setIsExporting(false);
     }
   };
-  const mergeBannerState = (override = {}) => {
+  const mergeBannerState = (override = {}, isWebsite = false) => {
+    let hl = override.headline !== void 0 ? override.headline : globalPayload.headline;
+    let sh = override.subhead !== void 0 ? override.subhead : globalPayload.subhead;
+
+    if (isWebsite) {
+      hl = enforceWordLimit(hl, 9);
+      sh = enforceWordLimit(sh, 9);
+    }
+
     return {
       variantId: override.variantId,
-      headline: override.headline !== void 0 ? override.headline : globalPayload.headline,
-      subhead: override.subhead !== void 0 ? override.subhead : globalPayload.subhead,
+      headline: hl,
+      subhead: sh,
       ctaText: override.ctaText !== void 0 ? override.ctaText : globalPayload.ctaText,
       headlineColor: override.headlineColor || (globalSettings.textColor === "white" ? "#ffffff" : "#000000"),
       subheadColor: override.subheadColor || (globalSettings.textColor === "white" ? "#ffffff" : "#333333"),
@@ -2185,16 +2214,21 @@ function App() {
     const rawOverride = bannerStates[canvasId] || {};
     const slides = getSlidesFromState(rawOverride);
     const safeIndex = Math.min(Math.max(slideIndex, 0), Math.max(slides.length - 1, 0));
-    return mergeBannerState(slides[safeIndex] || {});
+    const format = getFormatByCanvasId(canvasId);
+    const isWebsite = format && format.category === "Website";
+    return mergeBannerState(slides[safeIndex] || {}, isWebsite);
   };
   const getMergedState = (canvasId) => {
     const rawOverride = bannerStates[canvasId] || {};
+    const format = getFormatByCanvasId(canvasId);
+    const isWebsite = format && format.category === "Website";
+
     if (isTrafficDriverCanvasId(canvasId)) {
       const slides = getSlidesFromState(rawOverride);
       const slideIndex = getClampedSlideIndex(canvasId, slides);
-      return mergeBannerState(slides[slideIndex] || {});
+      return mergeBannerState(slides[slideIndex] || {}, isWebsite);
     }
-    return mergeBannerState(rawOverride);
+    return mergeBannerState(rawOverride, isWebsite);
   };
   const getTrafficSlideRenderItems = (canvasId) => {
     const format = getFormatByCanvasId(canvasId);
