@@ -1,0 +1,199 @@
+{
+    "website": {
+      "jumbotron_desktop": {
+        "item_name": "Jumbotron (Desktop)",
+        "require_zaobao_logo": false,
+        "canvas": {
+          "width": 2600,
+          "height": 180
+        },
+        "safe_zone": {
+          "left": 130,
+          "top": 24,
+          "right": 130,
+          "bottom": 24
+        },
+        "blue_area": {
+          "description": "Outer blue safe-zone guide around the white content area.",
+          "padding": {
+            "left": 130,
+            "top": 24,
+            "right": 130,
+            "bottom": 24
+          }
+        },
+        "content_area": {
+          "x": 130,
+          "y": 24,
+          "width": 2340,
+          "height": 132,
+          "background": "white",
+          "clip_content": true
+        },
+        "layouts": {
+          "2_col": {
+            "type": "horizontal_two_column",
+            "content_area": {
+              "x": 130,
+              "y": 24,
+              "width": 2340,
+              "height": 132
+            }
+          },
+          "3_col": {
+            "type": "horizontal_three_column",
+            "content_area": {
+              "x": 130,
+              "y": 24,
+              "width": 2340,
+              "height": 132
+            }
+          }
+        }
+      },
+      "jumbotron_mobile": {
+        "item_name": "Jumbotron (Mobile)",
+        "require_zaobao_logo": false,
+        "canvas": {
+          "width": 680,
+          "height": 180
+        },
+        "safe_zone": {
+          "left": 50,
+          "top": 25,
+          "right": 50,
+          "bottom": 30
+        },
+        "blue_area": {
+          "description": "Outer blue safe-zone guide around the white content area.",
+          "padding": {
+            "left": 50,
+            "top": 25,
+            "right": 50,
+            "bottom": 30
+          }
+        },
+        "content_area": {
+          "x": 50,
+          "y": 25,
+          "width": 580,
+          "height": 125,
+          "background": "white",
+          "clip_content": true
+        },
+        "layouts": {
+          "1_col": {
+            "type": "vertical_stacked",
+            "content_area": {
+              "x": 50,
+              "y": 25,
+              "width": 580,
+              "height": 125
+            }
+          },
+          "2_col": {
+            "type": "horizontal_two_column",
+            "content_area": {
+              "x": 50,
+              "y": 25,
+              "width": 580,
+              "height": 125
+            }
+          }
+        }
+      },
+      "sg_homepage_tiles": {
+        "item_name": "SG Homepage Carousel | Listing Side Tile | Article Side Tile | SG Weekend Tile | CN Tile",
+        "require_zaobao_logo": false,
+        "canvas": {
+          "width": 720,
+          "height": 240
+        },
+        "safe_zone": {
+          "left": 85,
+          "top": 25,
+          "right": 85,
+          "bottom": 25
+        },
+        "blue_area": {
+          "description": "Outer blue safe-zone guide around the white content area.",
+          "padding": {
+            "left": 85,
+            "top": 25,
+            "right": 85,
+            "bottom": 25
+          }
+        },
+        "content_area": {
+          "x": 85,
+          "y": 25,
+          "width": 550,
+          "height": 190,
+          "background": "white",
+          "clip_content": true
+        },
+        "layouts": {
+          "1_col": {
+            "type": "vertical_stacked",
+            "content_area": {
+              "x": 85,
+              "y": 25,
+              "width": 550,
+              "height": 190
+            }
+          },
+          "2_col": {
+            "type": "horizontal_two_column",
+            "content_area": {
+              "x": 85,
+              "y": 25,
+              "width": 550,
+              "height": 190
+            }
+          }
+        }
+      },
+      "sg_homepage_topic_highlight": {
+        "item_name": "SG Homepage Topic Highlight",
+        "require_zaobao_logo": false,
+        "canvas": {
+          "width": 1200,
+          "height": 800
+        },
+        "safe_zone": {
+          "left": 150,
+          "top": 100,
+          "right": 150,
+          "bottom": 100
+        },
+        "blue_area": {
+          "description": "Outer blue safe-zone guide around the white content area.",
+          "padding": {
+            "left": 150,
+            "top": 100,
+            "right": 150,
+            "bottom": 100
+          }
+        },
+        "content_area": {
+          "x": 150,
+          "y": 100,
+          "width": 900,
+          "height": 600,
+          "background": "white",
+          "clip_content": true
+        },
+        "layouts": {
+          "1_col": {
+            "type": "vertical_stacked",
+            "content_area": {
+              "x": 150,
+              "y": 100,
+              "width": 900,
+              "height": 600
+            }
+          }
+        }
+      }
+    }
+  }
