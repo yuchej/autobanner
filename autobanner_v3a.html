@@ -64,10 +64,10 @@ const FORMAT_DATABASE = [
     w: 2600,
     h: 180,
     safe: { t: 24, b: 24, l: 130, r: 130 },
-    fonts: { h: 64, hNoCTA: 64, s: 64, c: 30 },
+    fonts: { h: 64, hNoCTA: 64, s: 54, c: 30 },
     variants: [
-      { id: "1col-t-side-center", label: "1 Col (Side-by-Side Text Center)", cols: 1, layout: "text-side-by-side-center", hasSub: true, hasCTA: false, requiresLogo: false },
-      { id: "2col-tc-side", label: "2 Col (Side-by-Side Text, CTA Right)", cols: 2, layout: "text-side-by-side-cta", hasSub: true, hasCTA: true, requiresLogo: false },
+      { id: "1col-t-side-center", label: "1 Col (Side-by-Side Text Center)", cols: 1, layout: "text-side-by-side-center", hasSub: true, hasCTA: false, requiresLogo: true },
+      { id: "2col-tc-side", label: "2 Col (Side-by-Side Text, CTA Right)", cols: 2, layout: "text-side-by-side-cta", hasSub: true, hasCTA: true, requiresLogo: true },
       { id: "3col-lhc", label: "3 Col (Logo + Text + CTA)", cols: 3, layout: "logo-headline-cta", hasSub: true, hasCTA: true, requiresLogo: true }
     ]
   },
@@ -80,8 +80,8 @@ const FORMAT_DATABASE = [
     safe: { t: 25, b: 30, l: 50, r: 50 },
     fonts: { h: 36, hNoCTA: 36, s: 32, c: 24 },
     variants: [
-      { id: "1col-hc", label: "Headline with CTA", cols: 1, layout: "headline-cta", hasSub: false, hasCTA: true, requiresLogo: false },
-      { id: "1col-hsc", label: "Headline + Subhead (Left) CTA (Right)", cols: 2, layout: "text-cta", hasSub: true, hasCTA: true, requiresLogo: false },
+      { id: "1col-hc", label: "Headline with CTA", cols: 1, layout: "headline-cta", hasSub: false, hasCTA: true, requiresLogo: true },
+      { id: "1col-hsc", label: "Headline + Subhead (Left) CTA (Right)", cols: 2, layout: "text-cta", hasSub: true, hasCTA: true, requiresLogo: true },
       { id: "1col-hs", label: "Headline + Subhead Only", cols: 1, layout: "headline-subhead", hasSub: true, hasCTA: false, requiresLogo: false }
     ]
   },
@@ -94,9 +94,9 @@ const FORMAT_DATABASE = [
     safe: { t: 25, b: 25, l: 85, r: 85 },
     fonts: { h: 43, hNoCTA: 43, s: 36, c: 24 },
     variants: [
-      { id: "1col-hc", label: "Headline + CTA (Stacked)", cols: 1, layout: "headline-cta", hasSub: false, hasCTA: true, requiresLogo: false },
-      { id: "1col-hsc", label: "Headline + Subhead + CTA (Stacked)", cols: 1, layout: "headline-subhead-cta", hasSub: true, hasCTA: true, requiresLogo: false },
-      { id: "2col-tc", label: "Headline + Subhead (Left) CTA (Right)", cols: 2, layout: "text-cta", hasSub: true, hasCTA: true, requiresLogo: false },
+      { id: "1col-hc", label: "Headline + CTA (Stacked)", cols: 1, layout: "headline-cta", hasSub: false, hasCTA: true, requiresLogo: true },
+      { id: "1col-hsc", label: "Headline + Subhead + CTA (Stacked)", cols: 1, layout: "headline-subhead-cta", hasSub: true, hasCTA: true, requiresLogo: true },
+      { id: "2col-tc", label: "Headline + Subhead (Left) CTA (Right)", cols: 2, layout: "text-cta", hasSub: true, hasCTA: true, requiresLogo: true },
       { id: "1col-hs", label: "Headline + Subhead (Stacked) No CTA", cols: 1, layout: "headline-subhead", hasSub: true, hasCTA: false, requiresLogo: false }
     ]
   },
