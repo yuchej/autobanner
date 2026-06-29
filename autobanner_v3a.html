@@ -1811,7 +1811,9 @@ function App() {
     let visible = [];
     selectedCategories.forEach((cat) => {
       const formatsInCategory = FORMAT_DATABASE.filter((f) => f.category === cat).map((f) => {
+        const isVideoGraphics = cat === "Video Graphics" || f.category === "Video Graphics";
         const validVariants = f.variants.filter((v) => {
+          if (isVideoGraphics) return true;
           return globalSettings.showLogo === !!v.requiresLogo;
         });
         return { ...f, variants: validVariants };
