@@ -2314,10 +2314,12 @@ function App() {
     try {
       const zip = new JSZip();
       const finalCampaignName = campaignName.trim() || "campaign";
-      const folder = zip.folder(finalCampaignName);
-      let count = 0;
-      const usedNames = /* @__PURE__ */ new Set();
-      for (let id of approvedBanners) {
+	      const folder = zip.folder(finalCampaignName);
+	      const originalFolder = folder.folder("original");
+	      const compressedFolder = folder.folder("compressed");
+	      let count = 0;
+	      const usedNames = /* @__PURE__ */ new Set();
+	      for (let id of approvedBanners) {
         const canvas = canvasRefs.current[id];
         let formatObj = null;
         FORMAT_DATABASE.forEach((f) => {
@@ -2332,47 +2334,82 @@ function App() {
           counter++;
         }
         usedNames.add(fileName);
-        if (formatObj.category === "Traffic Driver") {
-          const trafficSlideCount = getTrafficSlideRenderItems(id).length;
-          const fileName2x = fileName.replace(`${formatObj.w}x${formatObj.h}`, `${formatObj.w * 2}x${formatObj.h * 2}`);
-          if (trafficSlideCount > 1) {
-            let gifBlob = null;
-            let gifBlob2x = null;
-            try {
-              gifBlob = await buildTrafficDriverGif(id, 1);
-              gifBlob2x = await buildTrafficDriverGif(id, 2);
-            } catch (err) {
-              console.warn("GIF export failed.", err);
-            }
-            if (gifBlob && gifBlob2x) {
-              folder.file(`${fileName}.gif`, gifBlob);
-              folder.file(`${fileName2x}.gif`, gifBlob2x);
-              count++;
-            }
-          } else {
-            let pngBlob = null;
-            let pngBlob2x = null;
-            try {
-              pngBlob = await buildTrafficDriverPng(id, 1);
-              pngBlob2x = await buildTrafficDriverPng(id, 2);
-            } catch (err) {
-              console.warn("PNG export failed.", err);
-            }
-            if (pngBlob && pngBlob2x) {
-              folder.file(`${fileName}.png`, pngBlob);
-              folder.file(`${fileName2x}.png`, pngBlob2x);
-              count++;
-            }
-          }
-        } else if (canvas) {
-          const dataUrl = canvas.toDataURL("image/png");
-          const base64Data = dataUrl.replace(/^data:image\/(png|jpg);base64,/, "");
-          folder.file(`${fileName}.png`, base64Data, { base64: true });
-          count++;
-        }
+	        const needsCompressedExport = shouldCreateCompressedExport(formatObj);
+	        if (formatObj.category === "Traffic Driver") {
+	          const trafficSlideCount = getTrafficSlideRenderItems(id).length;
+	          const fileName2x = fileName.replace(`${formatObj.w}x${formatObj.h}`, `${formatObj.w * 2}x${formatObj.h * 2}`);
+	          if (trafficSlideCount > 1) {
+	            let gifBlob = null;
+	            let gifBlob2x = null;
+	            try {
+	              gifBlob = await buildTrafficDriverGifWithinLimit(id, 1, COMPRESSED_EXPORT_MAX_BYTES, getTrafficDriverGifOptionSteps("original"));
+	              gifBlob2x = await buildTrafficDriverGifWithinLimit(id, 2, COMPRESSED_EXPORT_MAX_BYTES, getTrafficDriverGifOptionSteps("original"));
+	            } catch (err) {
+	              console.warn("GIF export failed.", err);
+	            }
+	            if (gifBlob && gifBlob2x) {
+	              originalFolder.file(`${fileName}.gif`, gifBlob);
+	              originalFolder.file(`${fileName2x}.gif`, gifBlob2x);
+	              if (needsCompressedExport) {
+	                let compressedGifBlob = gifBlob;
+	                let compressedGifBlob2x = gifBlob2x;
+	                try {
+	                  compressedGifBlob = await buildTrafficDriverGifWithinLimit(id, 1, COMPRESSED_EXPORT_MAX_BYTES, getTrafficDriverGifOptionSteps("compressed")) || gifBlob;
+	                  compressedGifBlob2x = await buildTrafficDriverGifWithinLimit(id, 2, COMPRESSED_EXPORT_MAX_BYTES, getTrafficDriverGifOptionSteps("compressed")) || gifBlob2x;
+	                } catch (err) {
+	                  console.warn("Compressed GIF export failed.", err);
+	                }
+	                compressedFolder.file(`${fileName}.gif`, compressedGifBlob || gifBlob);
+	                compressedFolder.file(`${fileName2x}.gif`, compressedGifBlob2x || gifBlob2x);
+	              }
+	              count++;
+	            }
+	          } else {
+	            let imageExport = null;
+	            let imageExport2x = null;
+	            try {
+	              imageExport = await buildTrafficDriverImageForExport(id, 1, { maxBytes: COMPRESSED_EXPORT_MAX_BYTES, preferOriginal: true });
+	              imageExport2x = await buildTrafficDriverImageForExport(id, 2, { maxBytes: COMPRESSED_EXPORT_MAX_BYTES, preferOriginal: true });
+	            } catch (err) {
+	              console.warn("PNG export failed.", err);
+	            }
+	            if (imageExport && imageExport2x) {
+	              originalFolder.file(`${fileName}.${imageExport.ext}`, imageExport.blob);
+	              originalFolder.file(`${fileName2x}.${imageExport2x.ext}`, imageExport2x.blob);
+	              if (needsCompressedExport) {
+	                let compressedPng = imageExport;
+	                let compressedPng2x = imageExport2x;
+	                try {
+	                  compressedPng = await buildTrafficDriverImageForExport(id, 1, { maxBytes: COMPRESSED_EXPORT_MAX_BYTES, preferOriginal: false });
+	                  compressedPng2x = await buildTrafficDriverImageForExport(id, 2, { maxBytes: COMPRESSED_EXPORT_MAX_BYTES, preferOriginal: false });
+	                } catch (err) {
+	                  console.warn("Compressed PNG export failed.", err);
+	                }
+	                compressedFolder.file(`${fileName}.${compressedPng.ext}`, compressedPng.blob);
+	                compressedFolder.file(`${fileName2x}.${compressedPng2x.ext}`, compressedPng2x.blob);
+	              }
+	              count++;
+	            }
+	          }
+	        } else if (canvas) {
+	          const pngBlob = await canvasToPngBlob(canvas);
+	          if (!pngBlob) continue;
+	          const originalImage = needsCompressedExport ? await buildCompressedCanvasImage(canvas, pngBlob, formatObj, { maxBytes: COMPRESSED_EXPORT_MAX_BYTES, preferOriginal: true }) : { blob: pngBlob, ext: "png" };
+	          originalFolder.file(`${fileName}.${originalImage.ext}`, originalImage.blob);
+	          if (needsCompressedExport) {
+	            let compressedImage = originalImage;
+	            try {
+	              compressedImage = await buildCompressedCanvasImage(canvas, pngBlob, formatObj, { maxBytes: COMPRESSED_EXPORT_MAX_BYTES, preferOriginal: false });
+	            } catch (err) {
+	              console.warn("Compressed image export failed.", err);
+	            }
+	            compressedFolder.file(`${fileName}.${compressedImage.ext}`, compressedImage.blob);
+	          }
+	          count++;
+	        }
       }
       if (count > 0) {
-        const content = await zip.generateAsync({ type: "blob" });
+	        const content = await zip.generateAsync({ type: "blob", compression: "DEFLATE", compressionOptions: { level: 9 } });
         saveAs(content, `${finalCampaignName}.zip`);
       } else {
         alert("No approved banners are ready to export yet. Please wait for the previews to finish loading, then try again.");
@@ -2451,10 +2488,10 @@ function App() {
     }
     return mergeBannerState(rawOverride, isWebsite);
   };
-  const getTrafficSlideRenderItems = (canvasId) => {
-    const format = getFormatByCanvasId(canvasId);
-    if (!format || format.category !== "Traffic Driver") return [];
-    const baseVariant = getVariantById(format, getVariantIdFromCanvasId(canvasId)) || format.variants[0];
+	  const getTrafficSlideRenderItems = (canvasId) => {
+	    const format = getFormatByCanvasId(canvasId);
+	    if (!format || format.category !== "Traffic Driver") return [];
+	    const baseVariant = getVariantById(format, getVariantIdFromCanvasId(canvasId)) || format.variants[0];
     return getTrafficSlides(canvasId).map((slide, index) => {
       const state = getMergedSlideState(canvasId, index);
       return {
@@ -2462,10 +2499,42 @@ function App() {
         variant: getSlideVariant(format, canvasId, slide, baseVariant) || baseVariant,
         durationMs: Math.max(200, Number(state.durationSeconds || 2) * 1e3)
       };
-    });
-  };
-  const renderTrafficSlideCanvas = (format, item, scale = 1) => {
-    const frameCanvas = document.createElement("canvas");
+	    });
+	  };
+	  const COMPRESSED_EXPORT_CATEGORIES = /* @__PURE__ */ new Set(["Website", "App", "Traffic Driver"]);
+	  const COMPRESSED_EXPORT_MAX_BYTES = 500 * 1024;
+	  const shouldCreateCompressedExport = (format) => !!format && COMPRESSED_EXPORT_CATEGORIES.has(format.category);
+	  const getCompressedImageQuality = (format) => {
+	    if (!format) return 0.82;
+	    if (format.category === "Traffic Driver") return 0.82;
+	    if (format.category === "App") return 0.84;
+	    return 0.86;
+	  };
+	  const getTrafficDriverGifOptionSteps = (mode = "compressed") => {
+	    const baseSteps = mode === "original" ? [
+	      { maxColors: 256, useDictionary: true, detailScale: 1 },
+	      { maxColors: 192, useDictionary: true, detailScale: 1 },
+	      { maxColors: 128, useDictionary: true, detailScale: 1 },
+	      { maxColors: 96, useDictionary: true, detailScale: 0.85 }
+	    ] : [
+	      { maxColors: 128, useDictionary: true, detailScale: 1 },
+	      { maxColors: 96, useDictionary: true, detailScale: 0.9 },
+	      { maxColors: 64, useDictionary: true, detailScale: 0.8 }
+	    ];
+	    return [
+	      ...baseSteps,
+	      { maxColors: 48, useDictionary: true, detailScale: 0.65 },
+	      { maxColors: 32, useDictionary: true, detailScale: 0.5 },
+	      { maxColors: 24, useDictionary: true, detailScale: 0.4 },
+	      { maxColors: 16, useDictionary: true, detailScale: 0.32 },
+	      { maxColors: 8, useDictionary: true, detailScale: 0.25 },
+	      { maxColors: 4, useDictionary: true, detailScale: 0.18 },
+	      { maxColors: 4, useDictionary: true, detailScale: 0.12 },
+	      { maxColors: 4, useDictionary: true, detailScale: 0.08 }
+	    ];
+	  };
+	  const renderTrafficSlideCanvas = (format, item, scale = 1) => {
+	    const frameCanvas = document.createElement("canvas");
     const exportScale = Math.max(1, scale || 1);
     frameCanvas.width = format.w * exportScale;
     frameCanvas.height = format.h * exportScale;
@@ -2473,9 +2542,27 @@ function App() {
     ctx.save();
     ctx.scale(exportScale, exportScale);
     renderBanner(ctx, { width: format.w, height: format.h }, format, item.variant, item.state, assets, item.state.offsets || { logo: { x: 0, y: 0 }, text: { x: 0, y: 0 }, cta: { x: 0, y: 0 }, bg: { x: 0, y: 0 } }, globalSettings, false, null);
-    ctx.restore();
-    return frameCanvas;
-  };
+	    ctx.restore();
+	    return frameCanvas;
+	  };
+	  const reduceCanvasDetail = (sourceCanvas, detailScale = 1) => {
+	    if (!detailScale || detailScale >= 0.99) return sourceCanvas;
+	    const reducedCanvas = document.createElement("canvas");
+	    reducedCanvas.width = Math.max(1, Math.round(sourceCanvas.width * detailScale));
+	    reducedCanvas.height = Math.max(1, Math.round(sourceCanvas.height * detailScale));
+	    const reducedCtx = reducedCanvas.getContext("2d");
+	    reducedCtx.imageSmoothingEnabled = true;
+	    reducedCtx.imageSmoothingQuality = "medium";
+	    reducedCtx.drawImage(sourceCanvas, 0, 0, reducedCanvas.width, reducedCanvas.height);
+	    const outputCanvas = document.createElement("canvas");
+	    outputCanvas.width = sourceCanvas.width;
+	    outputCanvas.height = sourceCanvas.height;
+	    const outputCtx = outputCanvas.getContext("2d");
+	    outputCtx.imageSmoothingEnabled = true;
+	    outputCtx.imageSmoothingQuality = "medium";
+	    outputCtx.drawImage(reducedCanvas, 0, 0, outputCanvas.width, outputCanvas.height);
+	    return outputCanvas;
+	  };
   const waitForNextPaint = () => new Promise((resolve) => {
     if (typeof requestAnimationFrame === "function") {
       requestAnimationFrame(() => resolve());
@@ -2512,42 +2599,44 @@ function App() {
       count: bucket.count
     }));
   };
-  const buildAdaptiveGifPalette = (frames) => {
-    const reservedColors = [
-      [233, 0, 68],
-      [255, 255, 255],
-      [0, 0, 0]
-    ];
-    const colors = collectGifColors(frames);
-    const paletteColors = [];
+	  const buildAdaptiveGifPalette = (frames, maxColors = 256) => {
+	    const reservedColors = [
+	      [233, 0, 68],
+	      [255, 255, 255],
+	      [0, 0, 0]
+	    ];
+	    const colors = collectGifColors(frames);
+	    const paletteColors = [];
     const addPaletteColor = (color) => {
       const key = `${color[0]},${color[1]},${color[2]}`;
       if (paletteColors.some((existing) => existing.key === key)) return;
       paletteColors.push({ key, value: color });
-    };
-    reservedColors.forEach(addPaletteColor);
-    colors.slice().sort((a, b) => b.count - a.count).forEach((color) => {
-      if (paletteColors.length < 256) addPaletteColor([color.r, color.g, color.b]);
-    });
-    while (paletteColors.length < 256) {
-      paletteColors.push({ key: `pad-${paletteColors.length}`, value: [0, 0, 0] });
-    }
-    const palette = new Uint8Array(256 * 3);
-    paletteColors.slice(0, 256).forEach((color, index) => {
-      palette[index * 3] = color.value[0];
-      palette[index * 3 + 1] = color.value[1];
-      palette[index * 3 + 2] = color.value[2];
-    });
-    return palette;
-  };
-  const createGifQuantizer = (palette) => {
-    const colors = [];
-    for (let i = 0; i < 256; i++) {
-      colors.push({
-        r: palette[i * 3],
-        g: palette[i * 3 + 1],
-        b: palette[i * 3 + 2]
-      });
+	    };
+	    reservedColors.forEach(addPaletteColor);
+	    colors.slice().sort((a, b) => b.count - a.count).forEach((color) => {
+	      if (paletteColors.length < maxColors) addPaletteColor([color.r, color.g, color.b]);
+	    });
+	    const colorDepth = Math.max(2, Math.min(8, Math.ceil(Math.log2(Math.max(2, paletteColors.length)))));
+	    const colorCount = 1 << colorDepth;
+	    while (paletteColors.length < colorCount) {
+	      paletteColors.push({ key: `pad-${paletteColors.length}`, value: [0, 0, 0] });
+	    }
+	    const palette = new Uint8Array(colorCount * 3);
+	    paletteColors.slice(0, colorCount).forEach((color, index) => {
+	      palette[index * 3] = color.value[0];
+	      palette[index * 3 + 1] = color.value[1];
+	      palette[index * 3 + 2] = color.value[2];
+	    });
+	    return { palette, colorDepth, colorCount };
+	  };
+	  const createGifQuantizer = (palette, colorCount = 256) => {
+	    const colors = [];
+	    for (let i = 0; i < colorCount; i++) {
+	      colors.push({
+	        r: palette[i * 3],
+	        g: palette[i * 3 + 1],
+	        b: palette[i * 3 + 2]
+	      });
     }
     const cache = new Int16Array(1 << 16);
     cache.fill(-1);
@@ -2577,44 +2666,78 @@ function App() {
       for (let src = 0, dst = 0; src < data.length; src += 4, dst++) {
         indexes[dst] = findClosestColorIndex(data[src], data[src + 1], data[src + 2]);
       }
-      return indexes;
-    };
-  };
-  const lzwEncodeGifIndexes = (indexes) => {
-    const minCodeSize = 8;
-    const clearCode = 1 << minCodeSize;
-    const endCode = clearCode + 1;
-    const bytes = [];
-    let bitBuffer = 0;
-    let bitCount = 0;
-    let literalCount = 0;
-    const codeSize = minCodeSize + 1;
-    const writeCode = (code) => {
-      bitBuffer |= code << bitCount;
-      bitCount += codeSize;
-      while (bitCount >= 8) {
-        bytes.push(bitBuffer & 255);
+	      return indexes;
+	    };
+	  };
+	  const lzwEncodeGifIndexes = (indexes, minCodeSize = 8, useDictionary = false) => {
+	    const clearCode = 1 << minCodeSize;
+	    const endCode = clearCode + 1;
+	    const bytes = [];
+	    let bitBuffer = 0;
+	    let bitCount = 0;
+	    let codeSize = minCodeSize + 1;
+	    const writeCode = (code) => {
+	      bitBuffer |= code << bitCount;
+	      bitCount += codeSize;
+	      while (bitCount >= 8) {
+	        bytes.push(bitBuffer & 255);
         bitBuffer >>= 8;
         bitCount -= 8;
-        }
-    };
-    writeCode(clearCode);
-    for (let i = 0; i < indexes.length; i++) {
-      const index = indexes[i];
-      if (literalCount >= 250) {
-        writeCode(clearCode);
-        literalCount = 0;
-      }
-      writeCode(index);
-      literalCount++;
-    }
-    writeCode(endCode);
-    if (bitCount > 0) bytes.push(bitBuffer & 255);
-    return bytes;
-  };
-  const encodeGifFromCanvases = async (frames, width, height) => {
-    const bytes = [];
-    const writeByte = (value) => bytes.push(value & 255);
+	        }
+	    };
+	    writeCode(clearCode);
+	    if (!useDictionary || indexes.length === 0) {
+	      let literalCount = 0;
+	      for (let i = 0; i < indexes.length; i++) {
+	        const index = indexes[i];
+	        if (literalCount >= 250) {
+	          writeCode(clearCode);
+	          literalCount = 0;
+	        }
+	        writeCode(index);
+	        literalCount++;
+	      }
+	      writeCode(endCode);
+	      if (bitCount > 0) bytes.push(bitBuffer & 255);
+	      return bytes;
+	    }
+	    const resetDictionary = () => {
+	      const dictionary = /* @__PURE__ */ new Map();
+	      for (let i = 0; i < clearCode; i++) dictionary.set(String(i), i);
+	      return dictionary;
+	    };
+	    let dictionary = resetDictionary();
+	    let nextCode = endCode + 1;
+	    let prefix = String(indexes[0]);
+	    for (let i = 1; i < indexes.length; i++) {
+	      const current = indexes[i];
+	      const joined = `${prefix},${current}`;
+	      if (dictionary.has(joined)) {
+	        prefix = joined;
+	        continue;
+	      }
+	      writeCode(dictionary.get(prefix));
+	      if (nextCode <= 4095) {
+	        dictionary.set(joined, nextCode++);
+	        if (nextCode === 1 << codeSize && codeSize < 12) codeSize++;
+	      } else {
+	        writeCode(clearCode);
+	        dictionary = resetDictionary();
+	        nextCode = endCode + 1;
+	        codeSize = minCodeSize + 1;
+	      }
+	      prefix = String(current);
+	    }
+	    writeCode(dictionary.get(prefix));
+	    writeCode(endCode);
+	    if (bitCount > 0) bytes.push(bitBuffer & 255);
+	    return bytes;
+	  };
+	  const encodeGifFromCanvases = async (frames, width, height, options = {}) => {
+	    const bytes = [];
+	    const maxColors = Math.max(2, Math.min(256, options.maxColors || 256));
+	    const useDictionary = !!options.useDictionary;
+	    const writeByte = (value) => bytes.push(value & 255);
     const writeShort = (value) => {
       writeByte(value);
       writeByte(value >> 8);
@@ -2643,69 +2766,164 @@ function App() {
     writeByte(3);
     writeByte(1);
     writeShort(0);
-    writeByte(0);
-    for (const frame of frames) {
-      const framePalette = buildAdaptiveGifPalette([frame]);
-      const quantizeFrame = createGifQuantizer(framePalette);
-      writeByte(33);
-      writeByte(249);
-      writeByte(4);
+	    writeByte(0);
+	    for (const frame of frames) {
+	      const framePalette = buildAdaptiveGifPalette([frame], maxColors);
+	      const quantizeFrame = createGifQuantizer(framePalette.palette, framePalette.colorCount);
+	      writeByte(33);
+	      writeByte(249);
+	      writeByte(4);
       writeByte(4);
       writeShort(Math.max(2, Math.round(frame.delayMs / 10)));
       writeByte(0);
       writeByte(0);
       writeByte(44);
       writeShort(0);
-      writeShort(0);
-      writeShort(width);
-      writeShort(height);
-      writeByte(135);
-      framePalette.forEach(writeByte);
-      writeByte(8);
-      writeBlocks(lzwEncodeGifIndexes(quantizeFrame(frame.canvas)));
-      await waitForNextPaint();
-    }
+	      writeShort(0);
+	      writeShort(width);
+	      writeShort(height);
+	      writeByte(128 | (framePalette.colorDepth - 1));
+	      framePalette.palette.forEach(writeByte);
+	      writeByte(framePalette.colorDepth);
+	      writeBlocks(lzwEncodeGifIndexes(quantizeFrame(frame.canvas), framePalette.colorDepth, useDictionary));
+	      await waitForNextPaint();
+	    }
     writeByte(59);
     return new Blob([new Uint8Array(bytes)], { type: "image/gif" });
   };
-  const canvasToPngBlob = (canvas) => new Promise((resolve) => {
-    if (canvas.toBlob) {
-      canvas.toBlob((blob) => resolve(blob), "image/png");
-      return;
+	  const canvasToPngBlob = (canvas) => new Promise((resolve) => {
+	    if (canvas.toBlob) {
+	      canvas.toBlob((blob) => resolve(blob), "image/png");
+	      return;
     }
     const dataUrl = canvas.toDataURL("image/png");
     const byteString = atob(dataUrl.split(",")[1]);
     const bytes = new Uint8Array(byteString.length);
     for (let i = 0; i < byteString.length; i++) {
       bytes[i] = byteString.charCodeAt(i);
-    }
-    resolve(new Blob([bytes], { type: "image/png" }));
-  });
-  const buildTrafficDriverPng = async (canvasId, scale = 1) => {
-    const format = getFormatByCanvasId(canvasId);
-    const items = getTrafficSlideRenderItems(canvasId);
-    if (!format || items.length === 0) return null;
-    const exportScale = Math.max(1, scale || 1);
+	    }
+	    resolve(new Blob([bytes], { type: "image/png" }));
+	  });
+	  const canvasToJpegBlob = (canvas, quality = 0.84) => new Promise((resolve) => {
+	    const jpegCanvas = document.createElement("canvas");
+	    jpegCanvas.width = canvas.width;
+	    jpegCanvas.height = canvas.height;
+	    const ctx = jpegCanvas.getContext("2d");
+	    ctx.fillStyle = "#ffffff";
+	    ctx.fillRect(0, 0, jpegCanvas.width, jpegCanvas.height);
+	    ctx.drawImage(canvas, 0, 0);
+	    if (jpegCanvas.toBlob) {
+	      jpegCanvas.toBlob((blob) => resolve(blob), "image/jpeg", quality);
+	      return;
+	    }
+	    const dataUrl = jpegCanvas.toDataURL("image/jpeg", quality);
+	    const byteString = atob(dataUrl.split(",")[1]);
+	    const bytes = new Uint8Array(byteString.length);
+	    for (let i = 0; i < byteString.length; i++) {
+	      bytes[i] = byteString.charCodeAt(i);
+	    }
+	    resolve(new Blob([bytes], { type: "image/jpeg" }));
+	  });
+	  const buildCompressedCanvasImage = async (canvas, originalBlob, format, options = {}) => {
+	    const maxBytes = options.maxBytes || null;
+	    const preferOriginal = options.preferOriginal !== false;
+	    if (maxBytes && preferOriginal && originalBlob && originalBlob.size <= maxBytes) {
+	      return { blob: originalBlob, ext: "png" };
+	    }
+	    const baseQuality = getCompressedImageQuality(format);
+	    const qualities = maxBytes ? [
+	      Math.min(baseQuality, 0.86),
+	      0.78,
+	      0.7,
+	      0.62,
+	      0.54,
+	      0.46,
+	      0.38,
+	      0.3,
+	      0.22,
+	      0.16,
+	      0.1
+	    ] : [baseQuality];
+	    let smallest = originalBlob ? { blob: originalBlob, ext: "png" } : null;
+	    const tryJpegCandidate = async (sourceCanvas, quality) => {
+	      const jpegBlob = await canvasToJpegBlob(sourceCanvas, quality);
+	      if (!jpegBlob) return null;
+	      if (!smallest || jpegBlob.size < smallest.blob.size) {
+	        smallest = { blob: jpegBlob, ext: "jpg" };
+	      }
+	      if (maxBytes && jpegBlob.size <= maxBytes) {
+	        return { blob: jpegBlob, ext: "jpg" };
+	      }
+	      return null;
+	    };
+	    for (const quality of qualities) {
+	      const candidate = await tryJpegCandidate(canvas, quality);
+	      if (candidate) return candidate;
+	    }
+	    if (maxBytes && smallest && smallest.blob.size > maxBytes) {
+	      const detailScales = [0.85, 0.7, 0.55, 0.42, 0.32, 0.24, 0.18, 0.12, 0.08];
+	      const fallbackQualities = [0.62, 0.5, 0.38, 0.3, 0.22, 0.16, 0.1, 0.06];
+	      for (const detailScale of detailScales) {
+	        const reducedCanvas = reduceCanvasDetail(canvas, detailScale);
+	        for (const quality of fallbackQualities) {
+	          const candidate = await tryJpegCandidate(reducedCanvas, quality);
+	          if (candidate) return candidate;
+	        }
+	        await waitForNextPaint();
+	      }
+	    }
+	    if (!maxBytes && originalBlob && smallest && originalBlob.size <= smallest.blob.size) {
+	      return { blob: originalBlob, ext: "png" };
+	    }
+	    return smallest || { blob: originalBlob, ext: "png" };
+	  };
+	  const buildTrafficDriverPng = async (canvasId, scale = 1) => {
+	    const format = getFormatByCanvasId(canvasId);
+	    const items = getTrafficSlideRenderItems(canvasId);
+	    if (!format || items.length === 0) return null;
+	    const exportScale = Math.max(1, scale || 1);
     const canvas = renderTrafficSlideCanvas(format, items[0], exportScale);
-    await waitForNextPaint();
-    return await canvasToPngBlob(canvas);
-  };
-  const buildTrafficDriverGif = async (canvasId, scale = 1) => {
-    const format = getFormatByCanvasId(canvasId);
-    const items = getTrafficSlideRenderItems(canvasId);
-    if (!format || items.length === 0) return null;
-    const exportScale = Math.max(1, scale || 1);
-    const frames = [];
-    for (const item of items) {
-      frames.push({
-        canvas: renderTrafficSlideCanvas(format, item, exportScale),
-        delayMs: item.durationMs
-      });
-      await waitForNextPaint();
-    }
-    await waitForNextPaint();
-    return await encodeGifFromCanvases(frames, format.w * exportScale, format.h * exportScale);
-  };
+	    await waitForNextPaint();
+	    return await canvasToPngBlob(canvas);
+	  };
+	  const buildTrafficDriverImageForExport = async (canvasId, scale = 1, options = {}) => {
+	    const format = getFormatByCanvasId(canvasId);
+	    const items = getTrafficSlideRenderItems(canvasId);
+	    if (!format || items.length === 0) return null;
+	    const exportScale = Math.max(1, scale || 1);
+	    const canvas = renderTrafficSlideCanvas(format, items[0], exportScale);
+	    await waitForNextPaint();
+	    const originalBlob = await canvasToPngBlob(canvas);
+	    return await buildCompressedCanvasImage(canvas, originalBlob, format, options);
+	  };
+	  const buildTrafficDriverGif = async (canvasId, scale = 1, options = {}) => {
+	    const format = getFormatByCanvasId(canvasId);
+	    const items = getTrafficSlideRenderItems(canvasId);
+	    if (!format || items.length === 0) return null;
+	    const exportScale = Math.max(1, scale || 1);
+	    const frames = [];
+	    for (const item of items) {
+	      const renderedCanvas = renderTrafficSlideCanvas(format, item, exportScale);
+	      frames.push({
+	        canvas: reduceCanvasDetail(renderedCanvas, options.detailScale || 1),
+	        delayMs: item.durationMs
+	      });
+	      await waitForNextPaint();
+	    }
+	    await waitForNextPaint();
+	    return await encodeGifFromCanvases(frames, format.w * exportScale, format.h * exportScale, options);
+	  };
+	  const buildTrafficDriverGifWithinLimit = async (canvasId, scale = 1, maxBytes = COMPRESSED_EXPORT_MAX_BYTES, optionSteps = getTrafficDriverGifOptionSteps("compressed")) => {
+	    let smallestBlob = null;
+	    for (const options of optionSteps) {
+	      const blob = await buildTrafficDriverGif(canvasId, scale, options);
+	      if (!blob) continue;
+	      if (!smallestBlob || blob.size < smallestBlob.size) smallestBlob = blob;
+	      if (!maxBytes || blob.size <= maxBytes) return blob;
+	      await waitForNextPaint();
+	    }
+	    return smallestBlob;
+	  };
   const activeState = getMergedState(activeBannerId);
   let activeFormatName = "";
   let activeVariantName = "";
