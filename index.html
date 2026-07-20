@@ -430,6 +430,38 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
   const sW = canvas.width - safe.l - safe.r;
   const sH = canvas.height - safe.t - safe.b;
   const brandRed = "#e90044";
+  const headlineWeight = 700;
+  const normalizeFontWeight = (weight) => Number(weight) >= 900 ? headlineWeight : weight;
+  const normalizeFontString = (fontStr) => fontStr.replace(/^900\b/, String(headlineWeight));
+  const withFontSize = (fontStr, size) => fontStr.replace(/(\d+(?:\.\d+)?)px/, `${size}px`);
+  const getFontSizeFromString = (fontStr, fallback = 16) => {
+    const fontSizeMatch = fontStr.match(/(\d+(?:\.\d+)?)px/);
+    return fontSizeMatch ? parseFloat(fontSizeMatch[1]) : fallback;
+  };
+  const inferMaxTextWidth = (x, align = "left") => {
+    const leftBound = safe.l;
+    const rightBound = canvas.width - safe.r;
+    if (align === "center") {
+      return Math.max(24, Math.min(Math.abs(x - leftBound), Math.abs(rightBound - x)) * 2);
+    }
+    if (align === "right") return Math.max(24, x - leftBound);
+    return Math.max(24, rightBound - x);
+  };
+  const fitFontStringToWidth = (text, fontStr, maxWidth, minSize = 10) => {
+    let fittedFont = normalizeFontString(fontStr);
+    if (!text || !maxWidth || maxWidth <= 0) return fittedFont;
+    const baseSize = getFontSizeFromString(fittedFont, 16);
+    ctx.font = fittedFont;
+    const measuredWidth = ctx.measureText(text).width;
+    if (measuredWidth <= maxWidth) return fittedFont;
+    const nextSize = Math.max(minSize, Math.floor(baseSize * maxWidth / Math.max(measuredWidth, 1)));
+    return withFontSize(fittedFont, nextSize);
+  };
+  const fitFontSizeToWidth = (text, size, weight, family, maxWidth, minSize = 10) => {
+    const fontWeight = normalizeFontWeight(weight);
+    const fittedFont = fitFontStringToWidth(text, `${fontWeight} ${size}px ${family}`, maxWidth, minSize);
+    return getFontSizeFromString(fittedFont, size);
+  };
   const getTextLines = (text) => text ? text.replace(/\r/g, "").split("\n").map((line) => line.trim()).filter((line) => line.length > 0) : [];
   const getLogoSize = (maxWidth, maxHeight) => {
     const brandLogoFormatScale = format.id === "fb-cover-brand-logo" ? 0.75 : format.id === "youtube-cover-2-col" || format.id === "x-header-2-col" ? 0.5 : 1;
@@ -477,20 +509,23 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
     hitBoxes.logo = { x: finalX, y: finalY, w: drawW, h: drawH };
     return { w: drawW, h: drawH };
   };
-  const queueTextLine = (text, x, y, align, color, fontStr) => {
+  const queueTextLine = (text, x, y, align, color, fontStr, maxWidth = null) => {
     const finalX = x + offsets.text.x;
     const finalY = y + offsets.text.y;
+    const safeMaxWidth = maxWidth || inferMaxTextWidth(finalX, align);
+    const fittedFontStr = fitFontStringToWidth(text, fontStr, safeMaxWidth, 10);
+    const fittedSize = getFontSizeFromString(fittedFontStr, 16);
     if (!drawQueue.text) drawQueue.text = [];
     drawQueue.text.push(() => {
-      ctx.font = fontStr;
+      ctx.font = fittedFontStr;
       ctx.fillStyle = color;
       ctx.textAlign = align;
       ctx.textBaseline = "top";
       ctx.fillText(text, finalX, finalY);
     });
+    ctx.font = fittedFontStr;
     const w = ctx.measureText(text).width;
-    const fontSizeMatch = fontStr.match(/(\d+(?:\.\d+)?)px/);
-    const h = (fontSizeMatch ? parseFloat(fontSizeMatch[1]) : 16) * 1.2;
+    const h = fittedSize * 1.2;
     let l = finalX;
     if (align === "center") l = finalX - w / 2;
     if (align === "right") l = finalX - w;
@@ -563,6 +598,34 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
     if (linesS.length > 0) totalH += gap + linesS.length * (currentSFont * 1.4);
     if (wantsCTA && isCenter) totalH += gap + ctaStats.h;
     return { linesH, linesS, currentHFont, currentSFont, totalH, ctaStats, gap };
+  };
+  const fitInlineTextPair = (hLine, sLine, headlineSize, subheadSize, maxWidth, gap = 48) => {
+    let fittedHeadlineSize = headlineSize;
+    let fittedSubheadSize = subheadSize;
+    ctx.font = `${headlineWeight} ${fittedHeadlineSize}px "Noto Sans SC", "Roboto"`;
+    let headlineW = hLine ? ctx.measureText(hLine).width : 0;
+    ctx.font = `400 ${fittedSubheadSize}px "Noto Sans SC", "Roboto"`;
+    let subheadW = sLine ? ctx.measureText(sLine).width : 0;
+    let totalW = headlineW + (subheadW ? gap + subheadW : 0);
+    if (totalW > maxWidth) {
+      const scale = Math.max(0.45, maxWidth / Math.max(totalW, 1));
+      fittedHeadlineSize = Math.max(10, Math.floor(fittedHeadlineSize * scale));
+      fittedSubheadSize = Math.max(10, Math.floor(fittedSubheadSize * scale));
+      ctx.font = `${headlineWeight} ${fittedHeadlineSize}px "Noto Sans SC", "Roboto"`;
+      headlineW = hLine ? ctx.measureText(hLine).width : 0;
+      ctx.font = `400 ${fittedSubheadSize}px "Noto Sans SC", "Roboto"`;
+      subheadW = sLine ? ctx.measureText(sLine).width : 0;
+      totalW = headlineW + (subheadW ? gap + subheadW : 0);
+    }
+    return {
+      headlineFont: `${headlineWeight} ${fittedHeadlineSize}px "Noto Sans SC", "Roboto"`,
+      subheadFont: `400 ${fittedSubheadSize}px "Noto Sans SC", "Roboto"`,
+      headlineW,
+      subheadW,
+      totalW,
+      headlineSize: fittedHeadlineSize,
+      subheadSize: fittedSubheadSize
+    };
   };
 
   const queueGradientOverlay = (gradientImage, isRightAligned, isEnabled = true) => {
@@ -765,17 +828,18 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
     const drawOutlinedText = (text, spec, fontSize) => {
       const x = spec.x + textOffset.x;
       const y = spec.y + textOffset.y;
+      const fittedSize = fitFontSizeToWidth(text, fontSize, headlineWeight, '"Noto Sans SC", "Roboto", sans-serif', spec.maxW, 24);
       drawQueue.text.push(() => {
         ctx.textBaseline = "alphabetic";
         ctx.textAlign = spec.align;
-        ctx.font = `900 ${fontSize}px "Noto Sans SC", "Roboto", sans-serif`;
-        ctx.lineWidth = Math.max(7, fontSize * 0.12);
+        ctx.font = `${headlineWeight} ${fittedSize}px "Noto Sans SC", "Roboto", sans-serif`;
+        ctx.lineWidth = Math.max(6, fittedSize * 0.11);
         ctx.strokeStyle = "#1a1a1a";
         ctx.fillStyle = "#ffffff";
         ctx.strokeText(text, x, y);
         ctx.fillText(text, x, y);
       });
-      addTextBounds(spec.align === "right" ? x - spec.maxW : x, y, spec.maxW, fontSize * 1.2);
+      addTextBounds(spec.align === "right" ? x - spec.maxW : x, y, spec.maxW, fittedSize * 1.2);
     };
     drawOutlinedText(subhead, { ...sub, y: 371 }, 49);
     drawOutlinedText(headline, { ...head, y: 454 }, 66);
@@ -795,8 +859,8 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
     const rightX = 1075;
     const anchorX = isRight ? rightX : leftX;
     const topicFont = '700 37px "Noto Sans SC", "Roboto", sans-serif';
-    const headlineFont = '900 92px "Noto Sans SC", "Roboto", sans-serif';
-    const subheadFont = '900 72px "Noto Sans SC", "Roboto", sans-serif';
+    const headlineFont = '700 92px "Noto Sans SC", "Roboto", sans-serif';
+    const subheadFont = '700 72px "Noto Sans SC", "Roboto", sans-serif';
     const nameFont = '900 34px "Noto Sans SC", "Roboto", sans-serif';
     const rows = [];
     ctx.font = topicFont;
@@ -866,14 +930,15 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       }
       if (row.type === "headline" || row.type === "subhead") {
         const text = row.type === "headline" ? headline : subhead;
-        const font = row.type === "headline" ? headlineFont : subheadFont;
         const fontSize = row.type === "headline" ? 92 : 72;
+        const fittedSize = fitFontSizeToWidth(text, fontSize, headlineWeight, '"Noto Sans SC", "Roboto", sans-serif', 900, 30);
+        const font = `${headlineWeight} ${fittedSize}px "Noto Sans SC", "Roboto", sans-serif`;
         const drawX = anchorX + textOffset.x;
         drawQueue.text.push(() => {
           ctx.textBaseline = "top";
           ctx.textAlign = align;
           ctx.font = font;
-          ctx.lineWidth = Math.max(8, fontSize * 0.11);
+          ctx.lineWidth = Math.max(6, fittedSize * 0.1);
           ctx.strokeStyle = "#1a1a1a";
           ctx.fillStyle = "#ffffff";
           ctx.strokeText(text, drawX, rowY);
@@ -957,13 +1022,15 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       ctx.strokeStyle = "#1a1a1a";
       ctx.fillStyle = "#ffffff";
       if (showLineOne) {
-        ctx.font = `900 ${titleFontSize}px "Noto Sans SC", "Roboto", sans-serif`;
+        const fittedLineOneSize = fitFontSizeToWidth(lineOne, titleFontSize, headlineWeight, '"Noto Sans SC", "Roboto", sans-serif', canvas.width * 0.9, 28);
+        ctx.font = `${headlineWeight} ${fittedLineOneSize}px "Noto Sans SC", "Roboto", sans-serif`;
         ctx.lineWidth = 10;
         ctx.strokeText(lineOne, centerX, headlineY);
         ctx.fillText(lineOne, centerX, headlineY);
       }
       if (showLineTwo) {
-        ctx.font = `900 ${titleFontSize}px "Noto Sans SC", "Roboto", sans-serif`;
+        const fittedLineTwoSize = fitFontSizeToWidth(lineTwo, titleFontSize, headlineWeight, '"Noto Sans SC", "Roboto", sans-serif', canvas.width * 0.9, 28);
+        ctx.font = `${headlineWeight} ${fittedLineTwoSize}px "Noto Sans SC", "Roboto", sans-serif`;
         ctx.lineWidth = 10;
         ctx.strokeText(lineTwo, centerX, subheadY);
         ctx.fillText(lineTwo, centerX, subheadY);
@@ -997,16 +1064,18 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       if (!text) return;
       const x = spec.x + textOffset.x;
       const align = spec.align || "center";
-      const size = maxSize;
       const lines = getTextLines(text);
       if (lines.length === 0) return;
+      const effectiveWeight = normalizeFontWeight(weight);
+      const maxTextWidth = spec.maxW || inferMaxTextWidth(x, align);
+      const size = Math.min(maxSize, ...lines.map((line) => fitFontSizeToWidth(line, maxSize, effectiveWeight, fontFamily, maxTextWidth, minSize)));
       const lineHeight = size * 1.2;
-      ctx.font = `${weight} ${size}px ${fontFamily}`;
+      ctx.font = `${effectiveWeight} ${size}px ${fontFamily}`;
       const hasCenterY = spec.centerY !== void 0;
       const anchorY = (hasCenterY ? spec.centerY : spec.y) + textOffset.y;
       const firstY = hasCenterY ? anchorY - (lines.length - 1) * lineHeight / 2 : anchorY;
       drawQueue.text.push(() => {
-        ctx.font = `${weight} ${size}px ${fontFamily}`;
+        ctx.font = `${effectiveWeight} ${size}px ${fontFamily}`;
         ctx.fillStyle = color;
         ctx.textAlign = align;
         ctx.textBaseline = hasCenterY ? "middle" : "alphabetic";
@@ -1080,7 +1149,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
         align: "center"
       });
       const measureText = (text, size, weight) => {
-        ctx.font = `${weight} ${size}px ${fontFamily}`;
+        ctx.font = `${normalizeFontWeight(weight)} ${size}px ${fontFamily}`;
         const metrics = ctx.measureText(text);
         return {
           width: metrics.width,
@@ -1089,13 +1158,15 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
         };
       };
       const queueMeasuredText = (text, centerX, centerY, maxW, size, weight, color) => {
-        const metrics = measureText(text, size, weight);
+        const fittedSize = fitFontSizeToWidth(text, size, weight, fontFamily, maxW, 12);
+        const effectiveWeight = normalizeFontWeight(weight);
+        const metrics = measureText(text, fittedSize, effectiveWeight);
         const drawX = centerX + textOffset.x;
         const drawY = centerY + textOffset.y;
         const measuredW = Math.min(metrics.width, maxW);
         const textH = metrics.ascent + metrics.descent;
         drawQueue.text.push(() => {
-          ctx.font = `${weight} ${size}px ${fontFamily}`;
+          ctx.font = `${effectiveWeight} ${fittedSize}px ${fontFamily}`;
           ctx.fillStyle = color;
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
@@ -1109,15 +1180,24 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
         const groupLeft = hasLogoAndCta ? spec.logo.x + spec.logo.width + textGap : headlineRect.x;
         const groupRight = hasLogoAndCta ? spec.cta.x - textGap : subheadRect.x + subheadRect.width;
         const groupW = groupRight - groupLeft;
-        const headlineSize = 55;
+        let headlineSize = 55;
         const subheadSize = 36;
-        const headlineW = measureText(headline, headlineSize, 900).width;
-        const subheadW = measureText(subhead, subheadSize, 400).width;
-        const totalW = headlineW + textGap + subheadW;
+        let subheadDisplaySize = subheadSize;
+        let headlineW = measureText(headline, headlineSize, 900).width;
+        let subheadW = measureText(subhead, subheadDisplaySize, 400).width;
+        let totalW = headlineW + textGap + subheadW;
+        if (totalW > groupW) {
+          const scale = Math.max(0.45, groupW / Math.max(totalW, 1));
+          headlineSize = Math.max(12, Math.floor(headlineSize * scale));
+          subheadDisplaySize = Math.max(10, Math.floor(subheadDisplaySize * scale));
+          headlineW = measureText(headline, headlineSize, 900).width;
+          subheadW = measureText(subhead, subheadDisplaySize, 400).width;
+          totalW = headlineW + textGap + subheadW;
+        }
         const startX = groupLeft + Math.max(0, (groupW - totalW) / 2);
         const centerY = canvas.height / 2;
         queueMeasuredText(headline, startX + headlineW / 2, centerY, headlineRect.width, headlineSize, 900, headlineColor);
-        queueMeasuredText(subhead, startX + headlineW + textGap + subheadW / 2, centerY, subheadRect.width, subheadSize, 400, subheadColor);
+        queueMeasuredText(subhead, startX + headlineW + textGap + subheadW / 2, centerY, subheadRect.width, subheadDisplaySize, 400, subheadColor);
       };
       const specs = {
         headline_only: {
@@ -1311,23 +1391,16 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       
       const hLine = (headlineText || "").replace(/\r?\n/g, " ").trim();
       const sLine = variant.layout === "logo-headline-subhead-cta-stacked" && variant.hasSub ? (subheadText || "").replace(/\r?\n/g, " ").trim() : "";
-      const hFontStr = `900 ${headlineFont}px "Noto Sans SC", "Roboto"`;
-      const sFontStr = `400 ${subheadFont}px "Noto Sans SC", "Roboto"`;
-      
-      ctx.font = hFontStr;
-      const hW = hLine ? ctx.measureText(hLine).width : 0;
-      ctx.font = sFontStr;
-      const sW_measure = sLine ? ctx.measureText(sLine).width : 0;
       const textGap = 32;
-      const totalTextW = hW + (sW_measure ? textGap + sW_measure : 0);
+      const fittedPair = fitInlineTextPair(hLine, sLine, headlineFont, subheadFont, Math.max(40, tW - 24), textGap);
       
-      let startX = sX + lW + (tW - totalTextW) / 2;
+      let startX = sX + lW + Math.max(0, (tW - fittedPair.totalW) / 2);
       const ctaH = hasCTA ? fonts.c + fonts.c * 0.8 * 2 : 0;
-      const textBlockH = headlineFont * 1.2 + (hasCTA ? 16 + ctaH : 0);
+      const textBlockH = fittedPair.headlineSize * 1.2 + (hasCTA ? 16 + ctaH : 0);
       let textY = sY + (sH - textBlockH) / 2;
       
-      if (hLine) queueTextLine(hLine, startX, textY, "left", headlineColor, hFontStr);
-      if (sLine) queueTextLine(sLine, startX + hW + textGap, textY + (headlineFont - subheadFont) * 0.1, "left", subheadColor, sFontStr);
+      if (hLine) queueTextLine(hLine, startX, textY, "left", headlineColor, fittedPair.headlineFont, Math.max(40, sX + lW + tW - startX));
+      if (sLine) queueTextLine(sLine, startX + fittedPair.headlineW + textGap, textY + (fittedPair.headlineSize - fittedPair.subheadSize) * 0.1, "left", subheadColor, fittedPair.subheadFont, Math.max(40, sX + lW + tW - (startX + fittedPair.headlineW + textGap)));
       
       if (hasCTA) {
         const ctaY = textY + headlineFont * 1.2 + 16;
@@ -1339,25 +1412,17 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
     } else if (variant.layout === "text-side-by-side-center") {
       let tStartY = sY + (sH - fonts.h * 1.2) / 2;
       
-      ctx.font = `900 ${fonts.h}px "Noto Sans SC", "Roboto"`;
-      const hW = headlineText ? ctx.measureText(headlineText).width : 0;
-      
-      ctx.font = `400 ${fonts.s}px "Noto Sans SC", "Roboto"`;
-      const sW_measure = subheadText && variant.hasSub ? ctx.measureText(subheadText).width : 0;
-      
       const gap = 32;
-      const totalW = hW + (sW_measure > 0 ? gap + sW_measure : 0);
-      let currentX = sX + (sW - totalW) / 2;
+      const fittedPair = fitInlineTextPair(headlineText || "", subheadText && variant.hasSub ? subheadText : "", fonts.h, fonts.s, Math.max(40, sW - 24), gap);
+      let currentX = sX + Math.max(0, (sW - fittedPair.totalW) / 2);
       
       if (headlineText) {
-        ctx.font = `900 ${fonts.h}px "Noto Sans SC", "Roboto"`;
-        queueTextLine(headlineText, currentX, tStartY, "left", headlineColor, ctx.font);
-        currentX += hW + gap;
+        queueTextLine(headlineText, currentX, tStartY, "left", headlineColor, fittedPair.headlineFont, Math.max(40, sX + sW - currentX));
+        currentX += fittedPair.headlineW + gap;
       }
       
       if (subheadText && variant.hasSub) {
-        ctx.font = `400 ${fonts.s}px "Noto Sans SC", "Roboto"`;
-        queueTextLine(subheadText, currentX, tStartY + (fonts.h * 1.2 - fonts.s * 1.2) / 2, "left", subheadColor, ctx.font);
+        queueTextLine(subheadText, currentX, tStartY + (fittedPair.headlineSize * 1.2 - fittedPair.subheadSize * 1.2) / 2, "left", subheadColor, fittedPair.subheadFont, Math.max(40, sX + sW - currentX));
       }
     } else if (variant.layout === "logo-text-side-by-side-center") {
       const hasLogo = globalSettings.showLogo && state.showBrandLogo !== false;
@@ -1371,21 +1436,14 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       
       const hLine = (headlineText || "").replace(/\r?\n/g, " ").trim();
       const sLine = variant.hasSub ? (subheadText || "").replace(/\r?\n/g, " ").trim() : "";
-      const hFontStr = `900 ${fonts.h}px "Noto Sans SC", "Roboto"`;
-      const sFontStr = `400 ${fonts.s}px "Noto Sans SC", "Roboto"`;
-      
-      ctx.font = hFontStr;
-      const hW = hLine ? ctx.measureText(hLine).width : 0;
-      ctx.font = sFontStr;
-      const sW_measure = sLine ? ctx.measureText(sLine).width : 0;
       const textGap = 48;
-      const totalTextW = hW + (sW_measure ? textGap + sW_measure : 0);
+      const fittedPair = fitInlineTextPair(hLine, sLine, fonts.h, fonts.s, Math.max(40, tW - 24), textGap);
       
-      let startX = sX + lW + (tW - totalTextW) / 2;
-      let textY = sY + (sH - fonts.h * 1.2) / 2;
+      let startX = sX + lW + Math.max(0, (tW - fittedPair.totalW) / 2);
+      let textY = sY + (sH - fittedPair.headlineSize * 1.2) / 2;
       
-      if (hLine) queueTextLine(hLine, startX, textY, "left", headlineColor, hFontStr);
-      if (sLine) queueTextLine(sLine, startX + hW + textGap, textY + (fonts.h - fonts.s) * 0.1, "left", subheadColor, sFontStr);
+      if (hLine) queueTextLine(hLine, startX, textY, "left", headlineColor, fittedPair.headlineFont, Math.max(40, sX + lW + tW - startX));
+      if (sLine) queueTextLine(sLine, startX + fittedPair.headlineW + textGap, textY + (fittedPair.headlineSize - fittedPair.subheadSize) * 0.1, "left", subheadColor, fittedPair.subheadFont, Math.max(40, sX + lW + tW - (startX + fittedPair.headlineW + textGap)));
     } else if (variant.layout === "logo-text-side-by-side-cta") {
       const hasLogo = globalSettings.showLogo && state.showBrandLogo !== false;
       const hasCTA = showCTA && (ctaText || "").trim() && variant.hasCTA;
@@ -1401,21 +1459,14 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       
       const hLine = (headlineText || "").replace(/\r?\n/g, " ").trim();
       const sLine = variant.hasSub ? (subheadText || "").replace(/\r?\n/g, " ").trim() : "";
-      const hFontStr = `900 ${fonts.h}px "Noto Sans SC", "Roboto"`;
-      const sFontStr = `400 ${fonts.s}px "Noto Sans SC", "Roboto"`;
-      
-      ctx.font = hFontStr;
-      const hW = hLine ? ctx.measureText(hLine).width : 0;
-      ctx.font = sFontStr;
-      const sW_measure = sLine ? ctx.measureText(sLine).width : 0;
       const textGap = 48;
-      const totalTextW = hW + (sW_measure ? textGap + sW_measure : 0);
+      const fittedPair = fitInlineTextPair(hLine, sLine, fonts.h, fonts.s, Math.max(40, tW - 24), textGap);
       
-      let startX = sX + lW + (tW - totalTextW) / 2;
-      let textY = sY + (sH - fonts.h * 1.2) / 2;
+      let startX = sX + lW + Math.max(0, (tW - fittedPair.totalW) / 2);
+      let textY = sY + (sH - fittedPair.headlineSize * 1.2) / 2;
       
-      if (hLine) queueTextLine(hLine, startX, textY, "left", headlineColor, hFontStr);
-      if (sLine) queueTextLine(sLine, startX + hW + textGap, textY + (fonts.h - fonts.s) * 0.1, "left", subheadColor, sFontStr);
+      if (hLine) queueTextLine(hLine, startX, textY, "left", headlineColor, fittedPair.headlineFont, Math.max(40, sX + lW + tW - startX));
+      if (sLine) queueTextLine(sLine, startX + fittedPair.headlineW + textGap, textY + (fittedPair.headlineSize - fittedPair.subheadSize) * 0.1, "left", subheadColor, fittedPair.subheadFont, Math.max(40, sX + lW + tW - (startX + fittedPair.headlineW + textGap)));
       
       if (hasCTA) {
         const ctaHeight = fonts.c + fonts.c * 0.8 * 2;
@@ -1426,7 +1477,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       }
     } else {
       stack.linesH.forEach((l, i) => {
-        queueTextLine(l, drawXAlign, startY + i * stack.currentHFont * 1.2, align, headlineColor, `900 ${stack.currentHFont}px "Noto Sans SC", "Roboto"`);
+        queueTextLine(l, drawXAlign, startY + i * stack.currentHFont * 1.2, align, headlineColor, `${headlineWeight} ${stack.currentHFont}px "Noto Sans SC", "Roboto"`);
       });
       startY += stack.linesH.length * stack.currentHFont * 1.2 + stack.gap;
       if (stack.linesS.length > 0) {
@@ -1444,17 +1495,19 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       const tW = sW * 0.75;
       const cW = sW * 0.25;
       let tStartY = sY + (sH - fonts.h * 1.2) / 2;
-      let currentX = sX;
+      const hLine = (headlineText || "").replace(/\r?\n/g, " ").trim();
+      const sLine = subheadText && variant.hasSub ? (subheadText || "").replace(/\r?\n/g, " ").trim() : "";
+      const textGap = 32;
+      const fittedPair = fitInlineTextPair(hLine, sLine, fonts.h, fonts.s, Math.max(40, tW - 24), textGap);
+      let currentX = sX + Math.max(0, (tW - fittedPair.totalW) / 2);
       
-      if (headlineText) {
-        ctx.font = `900 ${fonts.h}px "Noto Sans SC", "Roboto"`;
-        queueTextLine(headlineText, currentX, tStartY, "left", headlineColor, ctx.font);
-        currentX += ctx.measureText(headlineText).width + 32;
+      if (hLine) {
+        queueTextLine(hLine, currentX, tStartY, "left", headlineColor, fittedPair.headlineFont, Math.max(40, tW - (currentX - sX)));
+        currentX += fittedPair.headlineW + textGap;
       }
       
-      if (subheadText && variant.hasSub) {
-        ctx.font = `400 ${fonts.s}px "Noto Sans SC", "Roboto"`;
-        queueTextLine(subheadText, currentX, tStartY + (fonts.h * 1.2 - fonts.s * 1.2) / 2, "left", subheadColor, ctx.font);
+      if (sLine) {
+        queueTextLine(sLine, currentX, tStartY + (fittedPair.headlineSize * 1.2 - fittedPair.subheadSize * 1.2) / 2, "left", subheadColor, fittedPair.subheadFont, Math.max(40, sX + tW - currentX));
       }
       
       if (showCTA && (ctaText || "").trim() && variant.hasCTA) {
@@ -1479,21 +1532,14 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       
       const hLine = (headlineText || "").replace(/\r?\n/g, " ").trim();
       const sLine = variant.hasSub ? (subheadText || "").replace(/\r?\n/g, " ").trim() : "";
-      const hFontStr = `900 ${fonts.h}px "Noto Sans SC", "Roboto"`;
-      const sFontStr = `400 ${fonts.s}px "Noto Sans SC", "Roboto"`;
-      
-      ctx.font = hFontStr;
-      const hW = hLine ? ctx.measureText(hLine).width : 0;
-      ctx.font = sFontStr;
-      const sW_measure = sLine ? ctx.measureText(sLine).width : 0;
       const textGap = 48;
-      const totalTextW = hW + (sW_measure ? textGap + sW_measure : 0);
+      const fittedPair = fitInlineTextPair(hLine, sLine, fonts.h, fonts.s, Math.max(40, tW - 24), textGap);
       
-      let startX = sX + lW + (tW - totalTextW) / 2;
-      let textY = sY + (sH - fonts.h * 1.2) / 2;
+      let startX = sX + lW + Math.max(0, (tW - fittedPair.totalW) / 2);
+      let textY = sY + (sH - fittedPair.headlineSize * 1.2) / 2;
       
-      if (hLine) queueTextLine(hLine, startX, textY, "left", headlineColor, hFontStr);
-      if (sLine) queueTextLine(sLine, startX + hW + textGap, textY + (fonts.h - fonts.s) * 0.1, "left", subheadColor, sFontStr);
+      if (hLine) queueTextLine(hLine, startX, textY, "left", headlineColor, fittedPair.headlineFont, Math.max(40, sX + lW + tW - startX));
+      if (sLine) queueTextLine(sLine, startX + fittedPair.headlineW + textGap, textY + (fittedPair.headlineSize - fittedPair.subheadSize) * 0.1, "left", subheadColor, fittedPair.subheadFont, Math.max(40, sX + lW + tW - (startX + fittedPair.headlineW + textGap)));
       
       if (hasCTA) {
         const ctaHeight = fonts.c + fonts.c * 0.8 * 2;
@@ -1508,7 +1554,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       const stack = calculateTextStack(tW - 40, sH, false);
       let tStartY = sY + (sH - stack.totalH) / 2;
       stack.linesH.forEach((l, i) => {
-        queueTextLine(l, sX, tStartY + i * stack.currentHFont * 1.2, "left", headlineColor, `900 ${stack.currentHFont}px "Noto Sans SC", "Roboto"`);
+        queueTextLine(l, sX, tStartY + i * stack.currentHFont * 1.2, "left", headlineColor, `${headlineWeight} ${stack.currentHFont}px "Noto Sans SC", "Roboto"`);
       });
       tStartY += stack.linesH.length * stack.currentHFont * 1.2 + stack.gap;
       if (stack.linesS.length > 0) {
@@ -1524,18 +1570,13 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       if (variant.textDir === "horizontal") {
         const hLine = (headlineText || "").replace(/\r?\n/g, " ").trim();
         const sLine = variant.hasSub ? (subheadText || "").replace(/\r?\n/g, " ").trim() : "";
-        const hFontStr = `900 ${fonts.h}px "Noto Sans SC", "Roboto"`;
-        const sFontStr = `400 ${fonts.s}px "Noto Sans SC", "Roboto"`;
-        
-        ctx.font = hFontStr;
-        const hW = ctx.measureText(hLine).width;
-        ctx.font = sFontStr;
-        const sW_measure = sLine ? ctx.measureText(sLine).width : 0;
         const textGap = 48;
+        const fittedPair = fitInlineTextPair(hLine, sLine, fonts.h, fonts.s, Math.max(40, tW - 32), textGap);
         
         let textY = sY + (sH - fonts.h * 1.2) / 2;
-        if (hLine) queueTextLine(hLine, sX, textY, "left", headlineColor, hFontStr);
-        if (sLine) queueTextLine(sLine, sX + hW + textGap, textY + (fonts.h - fonts.s) * 0.1, "left", subheadColor, sFontStr);
+        let currentX = sX + Math.max(0, (tW - fittedPair.totalW) / 2);
+        if (hLine) queueTextLine(hLine, currentX, textY, "left", headlineColor, fittedPair.headlineFont, Math.max(40, tW - (currentX - sX)));
+        if (sLine) queueTextLine(sLine, currentX + fittedPair.headlineW + textGap, textY + (fittedPair.headlineSize - fittedPair.subheadSize) * 0.1, "left", subheadColor, fittedPair.subheadFont, Math.max(40, sX + tW - (currentX + fittedPair.headlineW + textGap)));
         
         if (showCTA && ctaText && variant.hasCTA) {
           queueCTA(sX + tW + cW / 2, sY + sH / 2, ctaText, "center");
@@ -1544,7 +1585,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
         const stack = calculateTextStack(tW - 40, sH, false);
         let tStartY = sY + (sH - stack.totalH) / 2;
         stack.linesH.forEach((l, i) => {
-          queueTextLine(l, sX, tStartY + i * stack.currentHFont * 1.2, "left", headlineColor, `900 ${stack.currentHFont}px "Noto Sans SC", "Roboto"`);
+          queueTextLine(l, sX, tStartY + i * stack.currentHFont * 1.2, "left", headlineColor, `${headlineWeight} ${stack.currentHFont}px "Noto Sans SC", "Roboto"`);
         });
         tStartY += stack.linesH.length * stack.currentHFont * 1.2 + stack.gap;
         if (stack.linesS.length > 0) {
@@ -1561,7 +1602,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       const tW = sW * 0.65;
       const logoSize = getLogoSize(lW - 20, Math.min(sH * 0.85, 140));
       const stack = calculateTextStack(tW - 40, sH, false);
-      ctx.font = `900 ${stack.currentHFont}px "Noto Sans SC", "Roboto"`;
+      ctx.font = `${headlineWeight} ${stack.currentHFont}px "Noto Sans SC", "Roboto"`;
       let textW = 0;
       stack.linesH.forEach((l) => {
         textW = Math.max(textW, ctx.measureText(l).width);
@@ -1577,7 +1618,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       let tStartY = sY + (sH - stack.totalH) / 2;
       const textStartX = centerOffsetX + logoSize.w + gap;
       stack.linesH.forEach((l, i) => {
-        queueTextLine(l, textStartX, tStartY + i * stack.currentHFont * 1.2, "left", headlineColor, `900 ${stack.currentHFont}px "Noto Sans SC", "Roboto"`);
+        queueTextLine(l, textStartX, tStartY + i * stack.currentHFont * 1.2, "left", headlineColor, `${headlineWeight} ${stack.currentHFont}px "Noto Sans SC", "Roboto"`);
       });
       tStartY += stack.linesH.length * stack.currentHFont * 1.2 + stack.gap;
       if (stack.linesS.length > 0) {
@@ -1590,7 +1631,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       const tW = sW * 0.65;
       const logoSize = getLogoSize(lW - 20, Math.min(sH * 0.85, 140));
       const stack = calculateTextStack(tW - 40, sH, true);
-      ctx.font = `900 ${stack.currentHFont}px "Noto Sans SC", "Roboto"`;
+      ctx.font = `${headlineWeight} ${stack.currentHFont}px "Noto Sans SC", "Roboto"`;
       let textW = 0;
       stack.linesH.forEach((l) => {
         textW = Math.max(textW, ctx.measureText(l).width);
@@ -1607,7 +1648,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       let tStartY = sY + (sH - stack.totalH) / 2;
       const textCenterX = centerOffsetX + logoSize.w + gap + blockW / 2;
       stack.linesH.forEach((l, i) => {
-        queueTextLine(l, textCenterX, tStartY + i * stack.currentHFont * 1.2, "center", headlineColor, `900 ${stack.currentHFont}px "Noto Sans SC", "Roboto"`);
+        queueTextLine(l, textCenterX, tStartY + i * stack.currentHFont * 1.2, "center", headlineColor, `${headlineWeight} ${stack.currentHFont}px "Noto Sans SC", "Roboto"`);
       });
       tStartY += stack.linesH.length * stack.currentHFont * 1.2 + stack.gap;
       if (stack.linesS.length > 0) {
@@ -1631,21 +1672,14 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       if (variant.textDir === "horizontal") {
         const hLine = (headlineText || "").replace(/\r?\n/g, " ").trim();
         const sLine = variant.hasSub ? (subheadText || "").replace(/\r?\n/g, " ").trim() : "";
-        const hFontStr = `900 ${fonts.h}px "Noto Sans SC", "Roboto"`;
-        const sFontStr = `400 ${fonts.s}px "Noto Sans SC", "Roboto"`;
-        
-        ctx.font = hFontStr;
-        const hW = ctx.measureText(hLine).width;
-        ctx.font = sFontStr;
-        const sW_measure = sLine ? ctx.measureText(sLine).width : 0;
         const textGap = 48;
-        const totalTextW = hW + (sW_measure ? textGap + sW_measure : 0);
+        const fittedPair = fitInlineTextPair(hLine, sLine, fonts.h, fonts.s, Math.max(40, tW - 24), textGap);
         
-        let startX = sX + lW + (tW - totalTextW) / 2;
-        let textY = sY + (sH - fonts.h * 1.2) / 2;
+        let startX = sX + lW + Math.max(0, (tW - fittedPair.totalW) / 2);
+        let textY = sY + (sH - fittedPair.headlineSize * 1.2) / 2;
         
-        if (hLine) queueTextLine(hLine, startX, textY, "left", headlineColor, hFontStr);
-        if (sLine) queueTextLine(sLine, startX + hW + textGap, textY + (fonts.h - fonts.s) * 0.1, "left", subheadColor, sFontStr);
+        if (hLine) queueTextLine(hLine, startX, textY, "left", headlineColor, fittedPair.headlineFont, Math.max(40, sX + lW + tW - startX));
+        if (sLine) queueTextLine(sLine, startX + fittedPair.headlineW + textGap, textY + (fittedPair.headlineSize - fittedPair.subheadSize) * 0.1, "left", subheadColor, fittedPair.subheadFont, Math.max(40, sX + lW + tW - (startX + fittedPair.headlineW + textGap)));
         
         if (showCTA && (ctaText || "").trim() && variant.hasCTA) {
           queueCTA(sX + lW + tW + cW / 2, sY + sH / 2, ctaText, "center");
@@ -1658,7 +1692,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
         let tStartY = sY + (sH - stack.totalH) / 2;
         const tX = sX + lW + tW / 2;
         stack.linesH.forEach((l, i) => {
-          queueTextLine(l, tX, tStartY + i * stack.currentHFont * 1.2, "center", headlineColor, `900 ${stack.currentHFont}px "Noto Sans SC", "Roboto"`);
+          queueTextLine(l, tX, tStartY + i * stack.currentHFont * 1.2, "center", headlineColor, `${headlineWeight} ${stack.currentHFont}px "Noto Sans SC", "Roboto"`);
         });
         tStartY += stack.linesH.length * stack.currentHFont * 1.2 + stack.gap;
         if (stack.linesS.length > 0) {
@@ -2132,6 +2166,17 @@ function App() {
     if (!format) return null;
     return format.variants.find((v) => v.id === variantId) || null;
   };
+  const getBannerBaseName = (format) => format ? `${format.id}-${format.w}x${format.h}` : "banner";
+  const getUniqueExportName = (baseName, usedNames) => {
+    let fileName = baseName;
+    let counter = 2;
+    while (usedNames.has(fileName)) {
+      fileName = `${baseName}-v${counter}`;
+      counter++;
+    }
+    usedNames.add(fileName);
+    return fileName;
+  };
   const getSlideVariant = (format, canvasId, slide = {}, fallbackVariant = null) => {
     var _a;
     const variantId = slide.variantId || getVariantIdFromCanvasId(canvasId);
@@ -2315,8 +2360,14 @@ function App() {
       const zip = new JSZip();
       const finalCampaignName = campaignName.trim() || "campaign";
 	      const folder = zip.folder(finalCampaignName);
-	      const originalFolder = folder.folder("original");
-	      const compressedFolder = folder.folder("compressed");
+	      const addOriginalFile = (formatObj, name, blob) => {
+	        const targetFolder = shouldCreateCompressedExport(formatObj) ? folder.folder("original") : folder;
+	        targetFolder.file(name, blob);
+	      };
+	      const addCompressedFile = (formatObj, name, blob) => {
+	        if (!shouldCreateCompressedExport(formatObj)) return;
+	        folder.folder("compressed").file(name, blob);
+	      };
 	      let count = 0;
 	      const usedNames = /* @__PURE__ */ new Set();
 	      for (let id of approvedBanners) {
@@ -2326,14 +2377,7 @@ function App() {
           if (id.startsWith(f.id + "-")) formatObj = f;
         });
         if (!formatObj) continue;
-        let baseName = `${finalCampaignName}-${formatObj.w}x${formatObj.h}`;
-        let fileName = baseName;
-        let counter = 2;
-        while (usedNames.has(fileName)) {
-          fileName = `${baseName}-v${counter}`;
-          counter++;
-        }
-        usedNames.add(fileName);
+        const fileName = getUniqueExportName(getBannerBaseName(formatObj), usedNames);
 	        const needsCompressedExport = shouldCreateCompressedExport(formatObj);
 	        if (formatObj.category === "Traffic Driver") {
 	          const trafficSlideCount = getTrafficSlideRenderItems(id).length;
@@ -2348,8 +2392,8 @@ function App() {
 	              console.warn("GIF export failed.", err);
 	            }
 	            if (gifBlob && gifBlob2x) {
-	              originalFolder.file(`${fileName}.gif`, gifBlob);
-	              originalFolder.file(`${fileName2x}.gif`, gifBlob2x);
+	              addOriginalFile(formatObj, `${fileName}.gif`, gifBlob);
+	              addOriginalFile(formatObj, `${fileName2x}.gif`, gifBlob2x);
 	              if (needsCompressedExport) {
 	                let compressedGifBlob = gifBlob;
 	                let compressedGifBlob2x = gifBlob2x;
@@ -2359,8 +2403,8 @@ function App() {
 	                } catch (err) {
 	                  console.warn("Compressed GIF export failed.", err);
 	                }
-	                compressedFolder.file(`${fileName}.gif`, compressedGifBlob || gifBlob);
-	                compressedFolder.file(`${fileName2x}.gif`, compressedGifBlob2x || gifBlob2x);
+	                addCompressedFile(formatObj, `${fileName}.gif`, compressedGifBlob || gifBlob);
+	                addCompressedFile(formatObj, `${fileName2x}.gif`, compressedGifBlob2x || gifBlob2x);
 	              }
 	              count++;
 	            }
@@ -2374,8 +2418,8 @@ function App() {
 	              console.warn("PNG export failed.", err);
 	            }
 	            if (imageExport && imageExport2x) {
-	              originalFolder.file(`${fileName}.${imageExport.ext}`, imageExport.blob);
-	              originalFolder.file(`${fileName2x}.${imageExport2x.ext}`, imageExport2x.blob);
+	              addOriginalFile(formatObj, `${fileName}.${imageExport.ext}`, imageExport.blob);
+	              addOriginalFile(formatObj, `${fileName2x}.${imageExport2x.ext}`, imageExport2x.blob);
 	              if (needsCompressedExport) {
 	                let compressedPng = imageExport;
 	                let compressedPng2x = imageExport2x;
@@ -2385,8 +2429,8 @@ function App() {
 	                } catch (err) {
 	                  console.warn("Compressed PNG export failed.", err);
 	                }
-	                compressedFolder.file(`${fileName}.${compressedPng.ext}`, compressedPng.blob);
-	                compressedFolder.file(`${fileName2x}.${compressedPng2x.ext}`, compressedPng2x.blob);
+	                addCompressedFile(formatObj, `${fileName}.${compressedPng.ext}`, compressedPng.blob);
+	                addCompressedFile(formatObj, `${fileName2x}.${compressedPng2x.ext}`, compressedPng2x.blob);
 	              }
 	              count++;
 	            }
@@ -2395,7 +2439,7 @@ function App() {
 	          const pngBlob = await canvasToPngBlob(canvas);
 	          if (!pngBlob) continue;
 	          const originalImage = needsCompressedExport ? await buildCompressedCanvasImage(canvas, pngBlob, formatObj, { maxBytes: COMPRESSED_EXPORT_MAX_BYTES, preferOriginal: true }) : { blob: pngBlob, ext: "png" };
-	          originalFolder.file(`${fileName}.${originalImage.ext}`, originalImage.blob);
+	          addOriginalFile(formatObj, `${fileName}.${originalImage.ext}`, originalImage.blob);
 	          if (needsCompressedExport) {
 	            let compressedImage = originalImage;
 	            try {
@@ -2403,7 +2447,7 @@ function App() {
 	            } catch (err) {
 	              console.warn("Compressed image export failed.", err);
 	            }
-	            compressedFolder.file(`${fileName}.${compressedImage.ext}`, compressedImage.blob);
+	            addCompressedFile(formatObj, `${fileName}.${compressedImage.ext}`, compressedImage.blob);
 	          }
 	          count++;
 	        }
@@ -3445,7 +3489,7 @@ function App() {
           } else if (ratio >= 2) {
             colSpanClass = "col-span-12 md:col-span-6";
           }
-          return /* @__PURE__ */ React.createElement("div", { key: id, className: `${colSpanClass} bg-surface rounded-2xl p-6 border border-borderMain shadow-2xl flex flex-col gap-4 relative group` }, /* @__PURE__ */ React.createElement("button", { onClick: () => toggleApproval(id), className: "absolute top-5 right-5 w-10 h-10 bg-red-500/10 text-brandRed rounded-full flex items-center justify-center hover:bg-brandRed hover:text-white transition shadow-sm border border-brandRed/20" }, /* @__PURE__ */ React.createElement("svg", { width: "18", height: "18", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round" }, /* @__PURE__ */ React.createElement("line", { x1: "18", y1: "6", x2: "6", y2: "18" }), /* @__PURE__ */ React.createElement("line", { x1: "6", y1: "6", x2: "18", y2: "18" }))), /* @__PURE__ */ React.createElement("div", { className: "text-sm font-mono font-medium text-textMut bg-bgCore inline-block self-start px-3 py-1.5 rounded-lg border border-borderInput" }, id), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-center overflow-hidden rounded-xl bg-bgCore border border-borderMain shadow-inner" }, /* @__PURE__ */ React.createElement("img", { src: previewImages[id], alt: id, className: "w-full h-auto" })));
+          return /* @__PURE__ */ React.createElement("div", { key: id, className: `${colSpanClass} bg-surface rounded-2xl p-6 border border-borderMain shadow-2xl flex flex-col gap-4 relative group` }, /* @__PURE__ */ React.createElement("button", { onClick: () => toggleApproval(id), className: "absolute top-5 right-5 w-10 h-10 bg-red-500/10 text-brandRed rounded-full flex items-center justify-center hover:bg-brandRed hover:text-white transition shadow-sm border border-brandRed/20" }, /* @__PURE__ */ React.createElement("svg", { width: "18", height: "18", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round" }, /* @__PURE__ */ React.createElement("line", { x1: "18", y1: "6", x2: "6", y2: "18" }), /* @__PURE__ */ React.createElement("line", { x1: "6", y1: "6", x2: "18", y2: "18" }))), /* @__PURE__ */ React.createElement("div", { className: "text-sm font-mono font-medium text-textMut bg-bgCore inline-block self-start px-3 py-1.5 rounded-lg border border-borderInput" }, getBannerBaseName(formatObj)), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-center overflow-hidden rounded-xl bg-bgCore border border-borderMain shadow-inner" }, /* @__PURE__ */ React.createElement("img", { src: previewImages[id], alt: getBannerBaseName(formatObj), className: "w-full h-auto" })));
         })))));
 }
 const startupFallback = document.getElementById("startup-fallback");
