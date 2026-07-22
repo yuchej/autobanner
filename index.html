@@ -435,7 +435,7 @@ const IG_POST_LOGO_SRC = "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBl
 const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, globalSettings, isInteractive = false, activeLayerId = null) => {
   const { safe, fonts } = format;
   const { bgImage, logoImage, kvImages, quoteLeftImage, quoteRightImage, zaobaoLogoImage, igPostLogoImage, gradientYoutubeImage, gradientArticleImage, gradientShortsImage, quoteShortsImage, lineShortsImage } = assets;
-  const { headline, subhead, ctaText, showCTA, headlineColor, subheadColor, bgOffsetX, bgOffsetY, bgScale, bgRotate, bgRepeat, logoScale, ctaScale } = state;
+  const { headline, subhead, ctaText, showCTA, headlineColor, subheadColor, headlineBorderColor = "#000000", subheadBorderColor = "#000000", textShadowEnabled = false, textShadowColor = "#000000", textShadowBlur = 0, textShadowOffsetX = 0, textShadowOffsetY = 0, bgOffsetX, bgOffsetY, bgScale, bgRotate, bgRepeat, logoScale, ctaScale } = state;
   const hiddenKvIds = new Set(Array.isArray(state.hiddenKvIds) ? state.hiddenKvIds : []);
   const visibleKvImages = (kvImages || []).filter((kv) => !hiddenKvIds.has(kv.id));
   const { layerOrder, showSafezone } = globalSettings;
@@ -448,6 +448,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
   const sH = canvas.height - safe.t - safe.b;
   const brandRed = "#e90044";
   const headlineWeight = 700;
+  const ctaFontFamily = '"Noto Sans SC", "Roboto", sans-serif';
   const normalizeFontWeight = (weight) => Number(weight) >= 900 ? headlineWeight : weight;
   const normalizeFontString = (fontStr) => fontStr.replace(/^900\b/, String(headlineWeight));
   const withFontSize = (fontStr, size) => fontStr.replace(/(\d+(?:\.\d+)?)px/, `${size}px`);
@@ -478,6 +479,88 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
     const fontWeight = normalizeFontWeight(weight);
     const fittedFont = fitFontStringToWidth(text, `${fontWeight} ${size}px ${family}`, maxWidth, minSize);
     return getFontSizeFromString(fittedFont, size);
+  };
+  const getTextBorderStyle = (kind = "headline", fallbackWidth = 0, fallbackColor = "#000000") => {
+    const rawWidth = kind === "subhead" ? state.subheadBorderWidth : state.headlineBorderWidth;
+    const width = rawWidth === void 0 || rawWidth === null ? fallbackWidth : Math.max(0, Number(rawWidth) || 0);
+    const color = (kind === "subhead" ? subheadBorderColor : headlineBorderColor) || fallbackColor;
+    return { width, color };
+  };
+  const drawTextWithBorder = (text, x, y, maxWidth = null, kind = "headline", fallbackWidth = 0, fallbackColor = "#000000") => {
+    const border = getTextBorderStyle(kind, fallbackWidth, fallbackColor);
+    const hasMaxWidth = Number.isFinite(maxWidth) && maxWidth > 0;
+    ctx.save();
+    if (textShadowEnabled) {
+      ctx.shadowColor = textShadowColor || "#000000";
+      ctx.shadowBlur = Math.max(0, Number(textShadowBlur) || 0);
+      ctx.shadowOffsetX = Number(textShadowOffsetX) || 0;
+      ctx.shadowOffsetY = Number(textShadowOffsetY) || 0;
+    }
+    if (border.width > 0) {
+      ctx.lineJoin = "round";
+      ctx.miterLimit = 2;
+      ctx.strokeStyle = border.color;
+      ctx.lineWidth = border.width;
+      if (hasMaxWidth) ctx.strokeText(text, x, y, maxWidth);
+      else ctx.strokeText(text, x, y);
+    }
+    if (hasMaxWidth) ctx.fillText(text, x, y, maxWidth);
+    else ctx.fillText(text, x, y);
+    ctx.restore();
+  };
+  const getCTAAvailableWidth = (anchorX, align = "center") => {
+    const leftBound = safe.l;
+    const rightBound = canvas.width - safe.r;
+    if (align === "center") return Math.max(24, Math.min(anchorX - leftBound, rightBound - anchorX) * 2);
+    if (align === "right") return Math.max(24, anchorX - leftBound);
+    return Math.max(24, rightBound - anchorX);
+  };
+  const getCTAMetrics = (text, baseFontSize, options = {}) => {
+    const trimmedText = (text || "").trim();
+    const weight = options.weight || 600;
+    const family = options.family || ctaFontFamily;
+    const minSize = options.minSize || Math.max(8, Math.floor(baseFontSize * 0.45));
+    const maxButtonWidth = Number.isFinite(options.maxButtonWidth) ? Math.max(24, options.maxButtonWidth) : Infinity;
+    const buttonHeight = options.buttonHeight || null;
+    const paddingXMultiplier = options.paddingXMultiplier || 1.5;
+    const paddingYMultiplier = options.paddingYMultiplier || 0.8;
+    const visibleChars = Array.from(trimmedText.replace(/\s+/g, "")).length;
+    const wordCount = trimmedText.split(/\s+/).filter(Boolean).length;
+    let fontSize = baseFontSize;
+
+    if (wordCount > 6 || visibleChars > 18) {
+      const longCopyScale = Math.max(0.52, 1 - Math.max(0, wordCount - 6) * 0.055 - Math.max(0, visibleChars - 18) * 0.018);
+      fontSize = Math.max(minSize, Math.floor(fontSize * longCopyScale));
+    }
+
+    const measure = () => {
+      const font = `${weight} ${fontSize}px ${family}`;
+      ctx.font = font;
+      const textWidth = ctx.measureText(trimmedText).width;
+      const h = buttonHeight || fontSize + fontSize * paddingYMultiplier * 2;
+      const paddingX = buttonHeight ? h * 0.7 : fontSize * paddingXMultiplier;
+      const w = textWidth + paddingX * 2;
+      return { font, fontSize, textWidth, paddingX, w, h };
+    };
+
+    let metrics = measure();
+    for (let i = 0; i < 3 && metrics.w > maxButtonWidth && fontSize > minSize; i++) {
+      const textAllowance = Math.max(1, maxButtonWidth - metrics.paddingX * 2);
+      const nextSize = Math.max(minSize, Math.floor(fontSize * textAllowance / Math.max(metrics.textWidth, 1)));
+      if (nextSize >= fontSize) break;
+      fontSize = nextSize;
+      metrics = measure();
+    }
+
+    const isSingleCharacter = Array.from(trimmedText).length === 1;
+    const w = isSingleCharacter ? metrics.h : Math.max(metrics.h, Math.min(maxButtonWidth, metrics.w));
+    return {
+      ...metrics,
+      text: trimmedText,
+      w,
+      textMaxWidth: Math.max(1, w - metrics.paddingX * 2),
+      isSingleCharacter
+    };
   };
   const getTextLines = (text) => text ? text.replace(/\r/g, "").split("\n").map((line) => line.trim()).filter((line) => line.length > 0) : [];
   const getLogoSize = (maxWidth, maxHeight, applyUserScale = true) => {
@@ -536,13 +619,14 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
     const safeMaxWidth = maxWidth || inferMaxTextWidth(finalX, align);
     const fittedFontStr = fitFontStringToWidth(text, fontStr, safeMaxWidth, 10);
     const fittedSize = getFontSizeFromString(fittedFontStr, 16);
+    const textKind = /^400\b/.test(normalizeFontString(fontStr).trim()) ? "subhead" : "headline";
     if (!drawQueue.text) drawQueue.text = [];
     drawQueue.text.push(() => {
       ctx.font = fittedFontStr;
       ctx.fillStyle = color;
       ctx.textAlign = align;
       ctx.textBaseline = "top";
-      ctx.fillText(text, finalX, finalY);
+      drawTextWithBorder(text, finalX, finalY, null, textKind);
     });
     ctx.font = fittedFontStr;
     const w = ctx.measureText(text).width;
@@ -561,15 +645,16 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       hitBoxes.cta = null;
       return { w: 0, h: 0 };
     }
-    const fontSize = fonts.c;
-    ctx.font = `600 ${fontSize}px "Noto Sans SC", "Roboto", sans-serif`;
-    const metrics = ctx.measureText(text);
-    const w = metrics.width + fontSize * 1.5 * 2;
-    const h = fontSize + fontSize * 0.8 * 2;
-    let dx = x;
-    if (align === "center") dx = x - w / 2;
-    if (align === "right") dx = x - w;
-    const finalX = dx + offsets.cta.x;
+    const anchorX = x + offsets.cta.x;
+    const maxButtonWidth = getCTAAvailableWidth(anchorX, align);
+    const metrics = getCTAMetrics(text, fonts.c, { weight: 600, maxButtonWidth });
+    const { w, h, font, textMaxWidth } = metrics;
+    let finalX = anchorX;
+    if (align === "center") finalX = anchorX - w / 2;
+    if (align === "right") finalX = anchorX - w;
+    const minX = safe.l;
+    const maxX = canvas.width - safe.r - w;
+    if (maxX >= minX) finalX = Math.min(Math.max(finalX, minX), maxX);
     const finalY = y + offsets.cta.y;
     drawQueue.cta = () => {
       ctx.beginPath();
@@ -579,8 +664,8 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       ctx.fillStyle = "#ffffff";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.font = `600 ${fontSize}px "Noto Sans SC", "Roboto", sans-serif`;
-      ctx.fillText(text, finalX + w / 2, finalY + h / 2);
+      ctx.font = font;
+      ctx.fillText(metrics.text, finalX + w / 2, finalY + h / 2, textMaxWidth);
     };
     hitBoxes.cta = { x: finalX, y: finalY, w, h };
     return { w, h };
@@ -611,9 +696,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
     let ctaStats = { w: 0, h: 0 };
     const wantsCTA = showCTA && (ctaText || "").trim() && variant.hasCTA;
     if (wantsCTA) {
-      ctx.font = `600 ${fonts.c}px "Noto Sans SC", "Roboto", sans-serif`;
-      ctaStats.w = ctx.measureText(ctaText).width + fonts.c * 1.5 * 2;
-      ctaStats.h = fonts.c + fonts.c * 0.8 * 2;
+      ctaStats = getCTAMetrics(ctaText, fonts.c, { weight: 600, maxButtonWidth: Math.max(24, targetW || sW) });
     }
     let totalH = linesH.length * (currentHFont * 1.2);
     if (linesS.length > 0) totalH += gap + linesS.length * (currentSFont * 1.4);
@@ -846,7 +929,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       });
       addTextBounds(Math.min(markX, nameX), y, 155, 45);
     }
-    const drawOutlinedText = (text, spec, fontSize) => {
+    const drawOutlinedText = (text, spec, fontSize, kind) => {
       const x = spec.x + textOffset.x;
       const y = spec.y + textOffset.y;
       const fittedSize = fitFontSizeToWidth(text, fontSize, headlineWeight, '"Noto Sans SC", "Roboto", sans-serif', spec.maxW, 24);
@@ -854,16 +937,13 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
         ctx.textBaseline = "alphabetic";
         ctx.textAlign = spec.align;
         ctx.font = `${headlineWeight} ${fittedSize}px "Noto Sans SC", "Roboto", sans-serif`;
-        ctx.lineWidth = Math.max(6, fittedSize * 0.11);
-        ctx.strokeStyle = "#1a1a1a";
         ctx.fillStyle = "#ffffff";
-        ctx.strokeText(text, x, y);
-        ctx.fillText(text, x, y);
+        drawTextWithBorder(text, x, y, null, kind, Math.max(6, fittedSize * 0.11), "#1a1a1a");
       });
       addTextBounds(spec.align === "right" ? x - spec.maxW : x, y, spec.maxW, fittedSize * 1.2);
     };
-    drawOutlinedText(subhead, { ...sub, y: 371 }, 49);
-    drawOutlinedText(headline, { ...head, y: 454 }, 66);
+    drawOutlinedText(subhead, { ...sub, y: 371 }, 49, "subhead");
+    drawOutlinedText(headline, { ...head, y: 454 }, 66, "headline");
   };
   const drawArticleCoverLayout = () => {
     const isRight = variant.layout === "article-cover-right";
@@ -959,11 +1039,8 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
           ctx.textBaseline = "top";
           ctx.textAlign = align;
           ctx.font = font;
-          ctx.lineWidth = Math.max(6, fittedSize * 0.1);
-          ctx.strokeStyle = "#1a1a1a";
           ctx.fillStyle = "#ffffff";
-          ctx.strokeText(text, drawX, rowY);
-          ctx.fillText(text, drawX, rowY);
+          drawTextWithBorder(text, drawX, rowY, null, row.type, Math.max(6, fittedSize * 0.1), "#1a1a1a");
         });
         addTextBounds(isRight ? drawX - 900 : drawX, rowY, 900, row.h);
       }
@@ -1045,16 +1122,12 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       if (showLineOne) {
         const fittedLineOneSize = fitFontSizeToWidth(lineOne, titleFontSize, headlineWeight, '"Noto Sans SC", "Roboto", sans-serif', canvas.width * 0.9, 28);
         ctx.font = `${headlineWeight} ${fittedLineOneSize}px "Noto Sans SC", "Roboto", sans-serif`;
-        ctx.lineWidth = 10;
-        ctx.strokeText(lineOne, centerX, headlineY);
-        ctx.fillText(lineOne, centerX, headlineY);
+        drawTextWithBorder(lineOne, centerX, headlineY, null, "headline", 10, "#1a1a1a");
       }
       if (showLineTwo) {
         const fittedLineTwoSize = fitFontSizeToWidth(lineTwo, titleFontSize, headlineWeight, '"Noto Sans SC", "Roboto", sans-serif', canvas.width * 0.9, 28);
         ctx.font = `${headlineWeight} ${fittedLineTwoSize}px "Noto Sans SC", "Roboto", sans-serif`;
-        ctx.lineWidth = 10;
-        ctx.strokeText(lineTwo, centerX, subheadY);
-        ctx.fillText(lineTwo, centerX, subheadY);
+        drawTextWithBorder(lineTwo, centerX, subheadY, null, "subhead", 10, "#1a1a1a");
       }
       if (isQuoteLayout) {
         ctx.font = `300 ${nameFontSize}px "Noto Sans SC", "Roboto", sans-serif`;
@@ -1088,6 +1161,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       const lines = getTextLines(text);
       if (lines.length === 0) return;
       const effectiveWeight = normalizeFontWeight(weight);
+      const textKind = effectiveWeight < headlineWeight ? "subhead" : "headline";
       const maxTextWidth = spec.maxW || inferMaxTextWidth(x, align);
       const size = Math.min(maxSize, ...lines.map((line) => fitFontSizeToWidth(line, maxSize, effectiveWeight, fontFamily, maxTextWidth, minSize)));
       const lineHeight = size * 1.2;
@@ -1100,7 +1174,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
         ctx.fillStyle = color;
         ctx.textAlign = align;
         ctx.textBaseline = hasCenterY ? "middle" : "alphabetic";
-        lines.forEach((line, index) => ctx.fillText(line, x, firstY + index * lineHeight));
+        lines.forEach((line, index) => drawTextWithBorder(line, x, firstY + index * lineHeight, null, textKind));
       });
       const measuredW = Math.max(...lines.map((line) => ctx.measureText(line).width));
       const left = align === "center" ? x - measuredW / 2 : align === "right" ? x - measuredW : x;
@@ -1137,15 +1211,18 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
     const queueTrafficCTA = (box, maxFontSize = fonts.c) => {
       if (!wantsCTA) return;
       const trimmedText = (ctaText || "").trim();
-      const isSingleCharacter = Array.from(trimmedText).length === 1;
       const scale = Math.max(0.3, (ctaScale || 100) / 100);
-      const size = Math.max(8, maxFontSize * scale);
-      ctx.font = `700 ${size}px ${fontFamily}`;
-      const textWidth = ctx.measureText(trimmedText).width;
       const buttonH = box.h * scale;
-      const buttonW = isSingleCharacter ? buttonH : Math.max(buttonH, textWidth + buttonH * 1.4);
       const centerX = box.x + box.w / 2 + ctaOffset.x;
       const centerY = box.y + box.h / 2 + ctaOffset.y;
+      const metrics = getCTAMetrics(trimmedText, Math.max(8, maxFontSize * scale), {
+        weight: 700,
+        family: fontFamily,
+        minSize: 8,
+        maxButtonWidth: getCTAAvailableWidth(centerX, "center"),
+        buttonHeight: buttonH
+      });
+      const buttonW = metrics.w;
       const finalX = centerX - buttonW / 2;
       const finalY = centerY - buttonH / 2;
       drawQueue.cta = () => {
@@ -1156,8 +1233,8 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
         ctx.fillStyle = "#ffffff";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.font = `700 ${size}px ${fontFamily}`;
-        ctx.fillText(trimmedText, centerX, centerY);
+        ctx.font = metrics.font;
+        ctx.fillText(trimmedText, centerX, centerY, metrics.textMaxWidth);
       };
       hitBoxes.cta = { x: finalX, y: finalY, w: buttonW, h: buttonH };
     };
@@ -1181,6 +1258,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       const queueMeasuredText = (text, centerX, centerY, maxW, size, weight, color) => {
         const fittedSize = fitFontSizeToWidth(text, size, weight, fontFamily, maxW, 12);
         const effectiveWeight = normalizeFontWeight(weight);
+        const textKind = effectiveWeight < headlineWeight ? "subhead" : "headline";
         const metrics = measureText(text, fittedSize, effectiveWeight);
         const drawX = centerX + textOffset.x;
         const drawY = centerY + textOffset.y;
@@ -1191,7 +1269,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
           ctx.fillStyle = color;
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
-          ctx.fillText(text, drawX, drawY, maxW);
+          drawTextWithBorder(text, drawX, drawY, maxW, textKind);
         });
         addTextBounds(drawX - measuredW / 2, drawY - textH / 2, measuredW, textH);
       };
@@ -1974,6 +2052,13 @@ const DEFAULT_BANNER_STATE = {
   showCTA: true,
   headlineColor: "#ffffff",
   subheadColor: "#ffffff",
+  headlineBorderColor: "#000000",
+  subheadBorderColor: "#000000",
+  textShadowEnabled: false,
+  textShadowColor: "#000000",
+  textShadowBlur: 0,
+  textShadowOffsetX: 0,
+  textShadowOffsetY: 0,
   showBrandLogo: true,
   showProgramTitle: true,
   programTitle: "Program Name",
@@ -2541,6 +2626,15 @@ function App() {
       ctaText: override.ctaText !== void 0 ? override.ctaText : globalPayload.ctaText,
       headlineColor: override.headlineColor || (globalSettings.textColor === "white" ? "#ffffff" : "#000000"),
       subheadColor: override.subheadColor || (globalSettings.textColor === "white" ? "#ffffff" : "#333333"),
+      headlineBorderColor: override.headlineBorderColor || "#000000",
+      subheadBorderColor: override.subheadBorderColor || "#000000",
+      headlineBorderWidth: override.headlineBorderWidth !== void 0 ? override.headlineBorderWidth : void 0,
+      subheadBorderWidth: override.subheadBorderWidth !== void 0 ? override.subheadBorderWidth : void 0,
+      textShadowEnabled: override.textShadowEnabled !== void 0 ? override.textShadowEnabled : false,
+      textShadowColor: override.textShadowColor || "#000000",
+      textShadowBlur: override.textShadowBlur !== void 0 ? override.textShadowBlur : 0,
+      textShadowOffsetX: override.textShadowOffsetX !== void 0 ? override.textShadowOffsetX : 0,
+      textShadowOffsetY: override.textShadowOffsetY !== void 0 ? override.textShadowOffsetY : 0,
       showBrandLogo: override.showBrandLogo !== void 0 ? override.showBrandLogo : true,
       showProgramTitle: override.showProgramTitle !== void 0 ? override.showProgramTitle : true,
       programTitle: override.programTitle !== void 0 ? override.programTitle : "Program Name",
@@ -3110,6 +3204,80 @@ function App() {
       }
     });
   };
+  const alignLayerHorizontally = (layer, alignment, e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (!activeFormatObj || !activeSlideVariant || !["logo", "text", "cta"].includes(layer)) return;
+    const canvas = document.createElement("canvas");
+    canvas.width = activeFormatObj.w;
+    canvas.height = activeFormatObj.h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const currentOffsets = {
+      logo: { x: 0, y: 0 },
+      text: { x: 0, y: 0 },
+      cta: { x: 0, y: 0 },
+      kv: { x: 0, y: 0 },
+      bg: { x: 0, y: 0 },
+      ...(activeState.offsets || {})
+    };
+    const hitBoxes = renderBanner(ctx, canvas, activeFormatObj, activeSlideVariant, activeState, assets, currentOffsets, { ...globalSettings, showSafezone: false }, false, layer);
+    const box = hitBoxes[layer];
+    if (!box) return;
+    const safe = activeFormatObj.safe || { l: 0, r: 0 };
+    const safeLeft = safe.l || 0;
+    const safeRight = activeFormatObj.w - (safe.r || 0);
+    const layerOffset = currentOffsets[layer] || { x: 0, y: 0 };
+    let shiftX = safeLeft - box.x;
+    if (alignment === "center") shiftX = safeLeft + (safeRight - safeLeft) / 2 - (box.x + box.w / 2);
+    if (alignment === "right") shiftX = safeRight - (box.x + box.w);
+    const nextOffsets = {
+      ...currentOffsets,
+      [layer]: {
+        ...layerOffset,
+        x: Math.round((layerOffset.x || 0) + shiftX)
+      }
+    };
+    updateActiveState({ offsets: nextOffsets });
+    rememberCurrentDesignLayout({ ...activeState, offsets: nextOffsets });
+    setActiveLayerId(layer);
+  };
+  const AlignIcon = ({ alignment }) => {
+    const anchorX = alignment === "left" ? 5 : alignment === "right" ? 19 : 12;
+    const lineProps = alignment === "left" ? [
+      { x1: 5, x2: 17, y: 7 },
+      { x1: 5, x2: 14, y: 12 },
+      { x1: 5, x2: 19, y: 17 }
+    ] : alignment === "right" ? [
+      { x1: 7, x2: 19, y: 7 },
+      { x1: 10, x2: 19, y: 12 },
+      { x1: 5, x2: 19, y: 17 }
+    ] : [
+      { x1: 6, x2: 18, y: 7 },
+      { x1: 8, x2: 16, y: 12 },
+      { x1: 5, x2: 19, y: 17 }
+    ];
+    return /* @__PURE__ */ React.createElement("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.5", strokeLinecap: "round", strokeLinejoin: "round", className: "shrink-0" }, /* @__PURE__ */ React.createElement("path", { d: `M${anchorX} 4v16` }), lineProps.map((line) => /* @__PURE__ */ React.createElement("path", { key: `${line.x1}-${line.y}`, d: `M${line.x1} ${line.y}h${line.x2 - line.x1}` })));
+  };
+  const AlignmentButtonGroup = ({ layer }) => /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-3 gap-2" }, ["left", "center", "right"].map((alignment) => /* @__PURE__ */ React.createElement("button", { key: alignment, type: "button", title: `Align ${layer} ${alignment}`, "aria-label": `Align ${layer} ${alignment}`, onClick: (e) => alignLayerHorizontally(layer, alignment, e), className: "h-9 rounded-lg border border-brandRed bg-white text-brandRed shadow-sm transition hover:bg-brandRed hover:text-white flex items-center justify-center" }, /* @__PURE__ */ React.createElement(AlignIcon, { alignment }))));
+  const numericControlValue = (value, fallback = 0) => value === "" ? "" : Number.isFinite(Number(value)) ? Number(value) : fallback;
+  const TextBorderControl = ({ kind, label }) => {
+    const widthKey = kind === "subhead" ? "subheadBorderWidth" : "headlineBorderWidth";
+    const colorKey = kind === "subhead" ? "subheadBorderColor" : "headlineBorderColor";
+    const width = numericControlValue(activeState[widthKey], 0);
+    const color = activeState[colorKey] || "#000000";
+    return /* @__PURE__ */ React.createElement("div", { className: "bg-bgCore p-2.5 rounded-lg border border-borderInput space-y-2" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-3" }, /* @__PURE__ */ React.createElement("label", { className: "text-[9px] font-bold text-textMut uppercase tracking-wider" }, label), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement("input", { type: "color", value: color, onChange: (e) => updateActiveState({ [colorKey]: e.target.value }), className: "w-6 h-6 rounded cursor-pointer" }), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 border border-borderInput bg-surface rounded-md px-1.5 py-0.5" }, /* @__PURE__ */ React.createElement("input", { type: "number", min: "0", max: "24", value: width, onChange: (e) => updateActiveState({ [widthKey]: e.target.value === "" ? "" : parseInt(e.target.value, 10) }), className: "w-8 bg-transparent text-[10px] font-mono font-medium text-textPri text-center focus:outline-none" }), /* @__PURE__ */ React.createElement("span", { className: "text-[9px] font-mono text-textMut" }, "px")))), /* @__PURE__ */ React.createElement("input", { type: "range", min: "0", max: "24", step: "1", value: width || 0, onChange: (e) => updateActiveState({ [widthKey]: parseInt(e.target.value, 10) }), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full", title: `${label} thickness` }));
+  };
+  const TextShadowSlider = ({ label, keyName, min, max, step = "1", unit = "px" }) => {
+    const value = numericControlValue(activeState[keyName], 0);
+    return /* @__PURE__ */ React.createElement("div", { className: "space-y-2" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-3" }, /* @__PURE__ */ React.createElement("label", { className: "text-[9px] font-bold text-textMut uppercase tracking-wider" }, label), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 border border-borderInput bg-surface rounded-md px-1.5 py-0.5" }, /* @__PURE__ */ React.createElement("input", { type: "number", min, max, value, onChange: (e) => updateActiveState({ [keyName]: e.target.value === "" ? "" : parseFloat(e.target.value) }), className: "w-8 bg-transparent text-[10px] font-mono font-medium text-textPri text-center focus:outline-none" }), /* @__PURE__ */ React.createElement("span", { className: "text-[9px] font-mono text-textMut" }, unit))), /* @__PURE__ */ React.createElement("input", { type: "range", min, max, step, value: value || 0, onChange: (e) => updateActiveState({ [keyName]: parseFloat(e.target.value) }), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full", title: label }));
+  };
+  const TextShadowControl = () => /* @__PURE__ */ React.createElement("div", { className: "pt-3 border-t border-borderMain/30 space-y-3" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Text Shadow"), /* @__PURE__ */ React.createElement(CheckToggle, { checked: !!activeState.textShadowEnabled, onClick: (e) => {
+    e.stopPropagation();
+    updateActiveState({ textShadowEnabled: !activeState.textShadowEnabled });
+  }, title: "Toggle text shadow" })), activeState.textShadowEnabled && /* @__PURE__ */ React.createElement("div", { className: "bg-bgCore p-2.5 rounded-lg border border-borderInput space-y-3" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-3" }, /* @__PURE__ */ React.createElement("label", { className: "text-[9px] font-bold text-textMut uppercase tracking-wider" }, "Shadow Color"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement("input", { type: "color", value: activeState.textShadowColor || "#000000", onChange: (e) => updateActiveState({ textShadowColor: e.target.value }), className: "w-6 h-6 rounded cursor-pointer" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono font-medium text-textPri uppercase" }, activeState.textShadowColor || "#000000"))), /* @__PURE__ */ React.createElement(TextShadowSlider, { label: "Blur", keyName: "textShadowBlur", min: "0", max: "60" }), /* @__PURE__ */ React.createElement(TextShadowSlider, { label: "Move X", keyName: "textShadowOffsetX", min: "-60", max: "60" }), /* @__PURE__ */ React.createElement(TextShadowSlider, { label: "Move Y", keyName: "textShadowOffsetY", min: "-60", max: "60" })));
   const applySimilarDesignLayout = () => {
     if (!sameRatioDesignLayoutSource) return;
     const currentOffsets = activeState.offsets || {};
@@ -3490,7 +3658,7 @@ function App() {
       className: "w-full bg-bgCore border border-borderInput rounded-md p-2 text-sm font-medium text-white focus:outline-none focus:border-brandRed shadow-inner"
     },
     activeFormatObj.variants.map((option) => /* @__PURE__ */ React.createElement("option", { key: option.id, value: option.id }, option.label))
-  )), /* @__PURE__ */ React.createElement("div", { ref: textRef, onClick: () => setActiveLayerId("text"), className: `p-4 rounded-xl border transition-all duration-300 cursor-pointer ${activeLayerId === "text" ? "bg-surfaceElevated border-brandRed shadow-[0_0_20px_rgba(233,0,68,0.15)] ring-1 ring-brandRed/50" : "bg-surface/50 border-borderInput hover:border-borderMain hover:bg-surface"}` }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 mb-4 pb-2.5 border-b border-borderMain/50" }, /* @__PURE__ */ React.createElement(LayerIcon, { type: "text" }), /* @__PURE__ */ React.createElement("label", { className: "text-[11px] font-bold text-white uppercase tracking-widest pointer-events-none" }, "Text Elements")), /* @__PURE__ */ React.createElement("div", { className: "space-y-4" }, isYoutubeVideoCoverActive && /* @__PURE__ */ React.createElement("div", { className: "space-y-4 pb-4 border-b border-borderMain/50" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Gradient Overlay"), /* @__PURE__ */ React.createElement(CheckToggle, { checked: activeState.showYoutubeGradient, onClick: (e) => {
+  )), /* @__PURE__ */ React.createElement("div", { ref: textRef, onClick: () => setActiveLayerId("text"), className: `p-4 rounded-xl border transition-all duration-300 cursor-pointer ${activeLayerId === "text" ? "bg-surfaceElevated border-brandRed shadow-[0_0_20px_rgba(233,0,68,0.15)] ring-1 ring-brandRed/50" : "bg-surface/50 border-borderInput hover:border-borderMain hover:bg-surface"}` }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 mb-4 pb-2.5 border-b border-borderMain/50" }, /* @__PURE__ */ React.createElement(LayerIcon, { type: "text" }), /* @__PURE__ */ React.createElement("label", { className: "text-[11px] font-bold text-white uppercase tracking-widest pointer-events-none" }, "Text Elements")), /* @__PURE__ */ React.createElement("div", { className: "space-y-4" }, /* @__PURE__ */ React.createElement(AlignmentButtonGroup, { layer: "text" }), isYoutubeVideoCoverActive && /* @__PURE__ */ React.createElement("div", { className: "space-y-4 pb-4 border-b border-borderMain/50" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Gradient Overlay"), /* @__PURE__ */ React.createElement(CheckToggle, { checked: activeState.showYoutubeGradient, onClick: (e) => {
     e.stopPropagation();
     updateActiveState({ showYoutubeGradient: !activeState.showYoutubeGradient });
   }, title: "Toggle gradient overlay" })), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Program Title"), /* @__PURE__ */ React.createElement(CheckToggle, { checked: activeState.showProgramTitle, onClick: (e) => {
@@ -3559,13 +3727,13 @@ function App() {
       onChange: (e) => updateActiveState({ subhead: e.target.value }),
       className: "w-full bg-bgCore border border-borderInput rounded-md p-2 text-sm font-medium text-white focus:outline-none focus:border-brandRed shadow-inner"
     }
-  )), /* @__PURE__ */ React.createElement("div", { className: "pt-2 border-t border-borderMain/30 space-y-3" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Text Position X / Y"), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono font-medium text-textPri bg-bgCore border border-borderInput px-2 py-0.5 rounded" }, textOffset.x || 0, ", ", textOffset.y || 0)), /* @__PURE__ */ React.createElement("input", { type: "range", min: -textMoveLimitX, max: textMoveLimitX, step: "1", value: textOffset.x || 0, onChange: (e) => setTextOffsetAxis("x", parseInt(e.target.value, 10)), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full", title: "Text X Position" }), /* @__PURE__ */ React.createElement("input", { type: "range", min: -textMoveLimitY, max: textMoveLimitY, step: "1", value: textOffset.y || 0, onChange: (e) => setTextOffsetAxis("y", parseInt(e.target.value, 10)), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full", title: "Text Y Position" })), !isVideoGraphicFixedCover && /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-2 gap-3 pt-2" }, /* @__PURE__ */ React.createElement("div", { className: "bg-bgCore p-2 rounded border border-borderInput" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[9px] font-bold text-textMut mb-1.5 uppercase tracking-wider text-center" }, "Headline Color"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-center gap-2" }, /* @__PURE__ */ React.createElement("input", { type: "color", value: activeState.headlineColor, onChange: (e) => updateActiveState({ headlineColor: e.target.value }), className: "w-5 h-5 rounded cursor-pointer" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono font-medium text-textPri uppercase" }, activeState.headlineColor))), /* @__PURE__ */ React.createElement("div", { className: "bg-bgCore p-2 rounded border border-borderInput" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[9px] font-bold text-textMut mb-1.5 uppercase tracking-wider text-center" }, "Subhead Color"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-center gap-2" }, /* @__PURE__ */ React.createElement("input", { type: "color", value: activeState.subheadColor, onChange: (e) => updateActiveState({ subheadColor: e.target.value }), className: "w-5 h-5 rounded cursor-pointer" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono font-medium text-textPri uppercase" }, activeState.subheadColor)))))), !isArticleCoverActive && !isShortsCoverActive && activeVariantShowsLogoControls && /* @__PURE__ */ React.createElement("div", { ref: logoRef, onClick: () => setActiveLayerId("logo"), className: `p-4 rounded-xl border transition-all duration-300 cursor-pointer ${activeLayerId === "logo" ? "bg-surfaceElevated border-brandRed shadow-[0_0_20px_rgba(233,0,68,0.15)] ring-1 ring-brandRed/50" : "bg-surface/50 border-borderInput hover:border-borderMain hover:bg-surface"}` }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 mb-4 pb-2.5 border-b border-borderMain/50" }, /* @__PURE__ */ React.createElement(LayerIcon, { type: "logo" }), /* @__PURE__ */ React.createElement("label", { className: "text-[11px] font-bold text-white uppercase tracking-widest pointer-events-none" }, "Brand Logo")), /* @__PURE__ */ React.createElement("div", { className: "space-y-4" }, isTrafficDriverActive && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Show Logo on This Slide"), /* @__PURE__ */ React.createElement(CheckToggle, { checked: activeState.showBrandLogo, onClick: (e) => {
+  )), /* @__PURE__ */ React.createElement("div", { className: "pt-2 border-t border-borderMain/30 space-y-3" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Text Border"), /* @__PURE__ */ React.createElement(TextBorderControl, { kind: "headline", label: "Headline Border" }), /* @__PURE__ */ React.createElement(TextBorderControl, { kind: "subhead", label: "Subhead Border" })), /* @__PURE__ */ React.createElement(TextShadowControl, null), /* @__PURE__ */ React.createElement("div", { className: "pt-2 border-t border-borderMain/30 space-y-3" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Text Position X / Y"), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono font-medium text-textPri bg-bgCore border border-borderInput px-2 py-0.5 rounded" }, textOffset.x || 0, ", ", textOffset.y || 0)), /* @__PURE__ */ React.createElement("input", { type: "range", min: -textMoveLimitX, max: textMoveLimitX, step: "1", value: textOffset.x || 0, onChange: (e) => setTextOffsetAxis("x", parseInt(e.target.value, 10)), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full", title: "Text X Position" }), /* @__PURE__ */ React.createElement("input", { type: "range", min: -textMoveLimitY, max: textMoveLimitY, step: "1", value: textOffset.y || 0, onChange: (e) => setTextOffsetAxis("y", parseInt(e.target.value, 10)), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full", title: "Text Y Position" })), !isVideoGraphicFixedCover && /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-2 gap-3 pt-2" }, /* @__PURE__ */ React.createElement("div", { className: "bg-bgCore p-2 rounded border border-borderInput" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[9px] font-bold text-textMut mb-1.5 uppercase tracking-wider text-center" }, "Headline Color"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-center gap-2" }, /* @__PURE__ */ React.createElement("input", { type: "color", value: activeState.headlineColor, onChange: (e) => updateActiveState({ headlineColor: e.target.value }), className: "w-5 h-5 rounded cursor-pointer" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono font-medium text-textPri uppercase" }, activeState.headlineColor))), /* @__PURE__ */ React.createElement("div", { className: "bg-bgCore p-2 rounded border border-borderInput" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[9px] font-bold text-textMut mb-1.5 uppercase tracking-wider text-center" }, "Subhead Color"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-center gap-2" }, /* @__PURE__ */ React.createElement("input", { type: "color", value: activeState.subheadColor, onChange: (e) => updateActiveState({ subheadColor: e.target.value }), className: "w-5 h-5 rounded cursor-pointer" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono font-medium text-textPri uppercase" }, activeState.subheadColor)))))), !isArticleCoverActive && !isShortsCoverActive && activeVariantShowsLogoControls && /* @__PURE__ */ React.createElement("div", { ref: logoRef, onClick: () => setActiveLayerId("logo"), className: `p-4 rounded-xl border transition-all duration-300 cursor-pointer ${activeLayerId === "logo" ? "bg-surfaceElevated border-brandRed shadow-[0_0_20px_rgba(233,0,68,0.15)] ring-1 ring-brandRed/50" : "bg-surface/50 border-borderInput hover:border-borderMain hover:bg-surface"}` }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 mb-4 pb-2.5 border-b border-borderMain/50" }, /* @__PURE__ */ React.createElement(LayerIcon, { type: "logo" }), /* @__PURE__ */ React.createElement("label", { className: "text-[11px] font-bold text-white uppercase tracking-widest pointer-events-none" }, "Brand Logo")), /* @__PURE__ */ React.createElement("div", { className: "space-y-4" }, /* @__PURE__ */ React.createElement(AlignmentButtonGroup, { layer: "logo" }), isTrafficDriverActive && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Show Logo on This Slide"), /* @__PURE__ */ React.createElement(CheckToggle, { checked: activeState.showBrandLogo, onClick: (e) => {
     e.stopPropagation();
     updateActiveState({ showBrandLogo: !activeState.showBrandLogo });
-  }, title: "Toggle logo on this slide" })), activeState.showBrandLogo && /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-2" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Logo Scale"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 bg-bgCore border border-borderInput rounded-md px-1.5 py-0.5 shadow-inner" }, /* @__PURE__ */ React.createElement("input", { type: "number", min: "30", max: "250", value: activeState.logoScale, onChange: (e) => updateActiveState({ logoScale: e.target.value === "" ? "" : parseInt(e.target.value) }), className: "w-9 bg-transparent text-[11px] font-mono font-medium text-textPri text-center focus:outline-none" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono text-textMut" }, "%"))), /* @__PURE__ */ React.createElement("input", { type: "range", min: "30", max: "250", step: "1", value: activeState.logoScale || 100, onChange: (e) => updateActiveState({ logoScale: parseInt(e.target.value) }), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full", title: "Logo Scale" }))), isYoutubeVideoCoverActive && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Show Brand Logo"), /* @__PURE__ */ React.createElement(CheckToggle, { checked: activeState.showBrandLogo, onClick: (e) => {
+  }, title: "Toggle logo on this slide" })), activeState.showBrandLogo && /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-2" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Logo Scale"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 bg-bgCore border border-borderInput rounded-md px-1.5 py-0.5 shadow-inner" }, /* @__PURE__ */ React.createElement("input", { type: "number", min: "30", max: "500", value: activeState.logoScale, onChange: (e) => updateActiveState({ logoScale: e.target.value === "" ? "" : parseInt(e.target.value) }), className: "w-9 bg-transparent text-[11px] font-mono font-medium text-textPri text-center focus:outline-none" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono text-textMut" }, "%"))), /* @__PURE__ */ React.createElement("input", { type: "range", min: "30", max: "500", step: "1", value: activeState.logoScale || 100, onChange: (e) => updateActiveState({ logoScale: parseInt(e.target.value) }), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full", title: "Logo Scale" }))), isYoutubeVideoCoverActive && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Show Brand Logo"), /* @__PURE__ */ React.createElement(CheckToggle, { checked: activeState.showBrandLogo, onClick: (e) => {
     e.stopPropagation();
     updateActiveState({ showBrandLogo: !activeState.showBrandLogo });
-  }, title: "Toggle brand logo" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-2" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Logo Scale"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 bg-bgCore border border-borderInput rounded-md px-1.5 py-0.5 shadow-inner" }, /* @__PURE__ */ React.createElement("input", { type: "number", min: "30", max: "250", value: activeState.logoScale, onChange: (e) => updateActiveState({ logoScale: e.target.value === "" ? "" : parseInt(e.target.value) }), className: "w-9 bg-transparent text-[11px] font-mono font-medium text-textPri text-center focus:outline-none" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono text-textMut" }, "%"))), /* @__PURE__ */ React.createElement("input", { type: "range", min: "30", max: "250", step: "1", value: activeState.logoScale || 100, onChange: (e) => updateActiveState({ logoScale: parseInt(e.target.value) }), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full", title: "Logo Scale" }))), !isYoutubeVideoCoverActive && !isTrafficDriverActive && /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-2" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Logo Scale"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 bg-bgCore border border-borderInput rounded-md px-1.5 py-0.5 shadow-inner" }, /* @__PURE__ */ React.createElement("input", { type: "number", min: "30", max: "250", value: activeState.logoScale, onChange: (e) => updateActiveState({ logoScale: e.target.value === "" ? "" : parseInt(e.target.value) }), className: "w-9 bg-transparent text-[11px] font-mono font-medium text-textPri text-center focus:outline-none" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono text-textMut" }, "%"))), /* @__PURE__ */ React.createElement("input", { type: "range", min: "30", max: "250", step: "1", value: activeState.logoScale || 100, onChange: (e) => updateActiveState({ logoScale: parseInt(e.target.value) }), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full", title: "Logo Scale" })))), !isVideoGraphicFixedCover && activeVariantAllowsCTA && /* @__PURE__ */ React.createElement("div", { ref: ctaRef, onClick: () => setActiveLayerId("cta"), className: `p-4 rounded-xl border transition-all duration-300 cursor-pointer ${activeLayerId === "cta" ? "bg-surfaceElevated border-brandRed shadow-[0_0_20px_rgba(233,0,68,0.15)] ring-1 ring-brandRed/50" : "bg-surface/50 border-borderInput hover:border-borderMain hover:bg-surface"}` }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 mb-4 pb-2.5 border-b border-borderMain/50" }, /* @__PURE__ */ React.createElement(LayerIcon, { type: "cta" }), /* @__PURE__ */ React.createElement("label", { className: "text-[11px] font-bold text-white uppercase tracking-widest pointer-events-none" }, "Call to Action")), /* @__PURE__ */ React.createElement("div", { className: "space-y-4" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Show CTA on Canvas"), /* @__PURE__ */ React.createElement(CheckToggle, { checked: activeState.showCTA, onClick: (e) => {
+  }, title: "Toggle brand logo" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-2" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Logo Scale"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 bg-bgCore border border-borderInput rounded-md px-1.5 py-0.5 shadow-inner" }, /* @__PURE__ */ React.createElement("input", { type: "number", min: "30", max: "500", value: activeState.logoScale, onChange: (e) => updateActiveState({ logoScale: e.target.value === "" ? "" : parseInt(e.target.value) }), className: "w-9 bg-transparent text-[11px] font-mono font-medium text-textPri text-center focus:outline-none" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono text-textMut" }, "%"))), /* @__PURE__ */ React.createElement("input", { type: "range", min: "30", max: "500", step: "1", value: activeState.logoScale || 100, onChange: (e) => updateActiveState({ logoScale: parseInt(e.target.value) }), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full", title: "Logo Scale" }))), !isYoutubeVideoCoverActive && !isTrafficDriverActive && /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-2" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Logo Scale"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 bg-bgCore border border-borderInput rounded-md px-1.5 py-0.5 shadow-inner" }, /* @__PURE__ */ React.createElement("input", { type: "number", min: "30", max: "500", value: activeState.logoScale, onChange: (e) => updateActiveState({ logoScale: e.target.value === "" ? "" : parseInt(e.target.value) }), className: "w-9 bg-transparent text-[11px] font-mono font-medium text-textPri text-center focus:outline-none" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono text-textMut" }, "%"))), /* @__PURE__ */ React.createElement("input", { type: "range", min: "30", max: "500", step: "1", value: activeState.logoScale || 100, onChange: (e) => updateActiveState({ logoScale: parseInt(e.target.value) }), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full", title: "Logo Scale" })))), !isVideoGraphicFixedCover && activeVariantAllowsCTA && /* @__PURE__ */ React.createElement("div", { ref: ctaRef, onClick: () => setActiveLayerId("cta"), className: `p-4 rounded-xl border transition-all duration-300 cursor-pointer ${activeLayerId === "cta" ? "bg-surfaceElevated border-brandRed shadow-[0_0_20px_rgba(233,0,68,0.15)] ring-1 ring-brandRed/50" : "bg-surface/50 border-borderInput hover:border-borderMain hover:bg-surface"}` }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 mb-4 pb-2.5 border-b border-borderMain/50" }, /* @__PURE__ */ React.createElement(LayerIcon, { type: "cta" }), /* @__PURE__ */ React.createElement("label", { className: "text-[11px] font-bold text-white uppercase tracking-widest pointer-events-none" }, "Call to Action")), /* @__PURE__ */ React.createElement("div", { className: "space-y-4" }, activeState.showCTA && /* @__PURE__ */ React.createElement(AlignmentButtonGroup, { layer: "cta" }), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Show CTA on Canvas"), /* @__PURE__ */ React.createElement(CheckToggle, { checked: activeState.showCTA, onClick: (e) => {
     e.stopPropagation();
     updateActiveState({ showCTA: !activeState.showCTA });
   }, title: "Toggle CTA" })), activeState.showCTA && /* @__PURE__ */ React.createElement("div", { className: "pt-2 border-t border-borderMain/30" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut mb-1.5 uppercase tracking-wider" }, "Override Text"), /* @__PURE__ */ React.createElement(
@@ -3576,10 +3744,10 @@ function App() {
       onChange: (e) => updateActiveState({ ctaText: e.target.value }),
       className: "w-full bg-bgCore border border-borderInput rounded-md p-2 text-sm font-medium text-white focus:outline-none focus:border-brandRed shadow-inner"
     }
-  ), isTrafficDriverActive && (activeSlideVariant == null ? void 0 : activeSlideVariant.hasCTA) && /* @__PURE__ */ React.createElement("div", { className: "mt-4" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between mb-2" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "CTA Scale"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 bg-bgCore border border-borderInput rounded-md px-1.5 py-0.5 shadow-inner" }, /* @__PURE__ */ React.createElement("input", { type: "number", min: "30", max: "250", value: activeState.ctaScale || 100, onChange: (e) => updateActiveState({ ctaScale: e.target.value === "" ? "" : parseInt(e.target.value) }), className: "w-9 bg-transparent text-[11px] font-mono font-medium text-textPri text-center focus:outline-none" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono text-textMut" }, "%"))), /* @__PURE__ */ React.createElement("input", { type: "range", min: "30", max: "250", step: "1", value: activeState.ctaScale || 100, onChange: (e) => updateActiveState({ ctaScale: parseInt(e.target.value) }), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full", title: "CTA Scale" }))))), /* @__PURE__ */ React.createElement("div", { ref: bgRef, onClick: () => setActiveLayerId("bg"), className: `p-4 rounded-xl border transition-all duration-300 cursor-pointer ${activeLayerId === "bg" ? "bg-surfaceElevated border-brandRed shadow-[0_0_20px_rgba(233,0,68,0.15)] ring-1 ring-brandRed/50" : "bg-surface/50 border-borderInput hover:border-borderMain hover:bg-surface"}` }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between border-b border-borderMain/50 pb-2.5 mb-4" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement(LayerIcon, { type: "bg" }), /* @__PURE__ */ React.createElement("label", { className: "text-[11px] font-bold text-white uppercase tracking-widest pointer-events-none" }, "Background")), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 bg-bgCore px-2 py-1 rounded border border-borderInput" }, /* @__PURE__ */ React.createElement("span", { className: "text-[9px] text-textMut font-bold uppercase tracking-wider pointer-events-none" }, "Repeat"), /* @__PURE__ */ React.createElement(CheckToggle, { checked: activeState.bgRepeat, small: true, onClick: (e) => {
+  ), isTrafficDriverActive && (activeSlideVariant == null ? void 0 : activeSlideVariant.hasCTA) && /* @__PURE__ */ React.createElement("div", { className: "mt-4" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between mb-2" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "CTA Scale"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 bg-bgCore border border-borderInput rounded-md px-1.5 py-0.5 shadow-inner" }, /* @__PURE__ */ React.createElement("input", { type: "number", min: "30", max: "500", value: activeState.ctaScale || 100, onChange: (e) => updateActiveState({ ctaScale: e.target.value === "" ? "" : parseInt(e.target.value) }), className: "w-9 bg-transparent text-[11px] font-mono font-medium text-textPri text-center focus:outline-none" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono text-textMut" }, "%"))), /* @__PURE__ */ React.createElement("input", { type: "range", min: "30", max: "500", step: "1", value: activeState.ctaScale || 100, onChange: (e) => updateActiveState({ ctaScale: parseInt(e.target.value) }), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full", title: "CTA Scale" }))))), /* @__PURE__ */ React.createElement("div", { ref: bgRef, onClick: () => setActiveLayerId("bg"), className: `p-4 rounded-xl border transition-all duration-300 cursor-pointer ${activeLayerId === "bg" ? "bg-surfaceElevated border-brandRed shadow-[0_0_20px_rgba(233,0,68,0.15)] ring-1 ring-brandRed/50" : "bg-surface/50 border-borderInput hover:border-borderMain hover:bg-surface"}` }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between border-b border-borderMain/50 pb-2.5 mb-4" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement(LayerIcon, { type: "bg" }), /* @__PURE__ */ React.createElement("label", { className: "text-[11px] font-bold text-white uppercase tracking-widest pointer-events-none" }, "Background")), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 bg-bgCore px-2 py-1 rounded border border-borderInput" }, /* @__PURE__ */ React.createElement("span", { className: "text-[9px] text-textMut font-bold uppercase tracking-wider pointer-events-none" }, "Repeat"), /* @__PURE__ */ React.createElement(CheckToggle, { checked: activeState.bgRepeat, small: true, onClick: (e) => {
     e.stopPropagation();
     updateActiveState({ bgRepeat: !activeState.bgRepeat });
-  }, title: "Toggle repeat" }))), /* @__PURE__ */ React.createElement("div", { className: "space-y-5" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-2" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Scale"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 bg-bgCore border border-borderInput rounded-md px-1.5 py-0.5 shadow-inner" }, /* @__PURE__ */ React.createElement("input", { type: "number", min: "10", max: "400", value: activeState.bgScale, onChange: (e) => updateActiveState({ bgScale: e.target.value === "" ? "" : parseInt(e.target.value) }), className: "w-9 bg-transparent text-[11px] font-mono font-medium text-textPri text-center focus:outline-none" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono text-textMut" }, "%"))), /* @__PURE__ */ React.createElement("input", { type: "range", min: "10", max: "400", step: "1", value: activeState.bgScale || 100, onChange: (e) => updateActiveState({ bgScale: parseInt(e.target.value) }), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-2" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Rotation"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 bg-bgCore border border-borderInput rounded-md px-1.5 py-0.5 shadow-inner" }, /* @__PURE__ */ React.createElement("input", { type: "number", min: "-180", max: "180", value: activeState.bgRotate, onChange: (e) => updateActiveState({ bgRotate: e.target.value === "" ? "" : parseInt(e.target.value) }), className: "w-9 bg-transparent text-[11px] font-mono font-medium text-textPri text-center focus:outline-none" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono text-textMut" }, "\xB0"))), /* @__PURE__ */ React.createElement("input", { type: "range", min: "-180", max: "180", step: "1", value: activeState.bgRotate || 0, onChange: (e) => updateActiveState({ bgRotate: parseInt(e.target.value) }), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full" })), /* @__PURE__ */ React.createElement("div", { className: "pt-1" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider mb-3" }, "Move Position X / Y"), /* @__PURE__ */ React.createElement("input", { type: "range", min: "-1", max: "1", step: "0.02", value: activeState.bgOffsetX, onChange: (e) => updateActiveState({ bgOffsetX: parseFloat(e.target.value) }), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full mb-3" }), /* @__PURE__ */ React.createElement("input", { type: "range", min: "-1", max: "1", step: "0.02", value: activeState.bgOffsetY, onChange: (e) => updateActiveState({ bgOffsetY: parseFloat(e.target.value) }), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full" })))), assets.kvImages.length > 0 && globalSettings.showKV && /* @__PURE__ */ React.createElement("div", { ref: kvRef, className: `p-4 rounded-lg border transition-all duration-300 ${(activeLayerId == null ? void 0 : activeLayerId.startsWith("kv-")) ? "bg-surfaceElevated border-brandRed shadow-[0_0_15px_rgba(233,0,68,0.15)] ring-1 ring-brandRed/50" : "bg-surface/40 border-borderInput hover:border-borderMain hover:bg-surface"}` }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 mb-1" }, /* @__PURE__ */ React.createElement(LayerIcon, { type: "kv" }), /* @__PURE__ */ React.createElement("label", { className: "text-[11px] font-bold text-white uppercase tracking-widest pointer-events-none truncate" }, "Design Elements")), /* @__PURE__ */ React.createElement("p", { className: "text-[10px] leading-relaxed text-textMut font-medium mb-3" }, isTrafficDriverActive ? "Omitting or editing here only affects this slide." : "Omitting or editing here only affects this banner."), sameRatioDesignLayoutSource && /* @__PURE__ */ React.createElement("button", { type: "button", onClick: applySimilarDesignLayout, className: "w-full mb-3 px-3 py-2 rounded-lg border border-brandRed bg-white text-brandRed text-[10px] font-bold uppercase tracking-wider hover:bg-brandRed hover:text-white transition shadow-sm" }, "Use layout from ", sameRatioDesignLayoutSource.name), activeVisibleKvImages.length > 0 && /* @__PURE__ */ React.createElement("div", { className: "flex gap-2 overflow-x-auto pb-3 mb-3 scrollbar-hide" }, activeVisibleKvImages.map((kv) => {
+  }, title: "Toggle repeat" }))), /* @__PURE__ */ React.createElement("div", { className: "space-y-5" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-2" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Scale"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 bg-bgCore border border-borderInput rounded-md px-1.5 py-0.5 shadow-inner" }, /* @__PURE__ */ React.createElement("input", { type: "number", min: "10", max: "500", value: activeState.bgScale, onChange: (e) => updateActiveState({ bgScale: e.target.value === "" ? "" : parseInt(e.target.value) }), className: "w-9 bg-transparent text-[11px] font-mono font-medium text-textPri text-center focus:outline-none" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono text-textMut" }, "%"))), /* @__PURE__ */ React.createElement("input", { type: "range", min: "10", max: "500", step: "1", value: activeState.bgScale || 100, onChange: (e) => updateActiveState({ bgScale: parseInt(e.target.value) }), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-2" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Rotation"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 bg-bgCore border border-borderInput rounded-md px-1.5 py-0.5 shadow-inner" }, /* @__PURE__ */ React.createElement("input", { type: "number", min: "-180", max: "180", value: activeState.bgRotate, onChange: (e) => updateActiveState({ bgRotate: e.target.value === "" ? "" : parseInt(e.target.value) }), className: "w-9 bg-transparent text-[11px] font-mono font-medium text-textPri text-center focus:outline-none" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono text-textMut" }, "\xB0"))), /* @__PURE__ */ React.createElement("input", { type: "range", min: "-180", max: "180", step: "1", value: activeState.bgRotate || 0, onChange: (e) => updateActiveState({ bgRotate: parseInt(e.target.value) }), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full" })), /* @__PURE__ */ React.createElement("div", { className: "pt-1" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider mb-3" }, "Move Position X / Y"), /* @__PURE__ */ React.createElement("input", { type: "range", min: "-1", max: "1", step: "0.02", value: activeState.bgOffsetX, onChange: (e) => updateActiveState({ bgOffsetX: parseFloat(e.target.value) }), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full mb-3" }), /* @__PURE__ */ React.createElement("input", { type: "range", min: "-1", max: "1", step: "0.02", value: activeState.bgOffsetY, onChange: (e) => updateActiveState({ bgOffsetY: parseFloat(e.target.value) }), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full" })))), assets.kvImages.length > 0 && globalSettings.showKV && /* @__PURE__ */ React.createElement("div", { ref: kvRef, className: `p-4 rounded-lg border transition-all duration-300 ${(activeLayerId == null ? void 0 : activeLayerId.startsWith("kv-")) ? "bg-surfaceElevated border-brandRed shadow-[0_0_15px_rgba(233,0,68,0.15)] ring-1 ring-brandRed/50" : "bg-surface/40 border-borderInput hover:border-borderMain hover:bg-surface"}` }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 mb-1" }, /* @__PURE__ */ React.createElement(LayerIcon, { type: "kv" }), /* @__PURE__ */ React.createElement("label", { className: "text-[11px] font-bold text-white uppercase tracking-widest pointer-events-none truncate" }, "Design Elements")), /* @__PURE__ */ React.createElement("p", { className: "text-[10px] leading-relaxed text-textMut font-medium mb-3" }, isTrafficDriverActive ? "Omitting or editing here only affects this slide." : "Omitting or editing here only affects this banner."), sameRatioDesignLayoutSource && /* @__PURE__ */ React.createElement("button", { type: "button", onClick: applySimilarDesignLayout, className: "w-full mb-3 px-3 py-2 rounded-lg border border-brandRed bg-white text-brandRed text-[10px] font-bold uppercase tracking-wider hover:bg-brandRed hover:text-white transition shadow-sm" }, "Use layout from ", sameRatioDesignLayoutSource.name), activeVisibleKvImages.length > 0 && /* @__PURE__ */ React.createElement("div", { className: "flex gap-2 overflow-x-auto pb-3 mb-3 scrollbar-hide" }, activeVisibleKvImages.map((kv) => {
     const isActiveKV = activeKvId === kv.id;
     return /* @__PURE__ */ React.createElement("div", { key: kv.id, "data-kv-chip": kv.id, className: "relative shrink-0 max-w-[150px] group" }, /* @__PURE__ */ React.createElement(
       "button",
@@ -3607,7 +3775,7 @@ function App() {
       updateActiveState({ kvTransforms });
       rememberCurrentDesignLayout({ ...activeState, kvTransforms });
     };
-    return /* @__PURE__ */ React.createElement("div", { className: "space-y-5" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-2" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Scale"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 bg-bgCore border border-borderInput rounded-md px-1.5 py-0.5 shadow-inner" }, /* @__PURE__ */ React.createElement("input", { type: "number", min: "10", max: "400", value: transform.scale, onChange: (e) => updateKV("scale", e.target.value === "" ? "" : parseInt(e.target.value)), className: "w-9 bg-transparent text-[11px] font-mono font-medium text-textPri text-center focus:outline-none" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono text-textMut" }, "%"))), /* @__PURE__ */ React.createElement("input", { type: "range", min: "10", max: "400", step: "1", value: transform.scale, onChange: (e) => updateKV("scale", parseInt(e.target.value)), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-2" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Rotation"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 bg-bgCore border border-borderInput rounded-md px-1.5 py-0.5 shadow-inner" }, /* @__PURE__ */ React.createElement("input", { type: "number", min: "-180", max: "180", value: transform.rotate, onChange: (e) => updateKV("rotate", e.target.value === "" ? "" : parseInt(e.target.value)), className: "w-9 bg-transparent text-[11px] font-mono font-medium text-textPri text-center focus:outline-none" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono text-textMut" }, "\xB0"))), /* @__PURE__ */ React.createElement("input", { type: "range", min: "-180", max: "180", step: "1", value: transform.rotate, onChange: (e) => updateKV("rotate", parseInt(e.target.value)), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider mb-3" }, "Pivot Position X / Y"), /* @__PURE__ */ React.createElement("input", { type: "range", min: "-1", max: "1", step: "0.02", value: transform.offsetX, onChange: (e) => updateKV("offsetX", parseFloat(e.target.value)), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full mb-3" }), /* @__PURE__ */ React.createElement("input", { type: "range", min: "-1", max: "1", step: "0.02", value: transform.offsetY, onChange: (e) => updateKV("offsetY", parseFloat(e.target.value)), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full" })));
+    return /* @__PURE__ */ React.createElement("div", { className: "space-y-5" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-2" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Scale"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 bg-bgCore border border-borderInput rounded-md px-1.5 py-0.5 shadow-inner" }, /* @__PURE__ */ React.createElement("input", { type: "number", min: "10", max: "500", value: transform.scale, onChange: (e) => updateKV("scale", e.target.value === "" ? "" : parseInt(e.target.value)), className: "w-9 bg-transparent text-[11px] font-mono font-medium text-textPri text-center focus:outline-none" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono text-textMut" }, "%"))), /* @__PURE__ */ React.createElement("input", { type: "range", min: "10", max: "500", step: "1", value: transform.scale, onChange: (e) => updateKV("scale", parseInt(e.target.value)), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-2" }, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Rotation"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 bg-bgCore border border-borderInput rounded-md px-1.5 py-0.5 shadow-inner" }, /* @__PURE__ */ React.createElement("input", { type: "number", min: "-180", max: "180", value: transform.rotate, onChange: (e) => updateKV("rotate", e.target.value === "" ? "" : parseInt(e.target.value)), className: "w-9 bg-transparent text-[11px] font-mono font-medium text-textPri text-center focus:outline-none" }), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono text-textMut" }, "\xB0"))), /* @__PURE__ */ React.createElement("input", { type: "range", min: "-180", max: "180", step: "1", value: transform.rotate, onChange: (e) => updateKV("rotate", parseInt(e.target.value)), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut uppercase tracking-wider mb-3" }, "Pivot Position X / Y"), /* @__PURE__ */ React.createElement("input", { type: "range", min: "-1", max: "1", step: "0.02", value: transform.offsetX, onChange: (e) => updateKV("offsetX", parseFloat(e.target.value)), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full mb-3" }), /* @__PURE__ */ React.createElement("input", { type: "range", min: "-1", max: "1", step: "0.02", value: transform.offsetY, onChange: (e) => updateKV("offsetY", parseFloat(e.target.value)), className: "w-full accent-brandRed h-1 bg-borderInput appearance-none rounded-full" })));
   })())), /* @__PURE__ */ React.createElement("div", { className: "p-6 border-t border-borderMain bg-sidebar sticky bottom-0 z-10 shrink-0" }, /* @__PURE__ */ React.createElement("button", { onClick: () => setIsEditorModalOpen(false), className: "w-full bg-brandRed hover:bg-rose-600 text-white font-bold py-3.5 px-4 rounded-xl transition-all shadow-[0_0_20px_rgba(233,0,68,0.25)] hover:shadow-[0_0_25px_rgba(233,0,68,0.4)] flex items-center justify-center gap-2" }, /* @__PURE__ */ React.createElement("svg", { width: "18", height: "18", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round" }, /* @__PURE__ */ React.createElement("polyline", { points: "20 6 9 17 4 12" })), "Apply Changes & Return")))), isReviewModalOpen && /* @__PURE__ */ React.createElement("div", { className: "fixed inset-0 z-50 bg-bgCore/95 flex flex-col backdrop-blur-sm" }, /* @__PURE__ */ React.createElement("div", { className: "h-20 px-8 border-b border-white/10 flex items-center justify-between shrink-0 bg-sidebar shadow-lg" }, /* @__PURE__ */ React.createElement("h2", { className: "text-xl font-bold text-white flex items-center gap-3" }, /* @__PURE__ */ React.createElement("svg", { width: "24", height: "24", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.5", strokeLinecap: "round", strokeLinejoin: "round", className: "text-green-500" }, /* @__PURE__ */ React.createElement("polyline", { points: "20 6 9 17 4 12" })), "Review Approved Banners (", approvedBanners.size, ")"), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-5" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center bg-bgCore border border-borderInput rounded-xl overflow-hidden focus-within:border-brandRed transition-colors shadow-inner" }, /* @__PURE__ */ React.createElement("span", { className: "px-4 py-2.5 text-textDim text-[11px] font-bold uppercase tracking-widest bg-surface border-r border-borderInput" }, "Campaign Name"), /* @__PURE__ */ React.createElement("input", { type: "text", placeholder: "e.g. summer-sale", value: campaignName, onChange: (e) => {
           const val = e.target.value.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-");
           setCampaignName(val);
