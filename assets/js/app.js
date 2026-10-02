@@ -790,7 +790,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       if (isInteractive && activeLayerId === kvId) {
         const s = Math.max(0.01, finalScale);
         ctx.strokeStyle = "#e90044";
-        ctx.lineWidth = 4 / s;
+        ctx.lineWidth = 2 / s;
         ctx.setLineDash([15 / s, 10 / s]);
         ctx.strokeRect(-drawW / 2, -drawH / 2, drawW, drawH);
         ctx.setLineDash([]);
@@ -1888,7 +1888,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
     ctx.fillRect(0, safe.t, safe.l, canvas.height - safe.t - safe.b);
     ctx.fillRect(canvas.width - safe.r, safe.t, safe.r, canvas.height - safe.t - safe.b);
     ctx.strokeStyle = "rgba(125, 211, 252, 0.98)";
-    ctx.lineWidth = Math.max(2, Math.min(4, Math.min(canvas.width, canvas.height) * 0.006));
+    ctx.lineWidth = 2;
     ctx.shadowColor = "rgba(15, 23, 42, 0.65)";
     ctx.shadowBlur = 3;
     ctx.setLineDash([8, 8]);
@@ -1914,7 +1914,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       const rotateY = box.y - handleSize * 2.2;
       ctx.save();
       ctx.strokeStyle = "#e90044";
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 2;
       ctx.setLineDash([6, 4]);
       ctx.strokeRect(box.x, box.y, box.w, box.h);
       ctx.fillStyle = activeLayerId === "bg" ? "rgba(233, 0, 68, 0.04)" : "rgba(233, 0, 68, 0.08)";
