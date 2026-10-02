@@ -9,6 +9,8 @@ Local Figma plugin for building, validating, and exporting the AutoBanner templa
 
 The plugin writes deterministic semantic metadata in the `autobanner` shared-plugin-data namespace. Coordinates are canvas-relative pixels. Traffic Driver fields historically named `font_size_pt` are represented 1:1 as pixels to match the current renderer.
 
+The **Template set** menu is discovered from the current Figma document. Any page containing at least one valid banner frame is listed automatically, so adding, renaming, or deleting a template-set page is reflected when the plugin opens or regains focus. Custom sets can be scanned, validated, and exported; **Build** remains disabled for them because only the built-in sets have generator blueprints.
+
 ## Adding a new banner format
 
 Duplicate an existing banner section on the correct category page, then rename the section using `Format Name / variant-name`. For example:
