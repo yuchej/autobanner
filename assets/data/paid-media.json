@@ -1,0 +1,703 @@
+{
+  "schema_version": "1.0",
+  "generated_by": "AutoBanner Template Exporter",
+  "templates": {
+    "Paid Media": {
+      "paid-meta-square": {
+        "item_name": "META — Square",
+        "canvas": {
+          "width": 1080,
+          "height": 1080
+        },
+        "safe_zone": {
+          "top": 54,
+          "bottom": 54,
+          "left": 54,
+          "right": 54
+        },
+        "design_guidance": "Keep key text/logo within ~90% central area",
+        "content_area": {
+          "x": 54,
+          "y": 54,
+          "width": 972,
+          "height": 972,
+          "background": "white",
+          "clip_content": true
+        },
+        "font_family": "Noto Sans SC",
+        "font_sizes": {
+          "headline": 72,
+          "subhead": 44,
+          "cta": 32
+        },
+        "typography_units": "renderer_px",
+        "layouts": {
+          "1_col": {
+            "variants": {
+              "headline-subhead": {
+                "reference_node_id": "135:3578",
+                "font_sizes": {
+                  "headline": 100,
+                  "subhead": 60
+                },
+                "headline": {
+                  "x": 160,
+                  "y": 411,
+                  "width": 760,
+                  "height": 144
+                },
+                "subhead": {
+                  "x": 160,
+                  "y": 555,
+                  "width": 760,
+                  "height": 79
+                }
+              },
+              "logo-headline-subhead": {
+                "reference_node_id": "135:3585",
+                "font_sizes": {
+                  "headline": 100,
+                  "logo": 28,
+                  "subhead": 60
+                },
+                "headline": {
+                  "x": 160,
+                  "y": 497,
+                  "width": 760,
+                  "height": 144
+                },
+                "logo": {
+                  "x": 309,
+                  "y": 214,
+                  "width": 462,
+                  "height": 249
+                },
+                "subhead": {
+                  "x": 160,
+                  "y": 642,
+                  "width": 760,
+                  "height": 79
+                }
+              },
+              "headline-subhead-cta": {
+                "reference_node_id": "135:3594",
+                "font_sizes": {
+                  "headline": 100,
+                  "subhead": 60,
+                  "cta": 32
+                },
+                "headline": {
+                  "x": 160,
+                  "y": 381,
+                  "width": 760,
+                  "height": 144
+                },
+                "subhead": {
+                  "x": 160,
+                  "y": 531,
+                  "width": 760,
+                  "height": 79
+                },
+                "cta": {
+                  "x": 428,
+                  "y": 644,
+                  "width": 224,
+                  "height": 83
+                }
+              },
+              "logo-headline-subhead-cta": {
+                "reference_node_id": "135:3603",
+                "font_sizes": {
+                  "logo": 28,
+                  "headline": 100,
+                  "subhead": 60,
+                  "cta": 32
+                },
+                "logo": {
+                  "x": 309,
+                  "y": 146,
+                  "width": 462,
+                  "height": 249
+                },
+                "headline": {
+                  "x": 160,
+                  "y": 452,
+                  "width": 760,
+                  "height": 144
+                },
+                "subhead": {
+                  "x": 160,
+                  "y": 599,
+                  "width": 760,
+                  "height": 79
+                },
+                "cta": {
+                  "x": 428,
+                  "y": 792,
+                  "width": 224,
+                  "height": 83
+                }
+              }
+            }
+          }
+        }
+      },
+      "paid-meta-portrait": {
+        "item_name": "META — Portrait",
+        "canvas": {
+          "width": 1080,
+          "height": 1920
+        },
+        "safe_zone": {
+          "top": 250,
+          "bottom": 300,
+          "left": 54,
+          "right": 54
+        },
+        "design_guidance": "Keep key content away from top ~250 px and bottom ~300 px",
+        "content_area": {
+          "x": 54,
+          "y": 250,
+          "width": 972,
+          "height": 1370,
+          "background": "white",
+          "clip_content": true
+        },
+        "font_family": "Noto Sans SC",
+        "font_sizes": {
+          "headline": 84,
+          "subhead": 52,
+          "cta": 36
+        },
+        "typography_units": "renderer_px",
+        "layouts": {
+          "1_col": {
+            "variants": {
+              "headline-subhead": {
+                "reference_node_id": "135:3614",
+                "font_sizes": {
+                  "headline": 90,
+                  "subhead": 60
+                },
+                "headline": {
+                  "x": 160,
+                  "y": 787,
+                  "width": 760,
+                  "height": 168
+                },
+                "subhead": {
+                  "x": 160,
+                  "y": 935,
+                  "width": 760,
+                  "height": 94
+                }
+              },
+              "logo-headline-subhead": {
+                "reference_node_id": "135:3621",
+                "font_sizes": {
+                  "logo": 28,
+                  "headline": 90,
+                  "subhead": 60
+                },
+                "logo": {
+                  "x": 309,
+                  "y": 584,
+                  "width": 462,
+                  "height": 249
+                },
+                "headline": {
+                  "x": 160,
+                  "y": 874,
+                  "width": 760,
+                  "height": 168
+                },
+                "subhead": {
+                  "x": 160,
+                  "y": 1013,
+                  "width": 760,
+                  "height": 94
+                }
+              },
+              "headline-subhead-cta": {
+                "reference_node_id": "135:3630",
+                "font_sizes": {
+                  "headline": 90,
+                  "subhead": 60,
+                  "cta": 36
+                },
+                "headline": {
+                  "x": 160,
+                  "y": 723,
+                  "width": 760,
+                  "height": 168
+                },
+                "subhead": {
+                  "x": 160,
+                  "y": 866,
+                  "width": 760,
+                  "height": 94
+                },
+                "cta": {
+                  "x": 414,
+                  "y": 1053,
+                  "width": 252,
+                  "height": 94
+                }
+              },
+              "logo-headline-subhead-cta": {
+                "reference_node_id": "135:3639",
+                "font_sizes": {
+                  "headline": 90,
+                  "subhead": 60,
+                  "cta": 36,
+                  "logo": 28
+                },
+                "headline": {
+                  "x": 160,
+                  "y": 810,
+                  "width": 760,
+                  "height": 168
+                },
+                "subhead": {
+                  "x": 160,
+                  "y": 960,
+                  "width": 760,
+                  "height": 94
+                },
+                "cta": {
+                  "x": 414,
+                  "y": 1140,
+                  "width": 252,
+                  "height": 94
+                },
+                "logo": {
+                  "x": 309,
+                  "y": 509,
+                  "width": 462,
+                  "height": 249
+                }
+              }
+            }
+          }
+        }
+      },
+      "paid-meta-landscape": {
+        "item_name": "META — Landscape",
+        "canvas": {
+          "width": 1200,
+          "height": 628
+        },
+        "safe_zone": {
+          "top": 31,
+          "bottom": 31,
+          "left": 60,
+          "right": 60
+        },
+        "design_guidance": "Keep important content within central ~90%",
+        "content_area": {
+          "x": 60,
+          "y": 31,
+          "width": 1080,
+          "height": 566,
+          "background": "white",
+          "clip_content": true
+        },
+        "font_family": "Noto Sans SC",
+        "font_sizes": {
+          "headline": 56,
+          "subhead": 34,
+          "cta": 28
+        },
+        "typography_units": "renderer_px",
+        "layouts": {
+          "1_col": {
+            "variants": {
+              "headline-subhead": {
+                "reference_node_id": "135:3650",
+                "font_sizes": {
+                  "headline": 82,
+                  "subhead": 44
+                },
+                "headline": {
+                  "x": 220,
+                  "y": 215,
+                  "width": 760,
+                  "height": 112
+                },
+                "subhead": {
+                  "x": 220,
+                  "y": 327,
+                  "width": 760,
+                  "height": 66
+                }
+              },
+              "logo-headline-subhead": {
+                "reference_node_id": "135:3657",
+                "font_sizes": {
+                  "logo": 28,
+                  "headline": 82,
+                  "subhead": 44
+                },
+                "logo": {
+                  "x": 438,
+                  "y": 164,
+                  "width": 324,
+                  "height": 113
+                },
+                "headline": {
+                  "x": 223,
+                  "y": 314,
+                  "width": 736,
+                  "height": 112
+                },
+                "subhead": {
+                  "x": 223,
+                  "y": 426,
+                  "width": 736,
+                  "height": 66
+                }
+              },
+              "headline-subhead-cta": {
+                "reference_node_id": "135:3666",
+                "font_sizes": {
+                  "headline": 82,
+                  "subhead": 44,
+                  "cta": 28
+                },
+                "headline": {
+                  "x": 232,
+                  "y": 166,
+                  "width": 736,
+                  "height": 112
+                },
+                "subhead": {
+                  "x": 232,
+                  "y": 281,
+                  "width": 736,
+                  "height": 66
+                },
+                "cta": {
+                  "x": 502,
+                  "y": 439,
+                  "width": 196,
+                  "height": 73
+                }
+              },
+              "logo-headline-subhead-cta": {
+                "reference_node_id": "135:3675",
+                "font_sizes": {
+                  "logo": 28,
+                  "headline": 82,
+                  "subhead": 44,
+                  "cta": 28
+                },
+                "logo": {
+                  "x": 476,
+                  "y": 126,
+                  "width": 248,
+                  "height": 113
+                },
+                "headline": {
+                  "x": 328,
+                  "y": 258,
+                  "width": 543,
+                  "height": 112
+                },
+                "subhead": {
+                  "x": 328,
+                  "y": 370,
+                  "width": 543,
+                  "height": 66
+                },
+                "cta": {
+                  "x": 502,
+                  "y": 486,
+                  "width": 196,
+                  "height": 73
+                }
+              }
+            }
+          }
+        }
+      },
+      "paid-google-demand-gen-portrait": {
+        "item_name": "Google Demand Gen — Portrait",
+        "canvas": {
+          "width": 960,
+          "height": 1200
+        },
+        "safe_zone": {
+          "top": 60,
+          "bottom": 60,
+          "left": 48,
+          "right": 48
+        },
+        "design_guidance": "Keep important content within central ~90%",
+        "content_area": {
+          "x": 48,
+          "y": 60,
+          "width": 864,
+          "height": 1080,
+          "background": "white",
+          "clip_content": true
+        },
+        "font_family": "Noto Sans SC",
+        "font_sizes": {
+          "headline": 72,
+          "subhead": 44,
+          "cta": 32
+        },
+        "typography_units": "renderer_px",
+        "layouts": {
+          "1_col": {
+            "variants": {
+              "headline-subhead": {
+                "reference_node_id": "135:3686",
+                "font_sizes": {
+                  "headline": 82,
+                  "subhead": 44
+                },
+                "headline": {
+                  "x": 126,
+                  "y": 473,
+                  "width": 708,
+                  "height": 144
+                },
+                "subhead": {
+                  "x": 126,
+                  "y": 600,
+                  "width": 708,
+                  "height": 79
+                }
+              },
+              "logo-headline-subhead": {
+                "reference_node_id": "135:3693",
+                "font_sizes": {
+                  "logo": 28,
+                  "headline": 82,
+                  "subhead": 44
+                },
+                "logo": {
+                  "x": 282,
+                  "y": 233,
+                  "width": 395,
+                  "height": 225
+                },
+                "headline": {
+                  "x": 126,
+                  "y": 558,
+                  "width": 708,
+                  "height": 144
+                },
+                "subhead": {
+                  "x": 126,
+                  "y": 684,
+                  "width": 708,
+                  "height": 79
+                }
+              },
+              "headline-subhead-cta": {
+                "reference_node_id": "135:3702",
+                "font_sizes": {
+                  "headline": 82,
+                  "subhead": 44,
+                  "cta": 32
+                },
+                "headline": {
+                  "x": 126,
+                  "y": 456,
+                  "width": 708,
+                  "height": 144
+                },
+                "subhead": {
+                  "x": 126,
+                  "y": 591,
+                  "width": 708,
+                  "height": 79
+                },
+                "cta": {
+                  "x": 368,
+                  "y": 700,
+                  "width": 224,
+                  "height": 83
+                }
+              },
+              "logo-headline-subhead-cta": {
+                "reference_node_id": "135:3711",
+                "font_sizes": {
+                  "headline": 82,
+                  "logo": 28,
+                  "subhead": 44,
+                  "cta": 32
+                },
+                "headline": {
+                  "x": 126,
+                  "y": 502,
+                  "width": 708,
+                  "height": 144
+                },
+                "logo": {
+                  "x": 282,
+                  "y": 232,
+                  "width": 395,
+                  "height": 225
+                },
+                "subhead": {
+                  "x": 126,
+                  "y": 627,
+                  "width": 708,
+                  "height": 79
+                },
+                "cta": {
+                  "x": 368,
+                  "y": 785,
+                  "width": 224,
+                  "height": 83
+                }
+              }
+            }
+          }
+        }
+      },
+      "paid-social-landscape": {
+        "item_name": "WA / TG / X / WX / Weibo — Landscape",
+        "canvas": {
+          "width": 1280,
+          "height": 720
+        },
+        "safe_zone": {
+          "top": 36,
+          "bottom": 36,
+          "left": 64,
+          "right": 64
+        },
+        "design_guidance": "Keep key content away from edges",
+        "content_area": {
+          "x": 64,
+          "y": 36,
+          "width": 1152,
+          "height": 648,
+          "background": "white",
+          "clip_content": true
+        },
+        "font_family": "Noto Sans SC",
+        "font_sizes": {
+          "headline": 60,
+          "subhead": 36,
+          "cta": 28
+        },
+        "typography_units": "renderer_px",
+        "layouts": {
+          "1_col": {
+            "variants": {
+              "headline-subhead": {
+                "reference_node_id": "135:3722",
+                "font_sizes": {
+                  "headline": 80,
+                  "subhead": 36
+                },
+                "headline": {
+                  "x": 260,
+                  "y": 256,
+                  "width": 760,
+                  "height": 120
+                },
+                "subhead": {
+                  "x": 260,
+                  "y": 376,
+                  "width": 760,
+                  "height": 66
+                }
+              },
+              "logo-headline-subhead": {
+                "reference_node_id": "135:3729",
+                "font_sizes": {
+                  "logo": 28,
+                  "headline": 80,
+                  "subhead": 36
+                },
+                "logo": {
+                  "x": 180,
+                  "y": 209,
+                  "width": 429,
+                  "height": 278
+                },
+                "headline": {
+                  "x": 602,
+                  "y": 270,
+                  "width": 614,
+                  "height": 110
+                },
+                "subhead": {
+                  "x": 632,
+                  "y": 380,
+                  "width": 554,
+                  "height": 66
+                }
+              },
+              "headline-subhead-cta": {
+                "reference_node_id": "135:3738",
+                "font_sizes": {
+                  "headline": 80,
+                  "subhead": 36,
+                  "cta": 28
+                },
+                "headline": {
+                  "x": 245,
+                  "y": 227,
+                  "width": 789,
+                  "height": 120
+                },
+                "subhead": {
+                  "x": 245,
+                  "y": 347,
+                  "width": 789,
+                  "height": 66
+                },
+                "cta": {
+                  "x": 542,
+                  "y": 483,
+                  "width": 196,
+                  "height": 73
+                }
+              },
+              "logo-headline-subhead-cta": {
+                "reference_node_id": "135:3747",
+                "font_sizes": {
+                  "logo": 28,
+                  "headline": 80,
+                  "subhead": 36,
+                  "cta": 28
+                },
+                "logo": {
+                  "x": 449,
+                  "y": 67,
+                  "width": 382,
+                  "height": 187
+                },
+                "headline": {
+                  "x": 352,
+                  "y": 300,
+                  "width": 576,
+                  "height": 120
+                },
+                "subhead": {
+                  "x": 352,
+                  "y": 420,
+                  "width": 576,
+                  "height": 66
+                },
+                "cta": {
+                  "x": 542,
+                  "y": 515,
+                  "width": 196,
+                  "height": 73
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

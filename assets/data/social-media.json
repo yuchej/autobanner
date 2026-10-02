@@ -1,0 +1,999 @@
+{
+  "schema_version": "1.1",
+  "generated_by": "AutoBanner Template Exporter",
+  "templates": {
+    "Social Media": {
+      "fb-cover": {
+        "item_name": "FB Cover",
+        "canvas": {
+          "width": 851,
+          "height": 315
+        },
+        "safe_zone": {
+          "top": 38,
+          "bottom": 74,
+          "left": 38,
+          "right": 37
+        },
+        "content_area": {
+          "x": 38,
+          "y": 38,
+          "width": 776,
+          "height": 203,
+          "background": "white",
+          "clip_content": true
+        },
+        "font_family": "Noto Sans SC",
+        "font_sizes": {
+          "headline": 133,
+          "subhead": 93,
+          "cta": 0
+        },
+        "typography_units": "renderer_px",
+        "layouts": {
+          "1_col": {
+            "variants": {
+              "1col-hs": {
+                "reference_node_id": "135:3436",
+                "font_sizes": {
+                  "headline": 46,
+                  "subhead": 35
+                },
+                "text_styles": {
+                  "headline": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Bold",
+                    "font_weight": 700,
+                    "font_size": 46,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  },
+                  "subhead": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Regular",
+                    "font_weight": 400,
+                    "font_size": 35,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  }
+                },
+                "headline": {
+                  "x": 213,
+                  "y": 53,
+                  "width": 425,
+                  "height": 57
+                },
+                "subhead": {
+                  "x": 259,
+                  "y": 110,
+                  "width": 332,
+                  "height": 40
+                }
+              },
+              "2col-lhs": {
+                "reference_node_id": "135:3443",
+                "font_sizes": {
+                  "logo": 14,
+                  "headline": 41,
+                  "subhead": 30
+                },
+                "text_styles": {
+                  "logo": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Bold",
+                    "font_weight": 700,
+                    "font_size": 14,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  },
+                  "headline": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Bold",
+                    "font_weight": 700,
+                    "font_size": 41,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  },
+                  "subhead": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Regular",
+                    "font_weight": 400,
+                    "font_size": 30,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  }
+                },
+                "logo": {
+                  "x": 180,
+                  "y": 56,
+                  "width": 175,
+                  "height": 65
+                },
+                "headline": {
+                  "x": 311,
+                  "y": 42,
+                  "width": 445,
+                  "height": 57
+                },
+                "subhead": {
+                  "x": 355,
+                  "y": 99,
+                  "width": 357,
+                  "height": 40
+                }
+              }
+            }
+          }
+        }
+      },
+      "youtube-cover": {
+        "item_name": "YouTube Cover",
+        "canvas": {
+          "width": 2560,
+          "height": 1440
+        },
+        "safe_zone": {
+          "top": 560,
+          "bottom": 560,
+          "left": 560,
+          "right": 560
+        },
+        "content_area": {
+          "x": 560,
+          "y": 560,
+          "width": 1440,
+          "height": 320,
+          "background": "white",
+          "clip_content": true
+        },
+        "font_family": "Noto Sans SC",
+        "font_sizes": {
+          "headline": 93,
+          "subhead": 60,
+          "cta": 0
+        },
+        "typography_units": "renderer_px",
+        "layouts": {
+          "1_col": {
+            "variants": {
+              "1col-hs": {
+                "reference_node_id": "135:3452",
+                "font_sizes": {
+                  "headline": 62,
+                  "subhead": 40
+                },
+                "text_styles": {
+                  "headline": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Bold",
+                    "font_weight": 700,
+                    "font_size": 62,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  },
+                  "subhead": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Regular",
+                    "font_weight": 400,
+                    "font_size": 40,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  }
+                },
+                "headline": {
+                  "x": 893,
+                  "y": 631,
+                  "width": 773,
+                  "height": 120
+                },
+                "subhead": {
+                  "x": 1070,
+                  "y": 728,
+                  "width": 420,
+                  "height": 80
+                }
+              }
+            }
+          },
+          "2_col": {
+            "variants": {
+              "2col-lhs": {
+                "reference_node_id": "135:3459",
+                "font_sizes": {
+                  "logo": 28,
+                  "headline": 62,
+                  "subhead": 40
+                },
+                "text_styles": {
+                  "logo": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Bold",
+                    "font_weight": 700,
+                    "font_size": 28,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  },
+                  "headline": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Bold",
+                    "font_weight": 700,
+                    "font_size": 62,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  },
+                  "subhead": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Regular",
+                    "font_weight": 400,
+                    "font_size": 40,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  }
+                },
+                "logo": {
+                  "x": 755,
+                  "y": 638,
+                  "width": 350,
+                  "height": 164
+                },
+                "headline": {
+                  "x": 1105,
+                  "y": 626,
+                  "width": 791,
+                  "height": 120
+                },
+                "subhead": {
+                  "x": 1291,
+                  "y": 725,
+                  "width": 420,
+                  "height": 80
+                }
+              },
+              "1col-lhs": {
+                "reference_node_id": "175:207",
+                "font_sizes": {
+                  "logo": 28,
+                  "headline": 62,
+                  "subhead": 40
+                },
+                "text_styles": {
+                  "logo": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Bold",
+                    "font_weight": 700,
+                    "font_size": 28,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  },
+                  "headline": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Bold",
+                    "font_weight": 700,
+                    "font_size": 62,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  },
+                  "subhead": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Regular",
+                    "font_weight": 400,
+                    "font_size": 40,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  }
+                },
+                "logo": {
+                  "x": 1105,
+                  "y": 580,
+                  "width": 350,
+                  "height": 130
+                },
+                "headline": {
+                  "x": 884,
+                  "y": 692,
+                  "width": 791,
+                  "height": 120
+                },
+                "subhead": {
+                  "x": 1070,
+                  "y": 785,
+                  "width": 420,
+                  "height": 80
+                }
+              }
+            }
+          }
+        }
+      },
+      "x-header": {
+        "item_name": "X Header",
+        "canvas": {
+          "width": 1500,
+          "height": 500
+        },
+        "safe_zone": {
+          "top": 90,
+          "bottom": 100,
+          "left": 210,
+          "right": 40
+        },
+        "content_area": {
+          "x": 210,
+          "y": 90,
+          "width": 1250,
+          "height": 310,
+          "background": "white",
+          "clip_content": true
+        },
+        "font_family": "Noto Sans SC",
+        "font_sizes": {
+          "headline": 100,
+          "subhead": 67,
+          "cta": 0
+        },
+        "typography_units": "renderer_px",
+        "layouts": {
+          "1_col": {
+            "variants": {
+              "1col-hs": {
+                "reference_node_id": "135:3468",
+                "font_sizes": {
+                  "headline": 60,
+                  "subhead": 48
+                },
+                "text_styles": {
+                  "headline": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Bold",
+                    "font_weight": 700,
+                    "font_size": 60,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  },
+                  "subhead": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Regular",
+                    "font_weight": 400,
+                    "font_size": 48,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  }
+                },
+                "headline": {
+                  "x": 332,
+                  "y": 172,
+                  "width": 835,
+                  "height": 90
+                },
+                "subhead": {
+                  "x": 540,
+                  "y": 262,
+                  "width": 420,
+                  "height": 65
+                }
+              }
+            }
+          },
+          "2_col": {
+            "variants": {
+              "1col-lhs": {
+                "reference_node_id": "135:3475",
+                "font_sizes": {
+                  "logo": 28,
+                  "headline": 60,
+                  "subhead": 48
+                },
+                "text_styles": {
+                  "logo": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Bold",
+                    "font_weight": 700,
+                    "font_size": 28,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  },
+                  "headline": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Bold",
+                    "font_weight": 700,
+                    "font_size": 60,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  },
+                  "subhead": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Regular",
+                    "font_weight": 400,
+                    "font_size": 48,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  }
+                },
+                "logo": {
+                  "x": 575,
+                  "y": 120,
+                  "width": 350,
+                  "height": 110
+                },
+                "headline": {
+                  "x": 407,
+                  "y": 230,
+                  "width": 685,
+                  "height": 90
+                },
+                "subhead": {
+                  "x": 540,
+                  "y": 315,
+                  "width": 420,
+                  "height": 65
+                }
+              },
+              "2col-lhs": {
+                "reference_node_id": "229:351",
+                "font_sizes": {
+                  "logo": 28,
+                  "headline": 60,
+                  "subhead": 48
+                },
+                "text_styles": {
+                  "logo": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Bold",
+                    "font_weight": 700,
+                    "font_size": 28,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  },
+                  "headline": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Bold",
+                    "font_weight": 700,
+                    "font_size": 60,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  },
+                  "subhead": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Regular",
+                    "font_weight": 400,
+                    "font_size": 48,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  }
+                },
+                "logo": {
+                  "x": 382,
+                  "y": 195,
+                  "width": 350,
+                  "height": 110
+                },
+                "headline": {
+                  "x": 629,
+                  "y": 175,
+                  "width": 685,
+                  "height": 90
+                },
+                "subhead": {
+                  "x": 762,
+                  "y": 260,
+                  "width": 420,
+                  "height": 65
+                }
+              }
+            }
+          }
+        }
+      },
+      "ig-post": {
+        "item_name": "IG Post",
+        "canvas": {
+          "width": 1080,
+          "height": 1350
+        },
+        "safe_zone": {
+          "top": 60,
+          "bottom": 175,
+          "left": 60,
+          "right": 60
+        },
+        "content_area": {
+          "x": 60,
+          "y": 60,
+          "width": 960,
+          "height": 1115,
+          "background": "white",
+          "clip_content": true
+        },
+        "font_family": "Noto Sans SC",
+        "font_sizes": {
+          "headline": 93,
+          "subhead": 67,
+          "cta": 0
+        },
+        "typography_units": "renderer_px",
+        "layouts": {
+          "1_col": {
+            "variants": {
+              "1col-hs": {
+                "reference_node_id": "135:3484",
+                "font_sizes": {
+                  "headline": 93,
+                  "subhead": 67
+                },
+                "text_styles": {
+                  "headline": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Bold",
+                    "font_weight": 700,
+                    "font_size": 93,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  },
+                  "subhead": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Regular",
+                    "font_weight": 400,
+                    "font_size": 67,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  }
+                },
+                "headline": {
+                  "x": 217,
+                  "y": 742,
+                  "width": 646,
+                  "height": 120
+                },
+                "subhead": {
+                  "x": 330,
+                  "y": 890,
+                  "width": 420,
+                  "height": 80
+                }
+              },
+              "1col-lhs": {
+                "reference_node_id": "135:3491",
+                "font_sizes": {
+                  "logo": 28,
+                  "headline": 93,
+                  "subhead": 67
+                },
+                "text_styles": {
+                  "logo": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Bold",
+                    "font_weight": 700,
+                    "font_size": 28,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  },
+                  "headline": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Bold",
+                    "font_weight": 700,
+                    "font_size": 93,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  },
+                  "subhead": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Regular",
+                    "font_weight": 400,
+                    "font_size": 67,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  }
+                },
+                "logo": {
+                  "x": 365,
+                  "y": 492,
+                  "width": 350,
+                  "height": 130
+                },
+                "headline": {
+                  "x": 217,
+                  "y": 711,
+                  "width": 646,
+                  "height": 120
+                },
+                "subhead": {
+                  "x": 330,
+                  "y": 850,
+                  "width": 420,
+                  "height": 80
+                }
+              }
+            }
+          }
+        }
+      },
+      "ig-story": {
+        "item_name": "IG Story",
+        "canvas": {
+          "width": 1080,
+          "height": 1920
+        },
+        "safe_zone": {
+          "top": 250,
+          "bottom": 250,
+          "left": 60,
+          "right": 60
+        },
+        "content_area": {
+          "x": 60,
+          "y": 250,
+          "width": 960,
+          "height": 1420,
+          "background": "white",
+          "clip_content": true
+        },
+        "font_family": "Noto Sans SC",
+        "font_sizes": {
+          "headline": 93,
+          "subhead": 67,
+          "cta": 64
+        },
+        "typography_units": "renderer_px",
+        "layouts": {
+          "1_col": {
+            "variants": {
+              "1col-hsc": {
+                "reference_node_id": "135:3500",
+                "font_sizes": {
+                  "headline": 93,
+                  "subhead": 67,
+                  "cta": 64
+                },
+                "text_styles": {
+                  "headline": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Bold",
+                    "font_weight": 700,
+                    "font_size": 93,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  },
+                  "subhead": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Regular",
+                    "font_weight": 400,
+                    "font_size": 67,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  },
+                  "cta": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Bold",
+                    "font_weight": 700,
+                    "font_size": 64,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  }
+                },
+                "headline": {
+                  "x": 245,
+                  "y": 763,
+                  "width": 590,
+                  "height": 120
+                },
+                "subhead": {
+                  "x": 330,
+                  "y": 897,
+                  "width": 420,
+                  "height": 80
+                },
+                "cta": {
+                  "x": 316,
+                  "y": 1054,
+                  "width": 448,
+                  "height": 166
+                }
+              },
+              "1col-hs": {
+                "reference_node_id": "227:82",
+                "font_sizes": {
+                  "headline": 93,
+                  "subhead": 67
+                },
+                "text_styles": {
+                  "headline": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Bold",
+                    "font_weight": 700,
+                    "font_size": 93,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  },
+                  "subhead": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Regular",
+                    "font_weight": 400,
+                    "font_size": 67,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  }
+                },
+                "headline": {
+                  "x": 245,
+                  "y": 1093,
+                  "width": 590,
+                  "height": 120
+                },
+                "subhead": {
+                  "x": 330,
+                  "y": 1227,
+                  "width": 420,
+                  "height": 80
+                }
+              },
+              "1col-lhsc": {
+                "reference_node_id": "135:3509",
+                "font_sizes": {
+                  "logo": 28,
+                  "headline": 93,
+                  "subhead": 67,
+                  "cta": 64
+                },
+                "text_styles": {
+                  "logo": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Bold",
+                    "font_weight": 700,
+                    "font_size": 28,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  },
+                  "headline": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Bold",
+                    "font_weight": 700,
+                    "font_size": 93,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  },
+                  "subhead": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Regular",
+                    "font_weight": 400,
+                    "font_size": 67,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  },
+                  "cta": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Bold",
+                    "font_weight": 700,
+                    "font_size": 64,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  }
+                },
+                "logo": {
+                  "x": 365,
+                  "y": 471,
+                  "width": 350,
+                  "height": 255
+                },
+                "headline": {
+                  "x": 216,
+                  "y": 868,
+                  "width": 648,
+                  "height": 120
+                },
+                "subhead": {
+                  "x": 330,
+                  "y": 1001,
+                  "width": 420,
+                  "height": 80
+                },
+                "cta": {
+                  "x": 316,
+                  "y": 1158,
+                  "width": 448,
+                  "height": 166
+                }
+              }
+            }
+          }
+        }
+      },
+      "ig-link-bio": {
+        "item_name": "IG Link in Bio",
+        "canvas": {
+          "width": 860,
+          "height": 490
+        },
+        "safe_zone": {
+          "top": 40,
+          "bottom": 40,
+          "left": 40,
+          "right": 40
+        },
+        "content_area": {
+          "x": 40,
+          "y": 40,
+          "width": 780,
+          "height": 410,
+          "background": "white",
+          "clip_content": true
+        },
+        "font_family": "Noto Sans SC",
+        "font_sizes": {
+          "headline": 80,
+          "subhead": 53,
+          "cta": 0
+        },
+        "typography_units": "renderer_px",
+        "layouts": {
+          "1_col": {
+            "variants": {
+              "1col-hs": {
+                "reference_node_id": "135:3520",
+                "font_sizes": {
+                  "headline": 64,
+                  "subhead": 48
+                },
+                "text_styles": {
+                  "headline": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Bold",
+                    "font_weight": 700,
+                    "font_size": 64,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  },
+                  "subhead": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Regular",
+                    "font_weight": 400,
+                    "font_size": 48,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  }
+                },
+                "headline": {
+                  "x": 170,
+                  "y": 169,
+                  "width": 520,
+                  "height": 88
+                },
+                "subhead": {
+                  "x": 220,
+                  "y": 258,
+                  "width": 420,
+                  "height": 64
+                }
+              }
+            }
+          }
+        }
+      },
+      "ig-link-in-bio": {
+        "item_name": "IG Link in Bio",
+        "canvas": {
+          "width": 860,
+          "height": 490
+        },
+        "safe_zone": {
+          "top": 40,
+          "bottom": 40,
+          "left": 40,
+          "right": 40
+        },
+        "content_area": {
+          "x": 40,
+          "y": 40,
+          "width": 780,
+          "height": 410,
+          "background": "white",
+          "clip_content": true
+        },
+        "font_family": "Noto Sans SC",
+        "font_sizes": {
+          "headline": 80,
+          "subhead": 53,
+          "cta": 0
+        },
+        "typography_units": "renderer_px",
+        "layouts": {
+          "1_col": {
+            "variants": {
+              "1col-lhs": {
+                "reference_node_id": "135:3527",
+                "font_sizes": {
+                  "logo": 28,
+                  "headline": 64,
+                  "subhead": 48
+                },
+                "text_styles": {
+                  "logo": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Bold",
+                    "font_weight": 700,
+                    "font_size": 28,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  },
+                  "headline": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Bold",
+                    "font_weight": 700,
+                    "font_size": 64,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  },
+                  "subhead": {
+                    "font_family": "Noto Sans SC",
+                    "font_style": "Regular",
+                    "font_weight": 400,
+                    "font_size": 48,
+                    "line_height": "AUTO",
+                    "text_align_horizontal": "CENTER",
+                    "text_align_vertical": "CENTER"
+                  }
+                },
+                "logo": {
+                  "x": 255,
+                  "y": 95,
+                  "width": 350,
+                  "height": 108
+                },
+                "headline": {
+                  "x": 170,
+                  "y": 253,
+                  "width": 520,
+                  "height": 88
+                },
+                "subhead": {
+                  "x": 220,
+                  "y": 342,
+                  "width": 420,
+                  "height": 64
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

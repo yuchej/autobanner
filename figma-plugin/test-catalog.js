@@ -1,0 +1,16 @@
+const fs = require("fs");
+const vm = require("vm");
+const source = fs.readFileSync(__dirname + "/code.js", "utf8");
+const match = source.match(/const CATALOG = (\[[\s\S]*?\n\]);\nconst DESIGN_GUIDANCE/);
+if (!match) throw new Error("CATALOG not found");
+const catalog = vm.runInNewContext(match[1]);
+const formats = catalog.length;
+const variants = catalog.reduce((sum, item) => sum + item[6].length, 0);
+if (formats !== 29) throw new Error(`Expected 29 formats, got ${formats}`);
+if (variants !== 91) throw new Error(`Expected 91 variants, got ${variants}`);
+const ids = catalog.map(item => item[1]);
+if (new Set(ids).size !== ids.length) throw new Error("Duplicate format IDs");
+const paid = catalog.filter(item => item[0] === "Paid Media");
+if (paid.length !== 5) throw new Error(`Expected 5 Paid Media formats, got ${paid.length}`);
+if (paid.some(item => item[6].length !== 4)) throw new Error("Each Paid Media format must contain 4 starting layouts");
+console.log(JSON.stringify({formats, variants, categories:[...new Set(catalog.map(item=>item[0]))]}, null, 2));

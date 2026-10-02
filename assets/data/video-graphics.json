@@ -1,0 +1,224 @@
+{
+  "schema_version": "1.0",
+  "generated_by": "AutoBanner Template Exporter",
+  "templates": {
+    "Video Graphics": {
+      "article-cover": {
+        "item_name": "Article Cover",
+        "canvas": {
+          "width": 1200,
+          "height": 800
+        },
+        "safe_zone": {
+          "top": 120,
+          "bottom": 120,
+          "left": 110,
+          "right": 110
+        },
+        "content_area": {
+          "x": 110,
+          "y": 120,
+          "width": 980,
+          "height": 560,
+          "background": "white",
+          "clip_content": true
+        },
+        "font_family": "Noto Sans SC",
+        "font_sizes": {
+          "headline": 92,
+          "subhead": 72,
+          "cta": 0
+        },
+        "typography_units": "renderer_px",
+        "layouts": {
+          "1_col": {
+            "variants": {
+              "article-left": {
+                "reference_node_id": "227:3",
+                "font_sizes": {
+                  "headline": 92,
+                  "subhead": 72
+                },
+                "headline": {
+                  "x": 130,
+                  "y": 468,
+                  "width": 900,
+                  "height": 100
+                },
+                "subhead": {
+                  "x": 130,
+                  "y": 592,
+                  "width": 900,
+                  "height": 80
+                }
+              },
+              "article-right": {
+                "reference_node_id": "227:13",
+                "font_sizes": {
+                  "headline": 92,
+                  "subhead": 72
+                },
+                "headline": {
+                  "x": 175,
+                  "y": 468,
+                  "width": 900,
+                  "height": 100
+                },
+                "subhead": {
+                  "x": 175,
+                  "y": 592,
+                  "width": 900,
+                  "height": 80
+                }
+              }
+            }
+          }
+        }
+      },
+      "youtube-video-cover": {
+        "item_name": "Youtube Cover",
+        "canvas": {
+          "width": 960,
+          "height": 540
+        },
+        "safe_zone": {
+          "top": 0,
+          "bottom": 75,
+          "left": 90,
+          "right": 90
+        },
+        "content_area": {
+          "x": 90,
+          "y": 0,
+          "width": 780,
+          "height": 465,
+          "background": "white",
+          "clip_content": true
+        },
+        "font_family": "Noto Sans SC",
+        "font_sizes": {
+          "headline": 77,
+          "subhead": 60,
+          "cta": 0
+        },
+        "typography_units": "renderer_px",
+        "layouts": {
+          "1_col": {
+            "variants": {
+              "youtube-left-quote": {
+                "reference_node_id": "227:23",
+                "font_sizes": {
+                  "subhead": 60,
+                  "headline": 77
+                },
+                "subhead": {
+                  "x": 90,
+                  "y": 323,
+                  "width": 600,
+                  "height": 72
+                },
+                "headline": {
+                  "x": 90,
+                  "y": 387,
+                  "width": 780,
+                  "height": 92
+                }
+              },
+              "youtube-right-quote": {
+                "reference_node_id": "227:39",
+                "font_sizes": {
+                  "subhead": 60,
+                  "headline": 77
+                },
+                "subhead": {
+                  "x": 424,
+                  "y": 323,
+                  "width": 446,
+                  "height": 72
+                },
+                "headline": {
+                  "x": 265,
+                  "y": 387,
+                  "width": 605,
+                  "height": 92
+                }
+              }
+            }
+          }
+        }
+      },
+      "shorts-cover": {
+        "item_name": "Vertical Youtube, Instagram, Tiktok Shorts Cover",
+        "canvas": {
+          "width": 1080,
+          "height": 1920
+        },
+        "safe_zone": {
+          "top": 400,
+          "bottom": 400,
+          "left": 90,
+          "right": 90
+        },
+        "content_area": {
+          "x": 90,
+          "y": 400,
+          "width": 900,
+          "height": 1120,
+          "background": "white",
+          "clip_content": true
+        },
+        "font_family": "Noto Sans SC",
+        "font_sizes": {
+          "headline": 96,
+          "subhead": 96,
+          "cta": 0
+        },
+        "typography_units": "renderer_px",
+        "layouts": {
+          "1_col": {
+            "variants": {
+              "default-text": {
+                "reference_node_id": "227:55",
+                "font_sizes": {
+                  "headline": 96,
+                  "subhead": 96
+                },
+                "headline": {
+                  "x": 54,
+                  "y": 1040,
+                  "width": 972,
+                  "height": 116
+                },
+                "subhead": {
+                  "x": 54,
+                  "y": 1172,
+                  "width": 972,
+                  "height": 116
+                }
+              },
+              "quote-text": {
+                "reference_node_id": "227:65",
+                "font_sizes": {
+                  "headline": 96,
+                  "subhead": 96
+                },
+                "headline": {
+                  "x": 54,
+                  "y": 1273,
+                  "width": 972,
+                  "height": 116
+                },
+                "subhead": {
+                  "x": 54,
+                  "y": 1405,
+                  "width": 972,
+                  "height": 116
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

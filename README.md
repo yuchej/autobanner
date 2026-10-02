@@ -1,8 +1,19 @@
 # AutoBanner
 
-AutoBanner is a browser-based banner generator for quickly creating campaign banners across Website, App, Traffic Driver, Social Media, and Video Graphics formats.
+AutoBanner is a browser-based banner generator for quickly creating campaign banners across Website, App, Traffic Driver, Social Media, Paid Media, and Video Graphics formats.
+
+## Project Structure
+
+- `index.html` — document shell and external dependency loading.
+- `assets/css/` — application styling and responsive presentation rules.
+- `assets/js/` — application logic, Tailwind configuration, and local third-party libraries.
+- `assets/data/` — banner-set and layout JSON definitions.
+- `assets/imgs/` — static logos, gradients, quotations, and decorative artwork.
+- `figma-plugin/` — Figma template exporter plugin.
 
 The tool lets users input campaign copy, logo, background, and design elements once, then preview multiple banner layouts, fine-tune individual banners, approve selected outputs, and export them as a ZIP file.
+
+All six banner sets are loaded from their matching files in `assets/data/`. To update a set, export that set from the Figma plugin, replace the matching JSON file without changing its filename, and refresh AutoBanner.
 
 ## Who This Is For
 
@@ -22,6 +33,7 @@ Open the AutoBanner link shared by your team. For the best experience, use it on
 | App | In App Banner, In App Message |
 | Traffic Driver | Leaderboard, Mobile Leaderboard, IMU |
 | Social Media | Facebook Cover, YouTube Cover, X Header, Instagram Post, Instagram Story, Instagram Link in Bio, plus logo variants where available |
+| Paid Media | META Square, META Portrait, META Landscape, Google Demand Gen Portrait, WA / TG / X / WX / Weibo Landscape |
 | Video Graphics | Article Cover, YouTube Cover, Vertical YouTube / Instagram / TikTok Shorts Cover |
 
 ## Basic Workflow
@@ -110,7 +122,7 @@ Open the AutoBanner link shared by your team. For the best experience, use it on
   - 1 slide: static image
   - More than 1 slide: animated GIF
   - Includes original size and 2x size
-- Social Media and Video Graphics export original files only.
+- Social Media, Paid Media, and Video Graphics export original files only.
 
 ## Dos
 
@@ -128,7 +140,7 @@ Open the AutoBanner link shared by your team. For the best experience, use it on
 - Do not rely on one layout for every format without checking smaller banner sizes.
 - Do not drag text directly on canvas; use the X / Y sliders in the text panel.
 - Do not assume individual banner edits will update all banners.
-- Do not expect Social Media or Video Graphics exports to include a compressed folder.
+- Do not expect Social Media, Paid Media, or Video Graphics exports to include a compressed folder.
 
 ## Troubleshooting
 
