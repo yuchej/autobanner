@@ -389,17 +389,29 @@ const getPreferredLogoImage = (format, assets = {}, logoSource = "auto") => {
 const IG_POST_LOGO_SRC = "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iTGF5ZXJfMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjAgMCA5MCA5MCI+CiAgPCEtLSBHZW5lcmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDMwLjUuMSwgU1ZHIEV4cG9ydCBQbHVnLUluIC4gU1ZHIFZlcnNpb246IDIuMS40IEJ1aWxkIDMpICAtLT4KICA8ZGVmcz4KICAgIDxzdHlsZT4KICAgICAgLnN0MCB7CiAgICAgICAgZmlsbDogI2ZmZjsKICAgICAgfQoKICAgICAgLnN0MSB7CiAgICAgICAgZmlsbDogI2U5MDA0NDsKICAgICAgfQoKICAgICAgLnN0MiB7CiAgICAgICAgZmlsbDogI2E4MDAzNDsKICAgICAgfQogICAgPC9zdHlsZT4KICA8L2RlZnM+CiAgPGcgaWQ9IkxvZ29tYXJrIj4KICAgIDxnPgogICAgICA8Y2lyY2xlIGNsYXNzPSJzdDEiIGN4PSI0NSIgY3k9IjQ1IiByPSI0NSIvPgogICAgICA8cGF0aCBjbGFzcz0ic3QyIiBkPSJNNDguNC4xczAsMCwwLDBjMTMuNywxLjYsMjAuNywxMS4yLDE5LjYsMjIuNC0uNSw0LjktNCw5LjEtNy4zLDEyLjMtNC40LDQuMi0xMi44LDUuOS0xOC4zLDcuNiwwLDAtLjEsMC0uMiwwLTEuMi40LTIuNS45LTMuNywxLjMtMi4zLjktNC45LDEuOC03LjEsMi44LTIuNywxLjItNS4zLDMtNy44LDQuNS0uNi4zLTEuMi44LTEuOCwxLjEtLjQuMi00LjgsMy41LTUuMiwzLjktMywzLjEtNC44LDUtNSwxMC45LS4yLDUsNC4xLDEzLjMsMTAuNiwxNi43LDYuNywzLjksMTQuNSw2LjIsMjIuOCw2LjIsMjQuOSwwLDQ1LTIwLjEsNDUtNDVTNzEuNiwxLjksNDguNC4xWiIvPgogICAgPC9nPgogICAgPHBhdGggY2xhc3M9InN0MCIgZD0iTTUxLjUsNjIuNWMuMi0xLjEuNS0yLjEuOC0zLjIuMi0uNi40LTEuMy43LTEuOC44LTEuMiwyLjItMSwzLjQtMS4yLDEuMS0uMiwyLjItLjQsMy4zLS41LDEuOS0uMywzLjctLjMsNS41LjNoLjNjLjIuMi40LjIuNi4zLDEuMS4yLDIuMywwLDMuMy0uNCwzLjQtMS40LDMuMS02LjctLjItOC4xLTIuNS0xLjEtNS0uOS03LjYtLjktMS45LDAtMy43LjEtNS42LjQtLjkuMS0xLjcuNS0yLjYuNC0xLjQsMC0xLjQtLjktMS45LTEuOS0uMy0uNy0uNi0xLjQtLjktMi4xLS40LS44LS45LTEuNS0xLjQtMi4zLDEuMy0uNiwyLjctMS4xLDQtMS43LDEuNi0uNywzLjEtMS42LDQuNS0yLjYsMi42LTEuOCw1LjEtNC4xLDcuMS02LjYsNC4xLTUuNSw0LTE0LjEuOC0xOS45LS42LTEuMS0xLjQtMi4zLTIuMi0yLjctMS4yLS43LTMuMy0xLjEtNC43LTEtMSwwLTEuOS4yLTIuOC41LS45LjMtMS43LjktMi43LDEuMS0yLjYuNS01LjIuOS03LjkuOS0xLjMsMC00LjMtLjktNS4yLjUtLjQuNi0uNSwxLjgtLjUsMi40LDAsMSwuMiwxLjkuNSwyLjguNiwxLjYsMS42LDMuMSwzLjIsNCwuNy40LDEuNC44LDIuMi45LDEuMiwwLDIuMy40LDMuNSwwLDEuMi0uNCwyLjItMS4yLDMuNC0xLjYsMS4yLS40LDMuNC0uOSw0LjYtLjEsMS4xLjguOCwxLjkuNSwzLS4yLDEtLjUsMi0uNywzLS4yLDEtLjYsMS45LTEuMSwyLjgtMS4xLDEuNy0yLjQsMy43LTQuMyw0LjguNC0uMi0uOS0zLjMtMS0zLjctLjUtMS4xLS45LTEuOC0xLjktMi40LTIuMi0xLjEtNC42LTEuNi03LjEtMS41LTEsMC0yLjEuMi0zLjEuNXMtMi41LDEtMi41LDFjMCwwLC4xLS4yLjMtLjVzLjQtLjQuNS0uNmMwLDAsLjItLjIuMi0uMiwxLjktMi42LjMtNy4xLTEuNy05LjItLjctLjctMS4zLTEuNy0yLjEtMi4zLTEuNS0xLjItMi45LTIuNC00LjktMS42cy0yLjIsMS43LTIuOSwyLjljLTEsMS45LTEuOSwzLjgtMi40LDUuOS0uNywzLjMtLjgsNi43LjEsMTAsMS4xLDMuNiwyLjgsNyw1LjIsMTAuMi4yLjMuNC42LjYuOSwxLjEsMS42LDQuNCwzLjMsMi4yLDUuMi0xLjMuOS0zLjEsMS44LTQuNiwyLjctMS4xLjctNS4xLDMuMi02LDMuOC0xLjYsMS4xLTYuNCw0LjUtNy43LDguMi0uOSwzLC42LDYuMiwzLjUsNy4zLDIsLjgsMy44LjMsNS42LS43LDEuMy0uOCwyLjctMS41LDQtMi4xLjgtLjQsMS43LS44LDIuNS0xLjIsNC4xLTEuOCw4LjQtMywxMi43LTQuNC4yLDAsLjQtLjEuNi0uMi45LS40LDEuNy0uNSwxLjkuN3MwLC43LS4yLDEuMWMtLjIuNi0uMiwxLjItLjMsMS43LS40LDIuNS0uOCw1LjEtLjgsNy43LS4xLDQuMy42LDguNSwxLjYsMTIuNi4yLDEsLjYsMi4yLDEuNywyLjYuNy4zLDEuNC41LDIuMS41LDIuMywwLDQuNC0xLjcsMy45LTQtLjMtMS43LS42LTMuNC0xLTUuMS0uMy0xLjItLjItMi41LS4yLTMuNywwLTEuMiwwLTIuMiwwLTMuNC4yLTIuNi41LTUuMiwxLjEtNy44Wk00NCw0Ni43YzAsLjMsMCwuNiwwLC45LDAsLjIuMS45LjEsMS4xLDAsLjYsMCwuOS0uNCwxLjQtLjQuNC0zLjksMS44LTUuMSwyLjItMi4xLjctNC4zLDEuNC02LjQsMi4xbC04LjEsMi43Yy0uNi4yLTEuMy40LTEuOS4zLTItLjIsMC0yLjguNy0zLjMsMS43LTEuMywzLjUtMi41LDUuMi0zLjksMS41LTEuMiwzLjMtMi4yLDUtMy4xLDIuMy0xLjMsNS4xLTIuMSw3LjUtMy4xLjctLjMsMS0uNCwxLjYtLjYuNS0uMSwxLjEtLjMsMS42LS4yLS4yLDEuMSwwLDIuMi4xLDMuNVpNNDcuNiwzNC41Yy0uMS41LTEuOSwxLjItMi4zLDEuNS0uNy41LTMuNywyLjMtNC42LDIuMy0xLjYsMC0yLjgtMS44LTMuOC0yLjktLjMtLjMtLjUtLjgtLjctMS4yLS4xLS4yLS4zLS44LS4zLTEsMC0uNywxLjMtLjYsMS41LS41LDEuNS4yLDIuNS4zLDMuNi40LjMsMCwuNiwwLC45LDAsLjksMCwzLjkuMyw0LjguN3MxLC40LjkuN1oiLz4KICA8L2c+Cjwvc3ZnPg==";
 const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, globalSettings, isInteractive = false, activeLayerId = null) => {
   const { safe } = format;
+  const textOrderReversed = state.textOrderReversed === true && variant.hasSub;
   const formatFonts = { ...format.fonts, ...(variant.fonts || {}) };
+  if (textOrderReversed) {
+    const originalHeadlineSize = formatFonts.h;
+    const originalHeadlineNoCtaSize = formatFonts.hNoCTA;
+    formatFonts.h = formatFonts.s;
+    formatFonts.hNoCTA = formatFonts.s;
+    formatFonts.s = originalHeadlineNoCtaSize || originalHeadlineSize;
+  }
   const fonts = {
     ...formatFonts,
-    h: state.headlineFontSize || formatFonts.h,
-    hNoCTA: state.headlineFontSize || formatFonts.hNoCTA,
-    s: state.subheadFontSize || formatFonts.s
+    h: (textOrderReversed ? state.subheadFontSize : state.headlineFontSize) || formatFonts.h,
+    hNoCTA: (textOrderReversed ? state.subheadFontSize : state.headlineFontSize) || formatFonts.hNoCTA,
+    s: (textOrderReversed ? state.headlineFontSize : state.subheadFontSize) || formatFonts.s
   };
   const { kvImages, quoteLeftImage, quoteRightImage, zaobaoLogoImage, igPostLogoImage, gradientYoutubeImage, gradientArticleImage, gradientShortsImage, quoteShortsImage, lineShortsImage } = assets;
   const logoImage = getPreferredLogoImage(format, assets, state.logoSource || "auto");
   const bgImage = getPreferredBackgroundImage(format, assets);
-  const { headline, subhead, ctaText, showCTA, headlineColor, subheadColor, headlineBorderColor = "#000000", subheadBorderColor = "#000000", textShadowEnabled = false, textShadowColor = "#000000", textShadowBlur = 0, textShadowOffsetX = 0, textShadowOffsetY = 0, bgOffsetX, bgOffsetY, bgScale, bgRotate, bgRepeat, logoScale, ctaScale } = state;
+  const { headline: sourceHeadline, subhead: sourceSubhead, ctaText, showCTA, headlineColor: sourceHeadlineColor, subheadColor: sourceSubheadColor, headlineBorderColor = "#000000", subheadBorderColor = "#000000", textShadowEnabled = false, textShadowColor = "#000000", textShadowBlur = 0, textShadowOffsetX = 0, textShadowOffsetY = 0, bgOffsetX, bgOffsetY, bgScale, bgRotate, bgRepeat, logoScale, ctaScale } = state;
+  const headline = textOrderReversed ? sourceSubhead : sourceHeadline;
+  const subhead = textOrderReversed ? sourceHeadline : sourceSubhead;
+  const headlineColor = textOrderReversed ? sourceSubheadColor : sourceHeadlineColor;
+  const subheadColor = textOrderReversed ? sourceHeadlineColor : sourceSubheadColor;
   const hiddenKvIds = new Set(Array.isArray(state.hiddenKvIds) ? state.hiddenKvIds : []);
   const visibleKvImages = (kvImages || []).filter((kv) => !hiddenKvIds.has(kv.id));
   const { layerOrder, showSafezone } = globalSettings;
@@ -411,9 +423,11 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
   const sW = canvas.width - safe.l - safe.r;
   const sH = canvas.height - safe.t - safe.b;
   const brandRed = "#e90044";
-  const headlineWeight = 700;
+  const headlineWeight = textOrderReversed ? 400 : 700;
+  const subheadWeight = textOrderReversed ? 700 : 400;
+  const semanticTextKind = (kind) => textOrderReversed ? kind === "headline" ? "subhead" : "headline" : kind;
   const ctaFontFamily = '"Noto Sans SC", "Roboto", sans-serif';
-  const normalizeFontWeight = (weight) => Number(weight) >= 900 ? headlineWeight : weight;
+  const normalizeFontWeight = (weight) => Number(weight) >= 900 ? 700 : weight;
   const normalizeFontString = (fontStr) => fontStr.replace(/^900\b/, String(headlineWeight));
   const withFontSize = (fontStr, size) => fontStr.replace(/(\d+(?:\.\d+)?)px/, `${size}px`);
   const getFontSizeFromString = (fontStr, fallback = 16) => {
@@ -701,7 +715,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
     let fittedSubheadSize = subheadSize;
     ctx.font = `${headlineWeight} ${fittedHeadlineSize}px "Noto Sans SC", "Roboto"`;
     let headlineW = hLine ? ctx.measureText(hLine).width : 0;
-    ctx.font = `400 ${fittedSubheadSize}px "Noto Sans SC", "Roboto"`;
+    ctx.font = `${subheadWeight} ${fittedSubheadSize}px "Noto Sans SC", "Roboto"`;
     let subheadW = sLine ? ctx.measureText(sLine).width : 0;
     let totalW = headlineW + (subheadW ? gap + subheadW : 0);
     if (totalW > maxWidth) {
@@ -710,13 +724,13 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       fittedSubheadSize = Math.max(10, Math.floor(fittedSubheadSize * scale));
       ctx.font = `${headlineWeight} ${fittedHeadlineSize}px "Noto Sans SC", "Roboto"`;
       headlineW = hLine ? ctx.measureText(hLine).width : 0;
-      ctx.font = `400 ${fittedSubheadSize}px "Noto Sans SC", "Roboto"`;
+      ctx.font = `${subheadWeight} ${fittedSubheadSize}px "Noto Sans SC", "Roboto"`;
       subheadW = sLine ? ctx.measureText(sLine).width : 0;
       totalW = headlineW + (subheadW ? gap + subheadW : 0);
     }
     return {
       headlineFont: `${headlineWeight} ${fittedHeadlineSize}px "Noto Sans SC", "Roboto"`,
-      subheadFont: `400 ${fittedSubheadSize}px "Noto Sans SC", "Roboto"`,
+      subheadFont: `${subheadWeight} ${fittedSubheadSize}px "Noto Sans SC", "Roboto"`,
       headlineW,
       subheadW,
       totalW,
@@ -926,13 +940,14 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
     const drawOutlinedText = (text, spec, fontSize, kind) => {
       const x = spec.x + textOffset.x;
       const y = spec.y + textOffset.y;
-      const fittedSize = fitFontSizeToWidth(text, fontSize, headlineWeight, '"Noto Sans SC", "Roboto", sans-serif', spec.maxW, 24);
+      const slotWeight = kind === "headline" ? headlineWeight : subheadWeight;
+      const fittedSize = fitFontSizeToWidth(text, fontSize, slotWeight, '"Noto Sans SC", "Roboto", sans-serif', spec.maxW, 24);
       drawQueue.text.push(() => {
         ctx.textBaseline = "alphabetic";
         ctx.textAlign = spec.align;
-        ctx.font = `${headlineWeight} ${fittedSize}px "Noto Sans SC", "Roboto", sans-serif`;
+        ctx.font = `${slotWeight} ${fittedSize}px "Noto Sans SC", "Roboto", sans-serif`;
         ctx.fillStyle = "#ffffff";
-        drawTextWithBorder(text, x, y, null, kind, Math.max(6, fittedSize * 0.11), "#1a1a1a");
+        drawTextWithBorder(text, x, y, null, semanticTextKind(kind), Math.max(6, fittedSize * 0.11), "#1a1a1a");
       });
       addTextBounds(spec.align === "right" ? x - spec.maxW : x, y, spec.maxW, fittedSize * 1.2);
     };
@@ -948,7 +963,6 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
     const showQuote = state.showArticleQuote === true;
     const showHeadline = !!(headline || "").trim();
     const showSubhead = !!(subhead || "").trim();
-    const headlineFirst = state.articleHeadlineFirst !== false;
     const align = isRight ? "right" : "left";
     const leftX = 130;
     const rightX = 1075;
@@ -968,7 +982,6 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
     const textRows = [];
     if (showHeadline) textRows.push({ type: "headline", h: 100 });
     if (showSubhead) textRows.push({ type: "subhead", h: 80 });
-    if (!headlineFirst) textRows.reverse();
     rows.push(...textRows);
     const gap = 24;
     const totalH = rows.reduce((sum, row) => sum + row.h, 0) + Math.max(0, rows.length - 1) * gap;
@@ -1028,8 +1041,9 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
         const box = variant.template?.[row.type];
         const fontSize = row.type === "headline" ? formatFonts.h : formatFonts.s;
         const maxWidth = box ? box[2] : 900;
-        const fittedSize = fitFontSizeToWidth(text, fontSize, headlineWeight, '"Noto Sans SC", "Roboto", sans-serif', maxWidth, 30);
-        const font = `${headlineWeight} ${fittedSize}px "Noto Sans SC", "Roboto", sans-serif`;
+        const slotWeight = row.type === "headline" ? headlineWeight : subheadWeight;
+        const fittedSize = fitFontSizeToWidth(text, fontSize, slotWeight, '"Noto Sans SC", "Roboto", sans-serif', maxWidth, 30);
+        const font = `${slotWeight} ${fittedSize}px "Noto Sans SC", "Roboto", sans-serif`;
         const drawX = (box ? (isRight ? box[0] + box[2] : box[0]) : anchorX) + textOffset.x;
         const textY = (box ? box[1] : y) + textOffset.y;
         drawQueue.text.push(() => {
@@ -1037,7 +1051,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
           ctx.textAlign = align;
           ctx.font = font;
           ctx.fillStyle = "#ffffff";
-          drawTextWithBorder(text, drawX, textY, null, row.type, Math.max(6, fittedSize * 0.1), "#1a1a1a");
+          drawTextWithBorder(text, drawX, textY, null, semanticTextKind(row.type), Math.max(6, fittedSize * 0.1), "#1a1a1a");
         });
         addTextBounds(isRight ? drawX - maxWidth : drawX, textY, maxWidth, box ? box[3] : row.h);
       }
@@ -1121,12 +1135,12 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       if (showLineOne) {
         const fittedLineOneSize = fitFontSizeToWidth(lineOne, titleFontSize, headlineWeight, '"Noto Sans SC", "Roboto", sans-serif', canvas.width * 0.9, 28);
         ctx.font = `${headlineWeight} ${fittedLineOneSize}px "Noto Sans SC", "Roboto", sans-serif`;
-        drawTextWithBorder(lineOne, centerX, headlineY, null, "headline", 10, "#1a1a1a");
+        drawTextWithBorder(lineOne, centerX, headlineY, null, semanticTextKind("headline"), 10, "#1a1a1a");
       }
       if (showLineTwo) {
-        const fittedLineTwoSize = fitFontSizeToWidth(lineTwo, titleFontSize, headlineWeight, '"Noto Sans SC", "Roboto", sans-serif', canvas.width * 0.9, 28);
-        ctx.font = `${headlineWeight} ${fittedLineTwoSize}px "Noto Sans SC", "Roboto", sans-serif`;
-        drawTextWithBorder(lineTwo, centerX, subheadY, null, "subhead", 10, "#1a1a1a");
+        const fittedLineTwoSize = fitFontSizeToWidth(lineTwo, titleFontSize, subheadWeight, '"Noto Sans SC", "Roboto", sans-serif', canvas.width * 0.9, 28);
+        ctx.font = `${subheadWeight} ${fittedLineTwoSize}px "Noto Sans SC", "Roboto", sans-serif`;
+        drawTextWithBorder(lineTwo, centerX, subheadY, null, semanticTextKind("subhead"), 10, "#1a1a1a");
       }
       if (isQuoteLayout) {
         ctx.font = `300 ${nameFontSize}px "Noto Sans SC", "Roboto", sans-serif`;
@@ -1161,7 +1175,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       const lines = getTextLines(text);
       if (lines.length === 0) return;
       const effectiveWeight = normalizeFontWeight(weight);
-      const textKind = effectiveWeight < headlineWeight ? "subhead" : "headline";
+      const textKind = effectiveWeight < 600 ? "subhead" : "headline";
       const maxTextWidth = spec.maxW || inferMaxTextWidth(x, align);
       const size = Math.min(maxSize, ...lines.map((line) => fitFontSizeToWidth(line, maxSize, effectiveWeight, fontFamily, maxTextWidth, minSize)));
       const lineHeight = size * 1.2;
@@ -1258,7 +1272,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       const queueMeasuredText = (text, centerX, centerY, maxW, size, weight, color) => {
         const fittedSize = fitFontSizeToWidth(text, size, weight, fontFamily, maxW, 12);
         const effectiveWeight = normalizeFontWeight(weight);
-        const textKind = effectiveWeight < headlineWeight ? "subhead" : "headline";
+        const textKind = effectiveWeight < 600 ? "subhead" : "headline";
         const metrics = measureText(text, fittedSize, effectiveWeight);
         const drawX = centerX + textOffset.x;
         const drawY = centerY + textOffset.y;
@@ -1283,20 +1297,20 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
         const subheadSize = formatFonts.s;
         let subheadDisplaySize = subheadSize;
         let headlineW = measureText(headline, headlineSize, 900).width;
-        let subheadW = measureText(subhead, subheadDisplaySize, 400).width;
+        let subheadW = measureText(subhead, subheadDisplaySize, subheadWeight).width;
         let totalW = headlineW + textGap + subheadW;
         if (totalW > groupW) {
           const scale = Math.max(0.45, groupW / Math.max(totalW, 1));
           headlineSize = Math.max(12, Math.floor(headlineSize * scale));
           subheadDisplaySize = Math.max(10, Math.floor(subheadDisplaySize * scale));
           headlineW = measureText(headline, headlineSize, 900).width;
-          subheadW = measureText(subhead, subheadDisplaySize, 400).width;
+          subheadW = measureText(subhead, subheadDisplaySize, subheadWeight).width;
           totalW = headlineW + textGap + subheadW;
         }
         const startX = groupLeft + Math.max(0, (groupW - totalW) / 2);
         const centerY = canvas.height / 2;
         queueMeasuredText(headline, startX + headlineW / 2, centerY, headlineRect.width, headlineSize, 900, headlineColor);
-        queueMeasuredText(subhead, startX + headlineW + textGap + subheadW / 2, centerY, subheadRect.width, subheadDisplaySize, 400, subheadColor);
+        queueMeasuredText(subhead, startX + headlineW + textGap + subheadW / 2, centerY, subheadRect.width, subheadDisplaySize, subheadWeight, subheadColor);
       };
       const specs = {
         headline_only: {
@@ -1442,7 +1456,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       drawQueue.text = [];
       if (spec.logo) queueTrafficLogo({ x: spec.logo.x, y: spec.logo.y, w: spec.logo.width, h: spec.logo.height });
       if (spec.headline) queueTrafficText(headline, imuTextSpec(spec.headline), formatFonts.h, 12, 900, headlineColor, { fixedSize: variant.specVariant === "headline_only" });
-      if (wantsSubhead && spec.subhead) queueTrafficText(subhead, imuTextSpec(spec.subhead), formatFonts.s, 12, 400, subheadColor);
+      if (wantsSubhead && spec.subhead) queueTrafficText(subhead, imuTextSpec(spec.subhead), formatFonts.s, 12, subheadWeight, subheadColor);
       if (spec.cta) queueTrafficCTA({ x: spec.cta.x, y: spec.cta.y, w: spec.cta.width, h: spec.cta.height }, formatFonts.c);
     };
     if (format.id === "leaderboard") {
@@ -1485,7 +1499,8 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
     const queueBoxText = (text, box, size, weight, color, role) => {
       if (!box || !(text || "").trim()) return;
       const [x,y,w,h]=box;
-      const style=variant.textStyles?.[role]||{};
+      const sourceRole=semanticTextKind(role);
+      const style=variant.textStyles?.[sourceRole]||{};
       const effectiveSize=size||style.font_size||16;
       const effectiveWeight=style.font_weight||weight;
       const family=style.font_family?`"${style.font_family}", sans-serif`:'"Noto Sans SC", "Roboto", sans-serif';
@@ -1500,7 +1515,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
     };
     if(spec.logo)queueJsonTemplateLogo(spec.logo);
     queueBoxText(headlineText,spec.headline,fonts.h,headlineWeight,headlineColor,"headline");
-    if(variant.hasSub)queueBoxText(subheadText,spec.subhead,fonts.s,400,subheadColor,"subhead");
+    if(variant.hasSub)queueBoxText(subheadText,spec.subhead,fonts.s,subheadWeight,subheadColor,"subhead");
     if(spec.cta)queueJsonTemplateCTA(spec.cta);
   };
   if (variant.template && format.category !== "Video Graphics") {
@@ -1640,7 +1655,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       startY += stack.linesH.length * stack.currentHFont * 1.2 + stack.gap;
       if (stack.linesS.length > 0) {
         stack.linesS.forEach((l, i) => {
-          queueTextLine(l, drawXAlign, startY + i * stack.currentSFont * 1.4, align, subheadColor, `400 ${stack.currentSFont}px "Noto Sans SC", "Roboto"`);
+          queueTextLine(l, drawXAlign, startY + i * stack.currentSFont * 1.4, align, subheadColor, `${subheadWeight} ${stack.currentSFont}px "Noto Sans SC", "Roboto"`);
         });
         startY += stack.linesS.length * stack.currentSFont * 1.4 + stack.gap;
       }
@@ -1717,7 +1732,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       tStartY += stack.linesH.length * stack.currentHFont * 1.2 + stack.gap;
       if (stack.linesS.length > 0) {
         stack.linesS.forEach((l, i) => {
-          queueTextLine(l, sX, tStartY + i * stack.currentSFont * 1.4, "left", subheadColor, `400 ${stack.currentSFont}px "Noto Sans SC", "Roboto"`);
+          queueTextLine(l, sX, tStartY + i * stack.currentSFont * 1.4, "left", subheadColor, `${subheadWeight} ${stack.currentSFont}px "Noto Sans SC", "Roboto"`);
         });
       }
       queueLogo(sX + tW, sY, lW, sH, format.id === "youtube-cover-2-col" ? "right" : "center", "middle");
@@ -1748,7 +1763,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
         tStartY += stack.linesH.length * stack.currentHFont * 1.2 + stack.gap;
         if (stack.linesS.length > 0) {
           stack.linesS.forEach((l, i) => {
-            queueTextLine(l, sX, tStartY + i * stack.currentSFont * 1.4, "left", subheadColor, `400 ${stack.currentSFont}px "Noto Sans SC", "Roboto"`);
+            queueTextLine(l, sX, tStartY + i * stack.currentSFont * 1.4, "left", subheadColor, `${subheadWeight} ${stack.currentSFont}px "Noto Sans SC", "Roboto"`);
           });
         }
         if (stack.ctaStats.h > 0) {
@@ -1765,7 +1780,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       stack.linesH.forEach((l) => {
         textW = Math.max(textW, ctx.measureText(l).width);
       });
-      ctx.font = `400 ${stack.currentSFont}px "Noto Sans SC", "Roboto"`;
+      ctx.font = `${subheadWeight} ${stack.currentSFont}px "Noto Sans SC", "Roboto"`;
       stack.linesS.forEach((l) => {
         textW = Math.max(textW, ctx.measureText(l).width);
       });
@@ -1781,7 +1796,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       tStartY += stack.linesH.length * stack.currentHFont * 1.2 + stack.gap;
       if (stack.linesS.length > 0) {
         stack.linesS.forEach((l, i) => {
-          queueTextLine(l, textStartX, tStartY + i * stack.currentSFont * 1.4, "left", subheadColor, `400 ${stack.currentSFont}px "Noto Sans SC", "Roboto"`);
+          queueTextLine(l, textStartX, tStartY + i * stack.currentSFont * 1.4, "left", subheadColor, `${subheadWeight} ${stack.currentSFont}px "Noto Sans SC", "Roboto"`);
         });
       }
     } else if (variant.layout === "logo-text-cta" || variant.layout === "logo-headline") {
@@ -1794,7 +1809,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       stack.linesH.forEach((l) => {
         textW = Math.max(textW, ctx.measureText(l).width);
       });
-      ctx.font = `400 ${stack.currentSFont}px "Noto Sans SC", "Roboto"`;
+      ctx.font = `${subheadWeight} ${stack.currentSFont}px "Noto Sans SC", "Roboto"`;
       stack.linesS.forEach((l) => {
         textW = Math.max(textW, ctx.measureText(l).width);
       });
@@ -1811,7 +1826,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
       tStartY += stack.linesH.length * stack.currentHFont * 1.2 + stack.gap;
       if (stack.linesS.length > 0) {
         stack.linesS.forEach((l, i) => {
-          queueTextLine(l, textCenterX, tStartY + i * stack.currentSFont * 1.4, "center", subheadColor, `400 ${stack.currentSFont}px "Noto Sans SC", "Roboto"`);
+          queueTextLine(l, textCenterX, tStartY + i * stack.currentSFont * 1.4, "center", subheadColor, `${subheadWeight} ${stack.currentSFont}px "Noto Sans SC", "Roboto"`);
         });
         tStartY += stack.linesS.length * stack.currentSFont * 1.4 + stack.gap;
       }
@@ -1855,7 +1870,7 @@ const renderBanner = (ctx, canvas, format, variant, state, assets, offsets, glob
         tStartY += stack.linesH.length * stack.currentHFont * 1.2 + stack.gap;
         if (stack.linesS.length > 0) {
           stack.linesS.forEach((l, i) => {
-            queueTextLine(l, tX, tStartY + i * stack.currentSFont * 1.4, "center", subheadColor, `400 ${stack.currentSFont}px "Noto Sans SC", "Roboto"`);
+            queueTextLine(l, tX, tStartY + i * stack.currentSFont * 1.4, "center", subheadColor, `${subheadWeight} ${stack.currentSFont}px "Noto Sans SC", "Roboto"`);
           });
         }
         if (stack.ctaStats.h > 0) {
@@ -2230,6 +2245,7 @@ const DEFAULT_BANNER_STATE = {
   subheadBorderColor: "#000000",
   headlineFontSize: null,
   subheadFontSize: null,
+  textOrderReversed: false,
   textShadowEnabled: false,
   textShadowColor: "#000000",
   textShadowBlur: 0,
@@ -2867,6 +2883,7 @@ function App() {
       subheadBorderColor: override.subheadBorderColor || "#000000",
       headlineFontSize: override.headlineFontSize !== void 0 ? override.headlineFontSize : null,
       subheadFontSize: override.subheadFontSize !== void 0 ? override.subheadFontSize : null,
+      textOrderReversed: override.textOrderReversed !== void 0 ? override.textOrderReversed : override.articleHeadlineFirst === false,
       headlineBorderWidth: override.headlineBorderWidth !== void 0 ? override.headlineBorderWidth : void 0,
       subheadBorderWidth: override.subheadBorderWidth !== void 0 ? override.subheadBorderWidth : void 0,
       textShadowEnabled: override.textShadowEnabled !== void 0 ? override.textShadowEnabled : false,
@@ -3978,7 +3995,10 @@ function App() {
       onChange: (e) => updateActiveState({ quoteName: e.target.value }),
       className: "w-full bg-bgCore border border-borderInput rounded-md p-2 text-sm font-medium text-white focus:outline-none focus:border-brandRed shadow-inner"
     }
-  ))), isArticleCoverActive && /* @__PURE__ */ React.createElement("div", { className: "space-y-4 pb-4 border-b border-borderMain/50" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Gradient Overlay"), /* @__PURE__ */ React.createElement(CheckToggle, { checked: activeState.showArticleGradient, onClick: (e) => {
+  ))), (activeSlideVariant == null ? void 0 : activeSlideVariant.hasSub) && /* @__PURE__ */ React.createElement("button", { onClick: (e) => {
+    e.stopPropagation();
+    updateActiveState({ textOrderReversed: !activeState.textOrderReversed });
+  }, className: "w-full py-2 px-3 bg-bgCore border border-borderInput rounded-md text-[10px] font-bold text-textPri uppercase tracking-wider hover:border-brandRed transition" }, activeState.textOrderReversed ? "Restore Text Order" : "Reverse Text Order"), isArticleCoverActive && /* @__PURE__ */ React.createElement("div", { className: "space-y-4 pb-4 border-b border-borderMain/50" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Gradient Overlay"), /* @__PURE__ */ React.createElement(CheckToggle, { checked: activeState.showArticleGradient, onClick: (e) => {
     e.stopPropagation();
     updateActiveState({ showArticleGradient: !activeState.showArticleGradient });
   }, title: "Toggle gradient overlay" })), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Optional Topic"), /* @__PURE__ */ React.createElement(CheckToggle, { checked: activeState.showArticleTopic, onClick: (e) => {
@@ -3987,10 +4007,7 @@ function App() {
   }, title: "Toggle topic" })), activeState.showArticleTopic && /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut mb-1.5 uppercase tracking-wider" }, "Override Topic"), /* @__PURE__ */ React.createElement("input", { type: "text", value: activeState.articleTopic, onChange: (e) => updateActiveState({ articleTopic: e.target.value }), className: "w-full bg-bgCore border border-borderInput rounded-md p-2 text-sm font-medium text-white focus:outline-none focus:border-brandRed shadow-inner" })), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Quotation Mark + Name"), /* @__PURE__ */ React.createElement(CheckToggle, { checked: activeState.showArticleQuote, onClick: (e) => {
     e.stopPropagation();
     updateActiveState({ showArticleQuote: !activeState.showArticleQuote });
-  }, title: "Toggle quotation name" })), activeState.showArticleQuote && /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut mb-1.5 uppercase tracking-wider" }, "Override Name"), /* @__PURE__ */ React.createElement("input", { type: "text", value: activeState.articleQuoteName, onChange: (e) => updateActiveState({ articleQuoteName: e.target.value }), className: "w-full bg-bgCore border border-borderInput rounded-md p-2 text-sm font-medium text-white focus:outline-none focus:border-brandRed shadow-inner" })), /* @__PURE__ */ React.createElement("button", { onClick: (e) => {
-    e.stopPropagation();
-    updateActiveState({ articleHeadlineFirst: !activeState.articleHeadlineFirst });
-  }, className: "w-full py-2 px-3 bg-bgCore border border-borderInput rounded-md text-[10px] font-bold text-textPri uppercase tracking-wider hover:border-brandRed transition" }, activeState.articleHeadlineFirst ? "Reverse Order: 小标题 then 大标题" : "Reverse Order: 大标题 then 小标题")), isShortsCoverActive && /* @__PURE__ */ React.createElement("div", { className: "space-y-4 pb-4 border-b border-borderMain/50" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Gradient Overlay"), /* @__PURE__ */ React.createElement(CheckToggle, { checked: activeState.showShortsGradient, onClick: (e) => {
+  }, title: "Toggle quotation name" })), activeState.showArticleQuote && /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut mb-1.5 uppercase tracking-wider" }, "Override Name"), /* @__PURE__ */ React.createElement("input", { type: "text", value: activeState.articleQuoteName, onChange: (e) => updateActiveState({ articleQuoteName: e.target.value }), className: "w-full bg-bgCore border border-borderInput rounded-md p-2 text-sm font-medium text-white focus:outline-none focus:border-brandRed shadow-inner" }))), isShortsCoverActive && /* @__PURE__ */ React.createElement("div", { className: "space-y-4 pb-4 border-b border-borderMain/50" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between" }, /* @__PURE__ */ React.createElement("label", { className: "text-[10px] font-bold text-textMut uppercase tracking-wider" }, "Gradient Overlay"), /* @__PURE__ */ React.createElement(CheckToggle, { checked: activeState.showShortsGradient, onClick: (e) => {
     e.stopPropagation();
     updateActiveState({ showShortsGradient: !activeState.showShortsGradient });
   }, title: "Toggle gradient overlay" })), activeVariantLayout === "shorts-cover-default" && /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("label", { className: "block text-[10px] font-bold text-textMut mb-2 uppercase tracking-wider" }, "Text Placement"), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-3 gap-2" }, [

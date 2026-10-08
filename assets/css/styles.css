@@ -328,12 +328,12 @@
     .banner-card:focus-visible { outline: 3px solid rgba(238, 0, 80, .24); outline-offset: 3px; }
     .autobanner-light .banner-card.is-selected { border-color: var(--ui-pink) !important; background: #fffafd !important; box-shadow: 0 0 0 1px var(--ui-pink) !important; }
     .autobanner-light .banner-card.is-approved { border-color: #86c99a !important; background: #fbfffc !important; }
-    .banner-card > div:first-child { padding: 6px !important; }
+    .banner-card > div:first-child { padding: 50px 6px 6px !important; }
     .banner-card > div:first-child::after {
       content: "";
       position: absolute;
       z-index: 4;
-      inset: 6px;
+      inset: 50px 6px 6px;
       border-radius: 7px;
       background: rgba(10, 14, 20, .07);
       opacity: 0;
@@ -368,17 +368,20 @@
       font-weight: 700;
       line-height: 1;
     }
-    .banner-card-action { top: 50%; left: 50%; min-height: 36px; padding: 8px 18px; color: var(--ui-ink); background: rgba(255,255,255,.96); border: 1px solid #d8dde4; border-radius: 8px; box-shadow: 0 4px 12px rgba(23,28,38,.10); opacity: 0; transform: translate(-50%, calc(-50% + 3px)); transition: opacity .16s ease, transform .16s ease, background .16s ease, border-color .16s ease, box-shadow .16s ease; pointer-events: auto; white-space: nowrap; }
+    .banner-card-action { top: 10px; left: 10px; min-height: 32px; padding: 7px 12px; color: var(--ui-ink); background: rgba(255,255,255,.96); border: 1px solid #d8dde4; border-radius: 8px; box-shadow: 0 2px 6px rgba(23,28,38,.09); opacity: 1; transform: none; transition: background .16s ease, border-color .16s ease, box-shadow .16s ease; pointer-events: auto; white-space: nowrap; }
     .banner-card:hover .banner-card-action,
-    .banner-card:focus-visible .banner-card-action { opacity: 1; transform: translate(-50%, -50%); }
-    .banner-card-action:hover { background: #fff; border-color: #c6ccd5; box-shadow: 0 5px 14px rgba(23,28,38,.13); transform: translate(-50%, -50%) scale(1.015); }
+    .banner-card:focus-visible .banner-card-action { opacity: 1; transform: none; }
+    .banner-card-action:hover { background: #fff; border-color: #c6ccd5; box-shadow: 0 3px 9px rgba(23,28,38,.13); transform: none; }
     .banner-card-status { top: 10px; left: 10px; padding: 4px 7px; color: var(--ui-pink); background: rgba(255,255,255,.94); border: 1px solid rgba(238,0,80,.22); border-radius: 6px; box-shadow: 0 2px 8px rgba(23,28,38,.12); }
+    .banner-card-status,
+    .banner-card-action { max-width: calc(100% - 64px); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .banner-card-status span { overflow: hidden; text-overflow: ellipsis; }
     .banner-card.is-approved .banner-card-status { color: #218446; border-color: rgba(33,132,70,.25); }
     .banner-card-edit { top: 10px; right: 10px; width: 32px; height: 32px; min-height: 32px; justify-content: center; padding: 0; color: #596170; background: rgba(255,255,255,.86); border: 1px solid rgba(212,217,224,.82); border-radius: 8px; box-shadow: 0 2px 6px rgba(23,28,38,.09); transition: color .15s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease; }
     .banner-card-edit:hover { background: #fff; border-color: #bec5cf; box-shadow: 0 3px 9px rgba(23,28,38,.13); color: var(--ui-ink); }
     .banner-card-edit:focus-visible { outline: 3px solid rgba(238,0,80,.24); outline-offset: 2px; }
     @media (hover: none) {
-      .banner-card-action { opacity: 1; transform: translate(-50%, -50%); }
+      .banner-card-action { opacity: 1; transform: none; }
     }
     .traffic-slide-card {
       box-shadow: none;
